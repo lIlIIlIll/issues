@@ -1,0 +1,16 @@
+# GitCode API PAT，建议留空，用环境变量 GITCODE_TOKEN 覆盖
+access_token = ""
+
+# 默认 PR 状态 & 每页数量（单个仓库也可以覆盖）
+state = ["merged", "open"]
+per_page = 50
+
+users = ["EMROF"]
+
+[[repos]]
+owner = "cangjie"
+repo = "cangjie_test"
+
+[[repos]]
+owner = "cangjie"
+repo = "cangjie_runtime"

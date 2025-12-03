@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+<head>
+<meta charset='utf-8' />
+<title>GitCode PR Review Report</title>
+<meta name='viewport' content='width=device-width, initial-scale=1' />
+<style>
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    .sub-title {
+      font-size: 14px;
+      color: #9ca3af;
+      margin-bottom: 24px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      margin-right: 6px;
+    }
+    .badge-danger {
+      background: #b91c1c;
+      color: #fee2e2;
+    }
+    .badge-warn {
+      background: #92400e;
+      color: #ffedd5;
+    }
+    .badge-ok {
+      background: #065f46;
+      color: #d1fae5;
+    }
+    .repo-block {
+      margin-top: 24px;
+      margin-bottom: 24px;
+    }
+    .repo-title {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+    .user-block {
+      margin-top: 8px;
+      margin-bottom: 16px;
+    }
+    .user-title {
+      font-size: 16px;
+      margin: 12px 0;
+    }
+    .pr-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 12px;
+    }
+    .pr-card {
+      background: #111827;
+      border-radius: 12px;
+      padding: 12px 14px;
+      border: 1px solid #1f2937;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+    }
+    .pr-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .pr-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .pr-meta {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+    .pr-branch {
+      font-size: 12px;
+      color: #cbd5f5;
+      margin-bottom: 4px;
+    }
+    .pr-times {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+    .pr-link {
+      font-size: 11px;
+      color: #60a5fa;
+      text-decoration: none;
+    }
+    .pr-link:hover {
+      text-decoration: underline;
+    }
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 6px;
+      margin-bottom: 4px;
+      color: #e5e7eb;
+    }
+    .issue-item, .review-item {
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+    .issue-url, .review-meta {
+      font-size: 10px;
+      color: #9ca3af;
+    }
+    .review-body {
+      font-size: 11px;
+      margin-top: 2px;
+      white-space: pre-wrap;
+    }
+    .empty-text {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+    .footer {
+      margin-top: 40px;
+      font-size: 11px;
+      color: #6b7280;
+      text-align: center;
+    }
+    
+</style>
+</head>
+<body>
+<div class='container'>
+<h1>GitCode PR Review Report</h1>
+<div class='sub-title'>模式：仅显示未解决检视意见，隐藏没有未解决检视意见的 PR</div>
+<div class='repo-block'>
+<div class='repo-title'>仓库：cangjie/cangjie_test</div>
+<div class='sub-title'>共 0 个匹配 PR</div>
+<div class='user-block'>
+<div class='user-title'>用户：EMROF（0 个 PR）</div>
+<div class='empty-text'>该用户在当前筛选条件下没有 PR。</div>
+</div>
+</div>
+<div class='repo-block'>
+<div class='repo-title'>仓库：cangjie/cangjie_runtime</div>
+<div class='sub-title'>共 2 个匹配 PR</div>
+<div class='user-block'>
+<div class='user-title'>用户：EMROF（2 个 PR）</div>
+<div class='pr-grid'>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'>#346 fix: optimize std.fs exception of path empty or contains null byte</div>
+<span class='badge badge-danger'>3 未解决</span>
+</div>
+<div class='pr-meta'>状态：merged</div>
+<div class='pr-branch'>分支：FsExceptionOptimization3 → dev</div>
+<div class='pr-times'>创建：2025-11-25T17:37:53+08:00 ｜ 更新：2025-12-03T16:26:13+08:00</div>
+<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/346' target='_blank' rel='noopener noreferrer'>查看 PR</a>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'>#210 [open] [Bug]: 优化std.fs异常信息（labels: bug）</div>
+<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/210</div>
+<div class='section-title'>检视意见</div>
+<div class='review-item'>
+<div><strong>MinamiK</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-12-03T16:10:42+08:00 ｜ 更新：2025-12-03T16:10:42+08:00</div>
+<div class='review-body'>语法问题：`is already exists` 动词冗余
+
+Cannot copy directory: Source `${sourcePath}` is a directory, but destination `${to}` already exists and is not a directory.
+</div>
+</div>
+<div class='review-item'>
+<div><strong>MinamiK</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-12-03T16:19:41+08:00 ｜ 更新：2025-12-03T16:19:41+08:00</div>
+<div class='review-body'>想了一下，看起来是不是很奇怪？
+Failed to remove `/` return -1: No permission.
+
+
+改成：
+Failed to remove &quot;${path}&quot;. Error code: ${ret.rtnCode}, message: &quot;${errMessage.trimAscii()}&quot;. 
+可能更好
+</div>
+</div>
+<div class='review-item'>
+<div><strong>MinamiK</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-12-03T16:26:12+08:00 ｜ 更新：2025-12-03T17:14:49+08:00</div>
+<div class='review-body'>读起来不通顺
+throw FSException(&quot;Parent path does not exist:: `${parent}`.&quot;)
+</div>
+</div>
+</div>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'>#295 fix: optimize exceptions of std.fs</div>
+<span class='badge badge-danger'>2 未解决</span>
+</div>
+<div class='pr-meta'>状态：open</div>
+<div class='pr-branch'>分支：FsExceptionOptimization → dev</div>
+<div class='pr-times'>创建：2025-11-19T16:14:53+08:00 ｜ 更新：2025-12-03T17:06:02+08:00</div>
+<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/295' target='_blank' rel='noopener noreferrer'>查看 PR</a>
+<div class='section-title'>关联 Issues</div>
+<div class='empty-text'>无关联 Issue</div>
+<div class='section-title'>检视意见</div>
+<div class='review-item'>
+<div><strong>chongweizhi</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-11-20T09:36:12+08:00 ｜ 更新：2025-11-20T09:36:12+08:00</div>
+<div class='review-body'>异常描述修改，测试用例是否也要修改</div>
+</div>
+<div class='review-item'>
+<div><strong>chongweizhi</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-11-20T09:40:31+08:00 ｜ 更新：2025-11-20T09:40:31+08:00</div>
+<div class='review-body'>这个异常修改，需要新增用例和修改用例，不然覆盖率会下降</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class='footer'>由自动脚本生成 · 数据来源：GitCode API</div>
+</div></body></html>
