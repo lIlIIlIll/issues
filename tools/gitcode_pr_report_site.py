@@ -123,11 +123,11 @@ def load_config(path: str) -> Config:
     if not users or not isinstance(users, list):
         raise ValueError('配置文件必须包含 users 数组，例如: users = ["alice", "bob"]')
 
-    global_states = _normalize_states(data, ["all"])
+    global_states = data.get("states", ["open"])
 
-    global_per_page = int(data.get("per_page", 50))
+    global_per_page = int(data.get("per_page", 30))
     if global_per_page < 1 or global_per_page > 100:
-        global_per_page = 50
+        global_per_page = 30
 
     repos_raw = data.get("repos")
     if not repos_raw or not isinstance(repos_raw, list):
@@ -937,7 +937,6 @@ def main() -> None:
         for username in cfg.users:
             tasks.append((repo_name, repo_cfg, username))
 
-    now_utc = datetime.now()
     # 执行时间（Asia/Shanghai）
     executed_at = datetime.now(ZoneInfo("Asia/Shanghai")).strftime(
         "%Y-%m-%d %H:%M:%S %Z"
