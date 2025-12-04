@@ -796,24 +796,47 @@ def build_html(
     }
 
     /* 按 reviewer 分组 */
+
     .reviewer-group {
       margin-top: 6px;
       margin-bottom: 8px;
-      padding-top: 4px;
       border-top: 1px dashed #1f2937;
+    }
+    .reviewer-group > summary {
+      list-style: none;
+      cursor: pointer;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .reviewer-group > summary::-webkit-details-marker {
+      display: none;
     }
     .reviewer-group-title {
       font-size: 12px;
       color: #e5e7eb;
-      margin-bottom: 4px;
       display: flex;
-      justify-content: space-between;
       align-items: baseline;
     }
     .reviewer-group-title span {
       font-size: 11px;
       color: #9ca3af;
       margin-left: 8px;
+    }
+    .reviewer-chevron {
+      font-size: 10px;
+      color: #6b7280;
+      margin-left: 8px;
+      transition: transform 0.15s ease-out;
+    }
+    .reviewer-group[open] .reviewer-chevron {
+      transform: rotate(90deg);
+    }
+    .reviewer-group-body {
+      padding-left: 2px;
+      padding-bottom: 4px;
     }
 
     .empty-text {
@@ -868,7 +891,7 @@ def build_html(
             html_parts.append("<summary>")
             html_parts.append(f"<div class='repo-title'>仓库：{escape_html(repo_name)}")
             html_parts.append(
-                f"<span class='repo-meta'>共 {total_prs} 个匹配 PR · {len(users_prs)} 个用户</span>"
+                f"<span class='repo-meta'>共 {total_prs} 个匹配 PR </span>"
             )
             html_parts.append("</div>")
             html_parts.append("<div class='repo-chevron'>▶</div>")
@@ -1003,7 +1026,9 @@ def build_html(
                         if only_unresolved:
                             filtered_comments = unresolved_comments
                         else:
-                            filtered_comments = [cm for cm in pr.comments if cm.resolved is not None]
+                            filtered_comments = [
+                                cm for cm in pr.comments if cm.resolved is not None
+                            ]
 
                         if not filtered_comments:
                             if only_unresolved:
@@ -1018,7 +1043,9 @@ def build_html(
                             # 1. 按 reviewer 分组（保留原有顺序）
                             from collections import OrderedDict
 
-                            grouped: "OrderedDict[str, List[ReviewComment]]" = OrderedDict()
+                            grouped: "OrderedDict[str, List[ReviewComment]]" = (
+                                OrderedDict()
+                            )
                             for cm in filtered_comments:
                                 key = cm.user or "(unknown)"
                                 if key not in grouped:
@@ -1027,19 +1054,36 @@ def build_html(
 
                             # 2. 逐个 reviewer 输出
                             for reviewer, comments in grouped.items():
-                                html_parts.append("<div class='reviewer-group'>")
+                                # 默认展开，想默认收起就把 open 去掉
+                                html_parts.append(
+                                    "<details class='reviewer-group' open>"
+                                )
+                                html_parts.append("<summary>")
+
                                 html_parts.append(
                                     "<div class='reviewer-group-title'>"
                                     f"{escape_html(reviewer)}"
                                     f"<span>{len(comments)} 条评论</span>"
                                     "</div>"
                                 )
+                                html_parts.append(
+                                    "<div class='reviewer-chevron'>▶</div>"
+                                )
+
+                                html_parts.append("</summary>")
+
+                                html_parts.append("<div class='reviewer-group-body'>")
 
                                 for cm in comments:
-                                    status_cls = "unresolved" if cm.resolved is False else "resolved"
+                                    status_cls = (
+                                        "unresolved"
+                                        if cm.resolved is False
+                                        else "resolved"
+                                    )
+                                    status_text = (
+                                        "未解决" if cm.resolved is False else "已解决"
+                                    )
 
-                                    # 头部：状态 + 位置
-                                    status_text = "未解决" if cm.resolved is False else "已解决"
                                     loc = ""
                                     if cm.path:
                                         loc = cm.path
@@ -1050,21 +1094,23 @@ def build_html(
                                     if loc:
                                         header_left += f" · {loc}"
 
-                                    html_parts.append(f"<div class='review-item {status_cls}'>")
+                                    html_parts.append(
+                                        f"<div class='review-item {status_cls}'>"
+                                    )
 
-                                    # header 行（这里不再重复 reviewer 名字，避免和 group title 冗余）
+                                    # header
                                     html_parts.append(
                                         "<div class='review-header'>"
                                         f"<span>{escape_html(header_left)}</span>"
                                         "</div>"
                                     )
 
-                                    # meta 时间
+                                    # 时间
                                     html_parts.append(
                                         f"<div class='review-meta'>创建：{escape_html(cm.created_at)} ｜ 更新：{escape_html(cm.updated_at)}</div>"
                                     )
 
-                                    # body：Markdown 渲染 + 长评论折叠
+                                    # body（这里用你现在的 render_comment_body + 折叠逻辑）
                                     if cm.body:
                                         body_html = render_comment_body(cm.body)
                                         line_count = cm.body.count("\n") + 1
@@ -1086,7 +1132,8 @@ def build_html(
 
                                     html_parts.append("</div>")  # review-item
 
-                                html_parts.append("</div>")  # reviewer-group
+                                html_parts.append("</div>")  # reviewer-group-body
+                                html_parts.append("</details>")  # reviewer-group
 
                         html_parts.append("</div>")  # pr-card
                     html_parts.append("</div>")  # pr-grid
@@ -1166,7 +1213,7 @@ def main() -> None:
     )
 
     # 并发执行，max_workers 可以按你仓库/用户规模调，8–16 一般够
-    max_workers = min(len(tasks), 8) or 1
+    max_workers = min(len(tasks), 16) or 1
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_key = {}
         for repo_name, repo_cfg, username in tasks:
