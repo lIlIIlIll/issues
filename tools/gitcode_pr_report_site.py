@@ -4,8 +4,8 @@
 """
 生成 GitCode PR 检视报表（HTML），支持：
 - 多仓库、多用户、多 PR 状态
-- 只看未解决检视意见 (--only-unresolved)
-- 没有未解决检视意见的 PR 直接隐藏 (--hide-clean-prs)
+- 页面筛选：只看未解决检视意见 / 隐藏没有未解决检视意见的 PR
+  （CLI 参数 --only-unresolved / --hide-clean-prs 只影响页面默认勾选状态）
 - 输出一个静态 HTML，可直接部署到 GitHub Pages
 """
 
@@ -231,9 +231,8 @@ def fetch_prs_for_user(
                 # 🔴 1) 优先过滤 WIP
                 title = pr.get("title", "") or ""
                 # 有些 GitLab/GitCode 风格的接口还会给 work_in_progress/draft 字段
-                from pprint import pprint
-                pprint(pr)
                 if pr.get("work_in_progress") is True or pr.get("draft") is True:
+                    print(pr.get("html_url", ""))
                     continue
 
                 if is_wip_title(title):
@@ -297,7 +296,9 @@ def fetch_issues_for_pr(
                 number=str(it.get("number", "")),
                 title=it.get("title", ""),
                 state=it.get("state", ""),
-                url=it.get("url", "").replace("api.gitcode", "gitcode").replace("api/v5/repos/", ""),
+                url=it.get("url", "")
+                .replace("api.gitcode", "gitcode")
+                .replace("api/v5/repos/", ""),
                 labels=labels,
             )
         )
@@ -331,13 +332,10 @@ def fetch_repo_user_data(
     access_token: Optional[str],
     repo_cfg: RepoConfig,
     username: str,
-    *,
-    only_unresolved: bool,
-    hide_clean_prs: bool,
 ) -> List[PRInfo]:
     """
     拉取一个仓库 + 一个用户的所有 PR，并填充 issues/comments，
-    根据 only_unresolved/hide_clean_prs 做必要的过滤。
+    不在拉取阶段做过滤，交给前端页面自行过滤。
     """
     prs = fetch_prs_for_user(access_token, repo_cfg, username)
 
@@ -346,12 +344,6 @@ def fetch_repo_user_data(
         # 先拉评论
         comments = fetch_comments_for_pr(access_token, repo_cfg, pr.number)
         pr.comments = comments
-
-        # 如果启用了 hide_clean_prs 且没有未解决的意见，直接跳过这个 PR，
-        # 连 issues 都不查，省一次请求。
-        has_unresolved = any(cm.resolved is False for cm in comments)
-        if hide_clean_prs and pr.state != "open" and not has_unresolved:
-            continue
 
         # 再拉 issues
         pr.issues = fetch_issues_for_pr(access_token, repo_cfg, pr.number)
@@ -489,8 +481,8 @@ def build_html(
     cfg: Config,
     data: Dict[str, Dict[str, List[PRInfo]]],
     *,
-    only_unresolved: bool,
-    hide_clean_prs: bool,
+    default_only_unresolved: bool,
+    default_hide_clean_prs: bool,
     executed_at: str,
 ) -> str:
     """
@@ -876,6 +868,33 @@ def build_html(
       padding-bottom: 4px;
     }
 
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      margin: 4px 0 18px;
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      background: #0b1220;
+    }
+    .filter-label {
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .filter-bar input[type="checkbox"] {
+      accent-color: #60a5fa;
+      width: 16px;
+      height: 16px;
+    }
+    .filter-hint {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
     .empty-text {
       font-size: 12px;
       color: #6b7280;
@@ -905,17 +924,34 @@ def build_html(
         f"<h1>{escape_html(title)}</h1>",
     ]
 
-    flags = []
-    if only_unresolved:
-        flags.append("仅显示未解决检视意见")
-    if hide_clean_prs:
-        flags.append("隐藏没有未解决检视意见的 PR")
-    flag_text = "，".join(flags) if flags else "显示所有包含检视意见状态的 PR"
-
-    html_parts.append(f"<div class='sub-title'>模式：{escape_html(flag_text)}</div>")
     html_parts.append(
         f"<div class='sub-title'>执行时间：{escape_html(executed_at)}</div>"
     )
+    filter_desc: List[str] = []
+    if default_only_unresolved:
+        filter_desc.append("默认开启：只看未解决检视意见")
+    if default_hide_clean_prs:
+        filter_desc.append("默认开启：隐藏没有未解决检视意见的 PR（已关闭）")
+    if not filter_desc:
+        filter_desc.append("可直接在页面上切换过滤，无需重新生成报表")
+    html_parts.append(
+        f"<div class='sub-title'>{escape_html('；'.join(filter_desc))}</div>"
+    )
+
+    html_parts.append("<div class='filter-bar'>")
+    html_parts.append(
+        "<label class='filter-label'>"
+        f"<input type='checkbox' id='filter-unresolved' {'checked' if default_only_unresolved else ''} />"
+        " 只看未解决检视意见"
+        "</label>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
+        f"<input type='checkbox' id='filter-hide-clean' {'checked' if default_hide_clean_prs else ''} />"
+        " 隐藏没有未解决检视意见的 PR"
+        "</label>"
+    )
+    html_parts.append("</div>")
 
     if not data:
         html_parts.append("<p class='empty-text'>没有任何符合条件的 PR。</p>")
@@ -928,7 +964,7 @@ def build_html(
             html_parts.append("<summary>")
             html_parts.append(f"<div class='repo-title'>仓库：{escape_html(repo_name)}")
             html_parts.append(
-                f"<span class='repo-meta'>共 {total_prs} 个匹配 PR </span>"
+                f"<span class='repo-meta'>共 {total_prs} 个 PR（页面可再筛选）</span>"
             )
             html_parts.append("</div>")
             html_parts.append("<div class='repo-chevron'>▶</div>")
@@ -959,8 +995,11 @@ def build_html(
                 else:
                     html_parts.append("<div class='pr-grid'>")
                     for pr in prs:
+                        all_comments = [
+                            cm for cm in pr.comments if cm.resolved is not None
+                        ]
                         unresolved_comments = [
-                            cm for cm in pr.comments if cm.resolved is False
+                            cm for cm in all_comments if cm.resolved is False
                         ]
                         unresolved_count = len(unresolved_comments)
 
@@ -974,7 +1013,13 @@ def build_html(
                             badge_cls = "badge-warn"
                             badge_text = "无检视意见"
 
-                        html_parts.append("<div class='pr-card'>")
+                        state_lower = (pr.state or "").lower()
+                        html_parts.append(
+                            "<div class='pr-card'"
+                            f" data-state='{escape_html(state_lower)}'"
+                            f" data-has-unresolved='{1 if unresolved_count > 0 else 0}'"
+                            f" data-total-comments='{len(all_comments)}'>"
+                        )
 
                         html_parts.append("<div class='pr-header'>")
 
@@ -998,10 +1043,9 @@ def build_html(
                         html_parts.append("</div>")  # pr-header
 
                         # 状态颜色：open 绿色，merged 紫色，其它默认
-                        state = (pr.state or "").lower()
-                        if state == "open":
+                        if state_lower == "open":
                             state_cls = "state-open"
-                        elif state == "merged":
+                        elif state_lower == "merged":
                             state_cls = "state-merged"
                         else:
                             state_cls = "state-other"
@@ -1089,22 +1133,12 @@ def build_html(
                         # Reviews
                         html_parts.append("<div class='section-title'>检视意见</div>")
 
-                        if only_unresolved:
-                            filtered_comments = unresolved_comments
-                        else:
-                            filtered_comments = [
-                                cm for cm in pr.comments if cm.resolved is not None
-                            ]
+                        html_parts.append("<div class='reviews' data-review-wrapper>")
 
-                        if not filtered_comments:
-                            if only_unresolved:
-                                html_parts.append(
-                                    "<div class='empty-text'>无未解决的检视意见</div>"
-                                )
-                            else:
-                                html_parts.append(
-                                    "<div class='empty-text'>无需要 resolved 状态的检视意见</div>"
-                                )
+                        if not all_comments:
+                            html_parts.append(
+                                "<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>"
+                            )
                         else:
                             # 1. 按 reviewer 分组（保留原有顺序）
                             from collections import OrderedDict
@@ -1112,7 +1146,7 @@ def build_html(
                             grouped: "OrderedDict[str, List[ReviewComment]]" = (
                                 OrderedDict()
                             )
-                            for cm in filtered_comments:
+                            for cm in all_comments:
                                 key = cm.user or "(unknown)"
                                 if key not in grouped:
                                     grouped[key] = []
@@ -1149,6 +1183,9 @@ def build_html(
                                     status_text = (
                                         "未解决" if cm.resolved is False else "已解决"
                                     )
+                                    resolved_attr = (
+                                        "false" if cm.resolved is False else "true"
+                                    )
 
                                     loc = ""
                                     if cm.path:
@@ -1161,7 +1198,7 @@ def build_html(
                                         header_left += f" · {loc}"
 
                                     html_parts.append(
-                                        f"<div class='review-item {status_cls}'>"
+                                        f"<div class='review-item {status_cls}' data-resolved='{resolved_attr}'>"
                                     )
 
                                     # header
@@ -1201,6 +1238,11 @@ def build_html(
                                 html_parts.append("</div>")  # reviewer-group-body
                                 html_parts.append("</details>")  # reviewer-group
 
+                        html_parts.append(
+                            "<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>"
+                        )
+                        html_parts.append("</div>")  # reviews wrapper
+
                         html_parts.append("</div>")  # pr-card
                     html_parts.append("</div>")  # pr-grid
 
@@ -1209,6 +1251,85 @@ def build_html(
 
             html_parts.append("</div>")  # repo-content
             html_parts.append("</details>")  # repo-block
+
+    html_parts.append(
+        """
+<script>
+(() => {
+  const filterUnresolved = document.getElementById('filter-unresolved');
+  const filterHideClean = document.getElementById('filter-hide-clean');
+  if (!filterUnresolved || !filterHideClean) return;
+
+  const applyFilters = () => {
+    const onlyUnresolved = filterUnresolved.checked;
+    const hideClean = filterHideClean.checked;
+
+    document.querySelectorAll('.pr-card').forEach((card) => {
+      const reviewWrapper = card.querySelector('[data-review-wrapper]');
+      const reviewItems = reviewWrapper
+        ? Array.from(reviewWrapper.querySelectorAll('.review-item'))
+        : [];
+      const unresolvedItems = reviewItems.filter(
+        (it) => it.dataset.resolved === 'false'
+      );
+      const hasUnresolved = unresolvedItems.length > 0;
+
+      card.dataset.hasUnresolved = hasUnresolved ? '1' : '0';
+
+      const state = (card.dataset.state || '').toLowerCase();
+      const shouldHidePr = hideClean && state !== 'open' && !hasUnresolved;
+      card.style.display = shouldHidePr ? 'none' : '';
+
+      reviewItems.forEach((it) => {
+        const isResolved = it.dataset.resolved === 'true';
+        it.style.display = onlyUnresolved && isResolved ? 'none' : '';
+      });
+
+      const reviewerGroups = reviewWrapper
+        ? Array.from(reviewWrapper.querySelectorAll('.reviewer-group'))
+        : [];
+      reviewerGroups.forEach((group) => {
+        const items = Array.from(group.querySelectorAll('.review-item'));
+        const visible = items.some((it) => it.style.display !== 'none');
+        group.style.display = visible ? '' : 'none';
+      });
+
+      const emptyUnresolved = reviewWrapper
+        ? reviewWrapper.querySelector('[data-empty-unresolved]')
+        : null;
+      const emptyAll = reviewWrapper
+        ? reviewWrapper.querySelector('[data-empty-all]')
+        : null;
+      const hasVisibleReviews = reviewItems.some(
+        (it) => it.style.display !== 'none'
+      );
+
+      if (onlyUnresolved) {
+        if (emptyUnresolved) {
+          emptyUnresolved.style.display = hasVisibleReviews ? 'none' : 'block';
+        }
+        if (emptyAll) {
+          emptyAll.style.display = 'none';
+        }
+      } else {
+        if (emptyUnresolved) {
+          emptyUnresolved.style.display = 'none';
+        }
+        if (emptyAll) {
+          emptyAll.style.display =
+            reviewItems.length === 0 ? 'block' : 'none';
+        }
+      }
+    });
+  };
+
+  filterUnresolved.addEventListener('change', applyFilters);
+  filterHideClean.addEventListener('change', applyFilters);
+  applyFilters();
+})();
+</script>
+"""
+    )
 
     html_parts.append(
         f"<div class='footer'>由自动脚本生成 · 数据来源：GitCode API · 执行时间：{escape_html(executed_at)}</div>"
@@ -1234,12 +1355,12 @@ def main() -> None:
     parser.add_argument(
         "--only-unresolved",
         action="store_true",
-        help="只显示未解决的检视意见（resolved=False）",
+        help="页面默认只展示未解决的检视意见（可在页面上切换）",
     )
     parser.add_argument(
         "--hide-clean-prs",
         action="store_true",
-        help="如果 PR 没有未解决的检视意见，则不显示该 PR",
+        help="页面默认隐藏没有未解决检视意见且已关闭的 PR（可在页面上切换）",
     )
     parser.add_argument(
         "-o",
@@ -1288,8 +1409,6 @@ def main() -> None:
                 cfg.access_token,
                 repo_cfg,
                 username,
-                only_unresolved=args.only_unresolved,
-                hide_clean_prs=args.hide_clean_prs,
             )
             future_to_key[fut] = (repo_name, username)
 
@@ -1310,8 +1429,8 @@ def main() -> None:
     html = build_html(
         cfg,
         repo_user_prs,
-        only_unresolved=args.only_unresolved,
-        hide_clean_prs=args.hide_clean_prs,
+        default_only_unresolved=args.only_unresolved,
+        default_hide_clean_prs=args.hide_clean_prs,
         executed_at=executed_at,
     )
 
