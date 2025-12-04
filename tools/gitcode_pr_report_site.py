@@ -15,11 +15,11 @@ import argparse
 import os
 import sys
 import time
-import re
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
 
@@ -230,10 +230,13 @@ def fetch_prs_for_user(
 
                 # 🔴 1) 优先过滤 WIP
                 title = pr.get("title", "") or ""
-                if is_wip_title(title):
-                    continue
                 # 有些 GitLab/GitCode 风格的接口还会给 work_in_progress/draft 字段
+                from pprint import pprint
+                pprint(pr)
                 if pr.get("work_in_progress") is True or pr.get("draft") is True:
+                    continue
+
+                if is_wip_title(title):
                     continue
 
                 # 🔴 2) 去重
@@ -294,7 +297,7 @@ def fetch_issues_for_pr(
                 number=str(it.get("number", "")),
                 title=it.get("title", ""),
                 state=it.get("state", ""),
-                url=it.get("url", ""),
+                url=it.get("url", "").replace("api.gitcode", "gitcode").replace("api/v5/repos/", ""),
                 labels=labels,
             )
         )
@@ -322,9 +325,6 @@ def _infer_resolved(comment: Dict[str, Any]) -> Optional[bool]:
             return False
 
     return None
-
-
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 def fetch_repo_user_data(
