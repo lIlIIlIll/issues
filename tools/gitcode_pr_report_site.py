@@ -15,6 +15,8 @@ import argparse
 import os
 import sys
 import time
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -428,6 +430,7 @@ def build_html(
     *,
     only_unresolved: bool,
     hide_clean_prs: bool,
+    executed_at: str,
 ) -> str:
     """
     data 结构：
@@ -676,6 +679,9 @@ def build_html(
     flag_text = "，".join(flags) if flags else "显示所有包含检视意见状态的 PR"
 
     html_parts.append(f"<div class='sub-title'>模式：{escape_html(flag_text)}</div>")
+    html_parts.append(
+        f"<div class='sub-title'>执行时间：{escape_html(executed_at)}</div>"
+    )
 
     if not data:
         html_parts.append("<p class='empty-text'>没有任何符合条件的 PR。</p>")
@@ -869,7 +875,7 @@ def build_html(
             html_parts.append("</details>")  # repo-block
 
     html_parts.append(
-        "<div class='footer'>由自动脚本生成 · 数据来源：GitCode API</div>"
+        f"<div class='footer'>由自动脚本生成 · 数据来源：GitCode API · 执行时间：{escape_html(executed_at)}</div>"
     )
     html_parts.append("</div></body></html>")
 
@@ -931,6 +937,12 @@ def main() -> None:
         for username in cfg.users:
             tasks.append((repo_name, repo_cfg, username))
 
+    now_utc = datetime.now()
+    # 执行时间（Asia/Shanghai）
+    executed_at = datetime.now(ZoneInfo("Asia/Shanghai")).strftime(
+        "%Y-%m-%d %H:%M:%S %Z"
+    )
+
     # 并发执行，max_workers 可以按你仓库/用户规模调，8–16 一般够
     max_workers = min(len(tasks), 8) or 1
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -965,6 +977,7 @@ def main() -> None:
         repo_user_prs,
         only_unresolved=args.only_unresolved,
         hide_clean_prs=args.hide_clean_prs,
+        executed_at=executed_at,
     )
 
     out_path = args.output
