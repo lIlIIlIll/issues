@@ -677,6 +677,43 @@ def build_html(
       color: #cbd5f5;
       margin-bottom: 4px;
     }
+    .branch-target-pill {
+      display: inline-block;
+      padding: 0 6px;
+      margin-left: 4px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.6;
+      background: #111827;
+      border: 1px solid #1f2937;
+    }
+    .branch-target-main {
+      background: rgba(34, 197, 94, 0.15);     /* 绿色主线 */
+      border-color: #22c55e;
+      color: #bbf7d0;
+    }
+    .branch-target-dev {
+      background: rgba(59, 130, 246, 0.15);    /* 蓝色 dev */
+      border-color: #3b82f6;
+      color: #bfdbfe;
+    }
+    .branch-target-release {
+      background: rgba(168, 85, 247, 0.18);    /* 紫色 release */
+      border-color: #a855f7;
+      color: #e9d5ff;
+    }
+    .branch-target-hotfix {
+      background: rgba(239, 68, 68, 0.18);     /* 红色 hotfix */
+      border-color: #ef4444;
+      color: #fee2e2;
+    }
+    .branch-target-other {
+      background: rgba(148, 163, 184, 0.15);   /* 灰色其他 */
+      border-color: #64748b;
+      color: #e5e7eb;
+    }
+
     .pr-times {
       font-size: 11px;
       color: #9ca3af;
@@ -974,15 +1011,44 @@ def build_html(
                             "</div>"
                         )
 
+                        # 分支行：source → target，并对 target 高亮
                         if pr.target_branch:
-                            branch_str = f"{pr.source_branch} → {pr.target_branch}"
+                            tb = pr.target_branch or ""
+                            tb_lower = tb.lower()
+
+                            if tb_lower in ("main", "master", "trunk"):
+                                tgt_cls = "branch-target-main"
+                            elif tb_lower in ("dev", "develop") or "dev" in tb_lower:
+                                tgt_cls = "branch-target-dev"
+                            elif tb_lower.startswith("release/") or tb_lower.startswith(
+                                "release-"
+                            ):
+                                tgt_cls = "branch-target-release"
+                            elif tb_lower.startswith("hotfix/") or tb_lower.startswith(
+                                "hotfix-"
+                            ):
+                                tgt_cls = "branch-target-hotfix"
+                            else:
+                                tgt_cls = "branch-target-other"
+
+                            src = pr.source_branch or ""
+                            branch_html = (
+                                f"{escape_html(src)} → "
+                                f"<span class='branch-target-pill {tgt_cls}'>"
+                                f"{escape_html(tb)}</span>"
+                            )
                         else:
-                            branch_str = pr.source_branch
-                        if branch_str:
-                            html_parts.append(
-                                f"<div class='pr-branch'>分支：{escape_html(branch_str)}</div>"
+                            # 没有 target_branch 的情况，保持原来纯文本
+                            branch_html = (
+                                escape_html(pr.source_branch)
+                                if pr.source_branch
+                                else ""
                             )
 
+                        if branch_html:
+                            html_parts.append(
+                                f"<div class='pr-branch'>分支：{branch_html}</div>"
+                            )
                         times_line = f"创建：{escape_html(pr.created_at)}"
                         if pr.updated_at:
                             times_line += f" ｜ 更新：{escape_html(pr.updated_at)}"
