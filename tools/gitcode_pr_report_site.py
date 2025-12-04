@@ -15,6 +15,7 @@ import argparse
 import os
 import sys
 import time
+import re
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from dataclasses import dataclass, field
@@ -424,6 +425,66 @@ def escape_html(s: str) -> str:
     )
 
 
+def render_comment_body(body: str) -> str:
+    """
+    极简 Markdown 渲染：
+    - 支持 ```fenced code``` 代码块
+    - 支持 `inline code`
+    - 其余文本按行加 <br/>
+    """
+    if not body:
+        return ""
+
+    lines = body.splitlines()
+    in_code = False
+    code_lines: List[str] = []
+    parts: List[str] = []
+
+    def render_text_line(line: str) -> str:
+        # 处理 `inline code`
+        segments = line.split("`")
+        out: List[str] = []
+        for i, seg in enumerate(segments):
+            if i % 2 == 0:
+                out.append(escape_html(seg))
+            else:
+                out.append(
+                    f"<code class='review-code-inline'>{escape_html(seg)}</code>"
+                )
+        return "".join(out)
+
+    for line in lines:
+        if line.startswith("```"):
+            # fence 开关
+            if not in_code:
+                # 开始代码块
+                in_code = True
+                code_lines = []
+            else:
+                # 结束代码块
+                code_html = (
+                    "<pre class='review-code-block'><code>"
+                    + escape_html("\n".join(code_lines))
+                    + "</code></pre>"
+                )
+                parts.append(code_html)
+                in_code = False
+                code_lines = []
+            continue
+
+        if in_code:
+            code_lines.append(line)
+        else:
+            parts.append(render_text_line(line) + "<br/>")
+
+    # 如果 fence 没闭合，当普通文本处理
+    if in_code and code_lines:
+        for l in code_lines:
+            parts.append(render_text_line(l) + "<br/>")
+
+    return "".join(parts)
+
+
 def build_html(
     cfg: Config,
     data: Dict[str, Dict[str, List[PRInfo]]],
@@ -466,6 +527,8 @@ def build_html(
       border-radius: 999px;
       font-size: 11px;
       margin-right: 6px;
+      white-space: nowrap;  /* 🔴 不允许换行 */
+      flex-shrink: 0;       /* 🔴 不要被压扁挤成多行 */
     }
     .badge-danger {
       background: #b91c1c;
@@ -573,16 +636,24 @@ def build_html(
       box-shadow: 0 10px 25px rgba(0,0,0,0.35);
     }
     .pr-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 8px;
-      margin-bottom: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+        min-width: 0;              /* 🔴 允许内部元素收缩 */
     }
+
     .pr-title {
-      font-size: 14px;
-      font-weight: 600;
+        font-size: 14px;
+        font-weight: 600;
+        flex: 1;                    /* 🔴 占据剩余空间 */
+        min-width: 0;               /* 🔴 允许被压缩 */
+        overflow: hidden;           /* 🔴 超出用省略号 */
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
+
     .pr-meta {
       font-size: 12px;
       color: #9ca3af;
@@ -633,15 +704,118 @@ def build_html(
       margin-bottom: 4px;
       color: #e5e7eb;
     }
-    .issue-item, .review-item {
+    .issue-item, review-item {
       font-size: 11px;
       margin-bottom: 4px;
     }
+        /* 每条 review 卡片 */
+    .review-item {
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      background: #1b2535;
+      border: 1px solid #2a3548;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    }
+    .review-item.unresolved {
+      border-left: 4px solid #ef4444; /* 未解决：红色边 */
+      background: rgba(239, 68, 68, 0.10);
+    }
+    .review-item.resolved {
+      border-left: 4px solid #22c55e; /* 已解决：绿边 */
+      background: rgba(34, 197, 94, 0.08);
+    }
+
+    .review-header {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .review-meta {
+      font-size: 10px;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+
+    /* 评论正文容器（短/长通用） */
     .review-body {
       font-size: 11px;
-      margin-top: 2px;
-      white-space: pre-wrap;
+      line-height: 1.45;
     }
+
+    /* 可折叠长评论 */
+    .review-body-collapsible details {
+      cursor: pointer;
+    }
+    .review-body-collapsible summary {
+      list-style: none;
+      font-size: 11px;
+      color: #60a5fa;
+      padding: 2px 0;
+    }
+    .review-body-collapsible summary::-webkit-details-marker {
+      display: none;
+    }
+    .review-body-collapsible summary::before {
+      content: "▶";
+      font-size: 9px;
+      display: inline-block;
+      margin-right: 4px;
+      color: #6b7280;
+      transition: transform 0.15s ease-out;
+    }
+    .review-body-collapsible details[open] summary::before {
+      transform: rotate(90deg);
+    }
+    .review-body-content {
+      margin-top: 4px;
+    }
+
+    /* 内联代码 & 代码块 */
+    .review-code-inline {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: #0b1220;
+      padding: 0 3px;
+      border-radius: 3px;
+      border: 1px solid #1f2937;
+    }
+    .review-code-block {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: #020617;
+      border-radius: 6px;
+      border: 1px solid #1f2937;
+      padding: 8px 10px;
+      margin: 6px 0;
+      font-size: 11px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    /* 按 reviewer 分组 */
+    .reviewer-group {
+      margin-top: 6px;
+      margin-bottom: 8px;
+      padding-top: 4px;
+      border-top: 1px dashed #1f2937;
+    }
+    .reviewer-group-title {
+      font-size: 12px;
+      color: #e5e7eb;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .reviewer-group-title span {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-left: 8px;
+    }
+
     .empty-text {
       font-size: 12px;
       color: #6b7280;
@@ -829,9 +1003,7 @@ def build_html(
                         if only_unresolved:
                             filtered_comments = unresolved_comments
                         else:
-                            filtered_comments = [
-                                cm for cm in pr.comments if cm.resolved is not None
-                            ]
+                            filtered_comments = [cm for cm in pr.comments if cm.resolved is not None]
 
                         if not filtered_comments:
                             if only_unresolved:
@@ -843,27 +1015,78 @@ def build_html(
                                     "<div class='empty-text'>无需要 resolved 状态的检视意见</div>"
                                 )
                         else:
-                            for cm in filtered_comments:
-                                resolved_str = "已解决" if cm.resolved else "未解决"
-                                loc = ""
-                                if cm.path:
-                                    loc = f"（{cm.path}"
-                                    if cm.position is not None:
-                                        loc += f":{cm.position}"
-                                    loc += "）"
+                            # 1. 按 reviewer 分组（保留原有顺序）
+                            from collections import OrderedDict
 
-                                html_parts.append("<div class='review-item'>")
+                            grouped: "OrderedDict[str, List[ReviewComment]]" = OrderedDict()
+                            for cm in filtered_comments:
+                                key = cm.user or "(unknown)"
+                                if key not in grouped:
+                                    grouped[key] = []
+                                grouped[key].append(cm)
+
+                            # 2. 逐个 reviewer 输出
+                            for reviewer, comments in grouped.items():
+                                html_parts.append("<div class='reviewer-group'>")
                                 html_parts.append(
-                                    f"<div><strong>{escape_html(cm.user)}</strong> · {escape_html(resolved_str)}{escape_html(loc)}</div>"
+                                    "<div class='reviewer-group-title'>"
+                                    f"{escape_html(reviewer)}"
+                                    f"<span>{len(comments)} 条评论</span>"
+                                    "</div>"
                                 )
-                                html_parts.append(
-                                    f"<div class='review-meta'>创建：{escape_html(cm.created_at)} ｜ 更新：{escape_html(cm.updated_at)}</div>"
-                                )
-                                if cm.body:
+
+                                for cm in comments:
+                                    status_cls = "unresolved" if cm.resolved is False else "resolved"
+
+                                    # 头部：状态 + 位置
+                                    status_text = "未解决" if cm.resolved is False else "已解决"
+                                    loc = ""
+                                    if cm.path:
+                                        loc = cm.path
+                                        if cm.position is not None:
+                                            loc += f":{cm.position}"
+
+                                    header_left = status_text
+                                    if loc:
+                                        header_left += f" · {loc}"
+
+                                    html_parts.append(f"<div class='review-item {status_cls}'>")
+
+                                    # header 行（这里不再重复 reviewer 名字，避免和 group title 冗余）
                                     html_parts.append(
-                                        f"<div class='review-body'>{escape_html(cm.body)}</div>"
+                                        "<div class='review-header'>"
+                                        f"<span>{escape_html(header_left)}</span>"
+                                        "</div>"
                                     )
-                                html_parts.append("</div>")  # review-item
+
+                                    # meta 时间
+                                    html_parts.append(
+                                        f"<div class='review-meta'>创建：{escape_html(cm.created_at)} ｜ 更新：{escape_html(cm.updated_at)}</div>"
+                                    )
+
+                                    # body：Markdown 渲染 + 长评论折叠
+                                    if cm.body:
+                                        body_html = render_comment_body(cm.body)
+                                        line_count = cm.body.count("\n") + 1
+                                        is_long = line_count >= 8 or len(cm.body) >= 400
+
+                                        if is_long:
+                                            html_parts.append(
+                                                "<div class='review-body review-body-collapsible'>"
+                                                "<details>"
+                                                f"<summary>展开完整评论（约 {line_count} 行）</summary>"
+                                                f"<div class='review-body-content'>{body_html}</div>"
+                                                "</details>"
+                                                "</div>"
+                                            )
+                                        else:
+                                            html_parts.append(
+                                                f"<div class='review-body'>{body_html}</div>"
+                                            )
+
+                                    html_parts.append("</div>")  # review-item
+
+                                html_parts.append("</div>")  # reviewer-group
 
                         html_parts.append("</div>")  # pr-card
                     html_parts.append("</div>")  # pr-grid
