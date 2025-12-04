@@ -175,19 +175,34 @@ def gitcode_get(
 # ----------------- 拉取 PR / Issue / 评论 -----------------
 
 
+def is_wip_title(title: str) -> bool:
+    """
+    粗略判断是否是 WIP PR：
+    - 以 "WIP" / "[WIP]" 开头
+    - 以 "wip" 开头（不区分大小写）
+    """
+    if not title:
+        return False
+    t = title.strip().lower()
+    # 最常见几种格式
+    if t.startswith("wip") or t.startswith("[wip]") or t.startswith("wip:"):
+        return True
+    return False
+
+
 def fetch_prs_for_user(
     access_token: Optional[str],
     repo_cfg: RepoConfig,
     username: str,
 ) -> List[PRInfo]:
-    """
-    支持多个状态：
-    对 repo_cfg.states 里的每个 state 分别请求一轮，再按 PR number 去重。
-    """
     all_prs: List[PRInfo] = []
     seen_numbers: set[int] = set()
 
-    for state in repo_cfg.states:
+    states = repo_cfg.states
+    if "all" in states and len(states) > 1:
+        states = ["all"]
+
+    for state in states:
         page = 1
         while True:
             params = {
@@ -208,7 +223,17 @@ def fetch_prs_for_user(
                 break
 
             for pr in data:
-                num = int(pr["number"])
+                num = int(pr.get("number", 0))
+
+                # 🔴 1) 优先过滤 WIP
+                title = pr.get("title", "") or ""
+                if is_wip_title(title):
+                    continue
+                # 有些 GitLab/GitCode 风格的接口还会给 work_in_progress/draft 字段
+                if pr.get("work_in_progress") is True or pr.get("draft") is True:
+                    continue
+
+                # 🔴 2) 去重
                 if num in seen_numbers:
                     continue
                 seen_numbers.add(num)
@@ -219,7 +244,7 @@ def fetch_prs_for_user(
                 all_prs.append(
                     PRInfo(
                         number=num,
-                        title=pr.get("title", ""),
+                        title=title,
                         state=pr.get("state", ""),
                         html_url=pr.get("html_url", ""),
                         created_at=pr.get("created_at", ""),
@@ -234,7 +259,6 @@ def fetch_prs_for_user(
                 break
 
             page += 1
-            time.sleep(0.1)
 
     return all_prs
 
@@ -323,7 +347,7 @@ def fetch_repo_user_data(
         # 如果启用了 hide_clean_prs 且没有未解决的意见，直接跳过这个 PR，
         # 连 issues 都不查，省一次请求。
         has_unresolved = any(cm.resolved is False for cm in comments)
-        if hide_clean_prs and not has_unresolved:
+        if hide_clean_prs and pr.state != "open" and not has_unresolved:
             continue
 
         # 再拉 issues
@@ -561,6 +585,19 @@ def build_html(
       color: #9ca3af;
       margin-bottom: 4px;
     }
+    .state-label {
+      font-weight: 600;
+    }
+    .state-open {
+      color: #22c55e;  /* 绿色 */
+    }
+    .state-merged {
+      color: #a855f7;  /* 紫色 */
+    }
+    .state-other {
+      color: #e5e7eb;  /* 默认浅灰白 */
+    }
+
     .pr-branch {
       font-size: 12px;
       color: #cbd5f5;
@@ -576,6 +613,13 @@ def build_html(
       color: #60a5fa;
       text-decoration: none;
     }
+    .pr-link-inline, .issue-link {
+      color: #60a5fa;
+      text-decoration: none;
+    }
+    .pr-link-inline:hover, .issue-link:hover {
+      text-decoration: underline;
+    }
     .pr-link:hover {
       text-decoration: underline;
     }
@@ -589,10 +633,6 @@ def build_html(
     .issue-item, .review-item {
       font-size: 11px;
       margin-bottom: 4px;
-    }
-    .issue-url, .review-meta {
-      font-size: 10px;
-      color: #9ca3af;
     }
     .review-body {
       font-size: 11px;
@@ -697,16 +737,38 @@ def build_html(
                         html_parts.append("<div class='pr-card'>")
 
                         html_parts.append("<div class='pr-header'>")
-                        html_parts.append(
-                            f"<div class='pr-title'>#{pr.number} {escape_html(pr.title)}</div>"
-                        )
+
+                        # PR 标题：如果有链接，整段标题变成可点击
+                        title_text = f"#{pr.number} {pr.title or ''}"
+                        if pr.html_url:
+                            title_html = (
+                                f"<a class='pr-link-inline' "
+                                f"href='{escape_html(pr.html_url)}' "
+                                f"target='_blank' rel='noopener noreferrer'>"
+                                f"{escape_html(title_text)}</a>"
+                            )
+                        else:
+                            title_html = escape_html(title_text)
+
+                        html_parts.append(f"<div class='pr-title'>{title_html}</div>")
+
                         html_parts.append(
                             f"<span class='badge {badge_cls}'>{escape_html(badge_text)}</span>"
                         )
                         html_parts.append("</div>")  # pr-header
 
+                        # 状态颜色：open 绿色，merged 紫色，其它默认
+                        state = (pr.state or "").lower()
+                        if state == "open":
+                            state_cls = "state-open"
+                        elif state == "merged":
+                            state_cls = "state-merged"
+                        else:
+                            state_cls = "state-other"
                         html_parts.append(
-                            f"<div class='pr-meta'>状态：{escape_html(pr.state)}</div>"
+                            "<div class='pr-meta'>状态："
+                            f"<span class='state-label {state_cls}'>{escape_html(pr.state)}</span>"
+                            "</div>"
                         )
 
                         if pr.target_branch:
@@ -723,11 +785,6 @@ def build_html(
                             times_line += f" ｜ 更新：{escape_html(pr.updated_at)}"
                         html_parts.append(f"<div class='pr-times'>{times_line}</div>")
 
-                        if pr.html_url:
-                            html_parts.append(
-                                f"<a class='pr-link' href='{escape_html(pr.html_url)}' target='_blank' rel='noopener noreferrer'>查看 PR</a>"
-                            )
-
                         # Issues
                         html_parts.append(
                             "<div class='section-title'>关联 Issues</div>"
@@ -743,13 +800,22 @@ def build_html(
                                     if iss.labels
                                     else ""
                                 )
-                                html_parts.append(
-                                    f"<div class='issue-item'>#{escape_html(iss.number)} [{escape_html(iss.state)}] {escape_html(iss.title)}{escape_html(labels_str)}</div>"
-                                )
+
+                                issue_text = f"#{iss.number} [{iss.state}] {iss.title}{labels_str}"
+
                                 if iss.url:
-                                    html_parts.append(
-                                        f"<div class='issue-url'>{escape_html(iss.url)}</div>"
+                                    issue_html = (
+                                        f"<a class='issue-link' "
+                                        f"href='{escape_html(iss.url)}' "
+                                        f"target='_blank' rel='noopener noreferrer'>"
+                                        f"{escape_html(issue_text)}</a>"
                                     )
+                                else:
+                                    issue_html = escape_html(issue_text)
+
+                                html_parts.append(
+                                    f"<div class='issue-item'>{issue_html}</div>"
+                                )
 
                         # Reviews
                         html_parts.append("<div class='section-title'>检视意见</div>")

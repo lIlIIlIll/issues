@@ -155,6 +155,19 @@
       color: #9ca3af;
       margin-bottom: 4px;
     }
+    .state-label {
+      font-weight: 600;
+    }
+    .state-open {
+      color: #22c55e;  /* 绿色 */
+    }
+    .state-merged {
+      color: #a855f7;  /* 紫色 */
+    }
+    .state-other {
+      color: #e5e7eb;  /* 默认浅灰白 */
+    }
+
     .pr-branch {
       font-size: 12px;
       color: #cbd5f5;
@@ -170,6 +183,13 @@
       color: #60a5fa;
       text-decoration: none;
     }
+    .pr-link-inline, .issue-link {
+      color: #60a5fa;
+      text-decoration: none;
+    }
+    .pr-link-inline:hover, .issue-link:hover {
+      text-decoration: underline;
+    }
     .pr-link:hover {
       text-decoration: underline;
     }
@@ -183,10 +203,6 @@
     .issue-item, .review-item {
       font-size: 11px;
       margin-bottom: 4px;
-    }
-    .issue-url, .review-meta {
-      font-size: 10px;
-      color: #9ca3af;
     }
     .review-body {
       font-size: 11px;
@@ -214,11 +230,61 @@
 <details class='repo-block' open>
 <summary>
 <div class='repo-title'>仓库：cangjie/cangjie_runtime
-<span class='repo-meta'>共 9 个匹配 PR · 8 个用户</span>
+<span class='repo-meta'>共 19 个匹配 PR · 8 个用户</span>
 </div>
 <div class='repo-chevron'>▶</div>
 </summary>
 <div class='repo-content'>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：ovy
+<span class='user-meta'>1 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/414' target='_blank' rel='noopener noreferrer'>#414 fix: debug</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：debug → dev</div>
+<div class='pr-times'>创建：2025-12-03T14:31:25+08:00 ｜ 更新：2025-12-03T17:05:59+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_stdx/issues/139' target='_blank' rel='noopener noreferrer'>#139 [open] [Bug]: stdx 中变量在运行时存在副本（labels: bug）</a></div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+</div>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：chongweizhi
+<span class='user-meta'>1 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/30' target='_blank' rel='noopener noreferrer'>#30 add signal registerSignalHandler</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：signal → dev</div>
+<div class='pr-times'>创建：2025-08-07T14:23:40+08:00 ｜ 更新：2025-12-03T17:06:02+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='empty-text'>无关联 Issue</div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+</div>
+</div>
+</details>
 <details class='user-block' open>
 <summary>
 <div class='user-title'>用户：zhaoshenghua1
@@ -230,16 +296,14 @@
 <div class='pr-grid'>
 <div class='pr-card'>
 <div class='pr-header'>
-<div class='pr-title'>#260 fix: timezone issue</div>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/260' target='_blank' rel='noopener noreferrer'>#260 fix: timezone issue</a></div>
 <span class='badge badge-danger'>1 未解决</span>
 </div>
-<div class='pr-meta'>状态：merged</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
 <div class='pr-branch'>分支：feature_ohos_timezone → dev</div>
 <div class='pr-times'>创建：2025-11-14T16:13:31+08:00 ｜ 更新：2025-12-03T16:43:52+08:00</div>
-<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/260' target='_blank' rel='noopener noreferrer'>查看 PR</a>
 <div class='section-title'>关联 Issues</div>
-<div class='issue-item'>#159 [closed] TimeZone 适配 ohos</div>
-<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/159</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/159' target='_blank' rel='noopener noreferrer'>#159 [closed] TimeZone 适配 ohos</a></div>
 <div class='section-title'>检视意见</div>
 <div class='review-item'>
 <div><strong>EMROF</strong> · 未解决</div>
@@ -249,16 +313,14 @@
 </div>
 <div class='pr-card'>
 <div class='pr-header'>
-<div class='pr-title'>#247 feat: timezone adapt ohos</div>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/247' target='_blank' rel='noopener noreferrer'>#247 feat: timezone adapt ohos</a></div>
 <span class='badge badge-danger'>3 未解决</span>
 </div>
-<div class='pr-meta'>状态：merged</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
 <div class='pr-branch'>分支：feature_ohos_timezone → dev</div>
 <div class='pr-times'>创建：2025-11-12T16:05:46+08:00 ｜ 更新：2025-12-03T16:20:08+08:00</div>
-<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/247' target='_blank' rel='noopener noreferrer'>查看 PR</a>
 <div class='section-title'>关联 Issues</div>
-<div class='issue-item'>#159 [closed] TimeZone 适配 ohos</div>
-<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/159</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/159' target='_blank' rel='noopener noreferrer'>#159 [closed] TimeZone 适配 ohos</a></div>
 <div class='section-title'>检视意见</div>
 <div class='review-item'>
 <div><strong>EMROF</strong> · 未解决</div>
@@ -290,7 +352,7 @@ return NULL;
 <details class='user-block' open>
 <summary>
 <div class='user-title'>用户：EMROF
-<span class='user-meta'>2 个 PR</span>
+<span class='user-meta'>5 个 PR</span>
 </div>
 <div class='user-chevron'>▶</div>
 </summary>
@@ -298,16 +360,14 @@ return NULL;
 <div class='pr-grid'>
 <div class='pr-card'>
 <div class='pr-header'>
-<div class='pr-title'>#346 fix: optimize std.fs exception of path empty or contains null byte</div>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/346' target='_blank' rel='noopener noreferrer'>#346 fix: optimize std.fs exception of path empty or contains null byte</a></div>
 <span class='badge badge-danger'>3 未解决</span>
 </div>
-<div class='pr-meta'>状态：merged</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
 <div class='pr-branch'>分支：FsExceptionOptimization3 → dev</div>
 <div class='pr-times'>创建：2025-11-25T17:37:53+08:00 ｜ 更新：2025-12-03T16:26:13+08:00</div>
-<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/346' target='_blank' rel='noopener noreferrer'>查看 PR</a>
 <div class='section-title'>关联 Issues</div>
-<div class='issue-item'>#210 [open] [Bug]: 优化std.fs异常信息（labels: bug）</div>
-<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/210</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/210' target='_blank' rel='noopener noreferrer'>#210 [open] [Bug]: 优化std.fs异常信息（labels: bug）</a></div>
 <div class='section-title'>检视意见</div>
 <div class='review-item'>
 <div><strong>MinamiK</strong> · 未解决</div>
@@ -339,13 +399,25 @@ throw FSException(&quot;Parent path does not exist:: `${parent}`.&quot;)
 </div>
 <div class='pr-card'>
 <div class='pr-header'>
-<div class='pr-title'>#295 fix: optimize exceptions of std.fs</div>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/343' target='_blank' rel='noopener noreferrer'>#343 fix: unified std.fs exception format</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：FsExceptionOptimization2 → dev</div>
+<div class='pr-times'>创建：2025-11-25T16:20:28+08:00 ｜ 更新：2025-12-03T17:06:01+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/182' target='_blank' rel='noopener noreferrer'>#182 [open] [新需求]: 优化std.fs库的异常信息（labels: enhancement）</a></div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/295' target='_blank' rel='noopener noreferrer'>#295 fix: optimize exceptions of std.fs</a></div>
 <span class='badge badge-danger'>2 未解决</span>
 </div>
-<div class='pr-meta'>状态：open</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
 <div class='pr-branch'>分支：FsExceptionOptimization → dev</div>
 <div class='pr-times'>创建：2025-11-19T16:14:53+08:00 ｜ 更新：2025-12-03T17:06:02+08:00</div>
-<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/295' target='_blank' rel='noopener noreferrer'>查看 PR</a>
 <div class='section-title'>关联 Issues</div>
 <div class='empty-text'>无关联 Issue</div>
 <div class='section-title'>检视意见</div>
@@ -360,13 +432,39 @@ throw FSException(&quot;Parent path does not exist:: `${parent}`.&quot;)
 <div class='review-body'>这个异常修改，需要新增用例和修改用例，不然覆盖率会下降</div>
 </div>
 </div>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/231' target='_blank' rel='noopener noreferrer'>#231 fix: timer can not be canceled when time is small</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：TimerCancel2 → dev</div>
+<div class='pr-times'>创建：2025-11-10T16:50:34+08:00 ｜ 更新：2025-12-03T17:06:02+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/149' target='_blank' rel='noopener noreferrer'>#149 [open] Timer无法在时间间隔很短时取消</a></div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/214' target='_blank' rel='noopener noreferrer'>#214 feat: support '+' in tryParse of integer</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：TryParsePositive → dev</div>
+<div class='pr-times'>创建：2025-11-06T15:16:51+08:00 ｜ 更新：2025-12-03T17:06:02+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/135' target='_blank' rel='noopener noreferrer'>#135 [open] support '+' in tryParse of integer</a></div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
 </div>
 </div>
 </details>
 <details class='user-block' open>
 <summary>
-<div class='user-title'>用户：jiyuan_99
-<span class='user-meta'>5 个 PR</span>
+<div class='user-title'>用户：MinamiK
+<span class='user-meta'>2 个 PR</span>
 </div>
 <div class='user-chevron'>▶</div>
 </summary>
@@ -374,16 +472,90 @@ throw FSException(&quot;Parent path does not exist:: `${parent}`.&quot;)
 <div class='pr-grid'>
 <div class='pr-card'>
 <div class='pr-header'>
-<div class='pr-title'>#406 fix: fix timezone for android</div>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/280' target='_blank' rel='noopener noreferrer'>#280 chore: add docs example code result checklist to PR template</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：chore_doc_pr_checklist_dev → dev</div>
+<div class='pr-times'>创建：2025-11-18T15:19:28+08:00 ｜ 更新：2025-12-03T17:06:02+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/164' target='_blank' rel='noopener noreferrer'>#164 [open] [新需求]: dev分支更新issue和pr模板（labels: enhancement）</a></div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/279' target='_blank' rel='noopener noreferrer'>#279 chore: add docs example code result checklist to PR template</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：chore_doc_pr_checklist → main</div>
+<div class='pr-times'>创建：2025-11-18T15:12:48+08:00 ｜ 更新：2025-12-04T10:25:37+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/162' target='_blank' rel='noopener noreferrer'>#162 [open] 【需求】main分支更新issue和pr模板</a></div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+</div>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：renyi43
+<span class='user-meta'>1 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/401' target='_blank' rel='noopener noreferrer'>#401 feat: doc add examples</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：feat_ry → dev</div>
+<div class='pr-times'>创建：2025-12-02T10:12:02+08:00 ｜ 更新：2025-12-03T17:06:00+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/110' target='_blank' rel='noopener noreferrer'>#110 [open] 文档示例代码添加</a></div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+</div>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：jiyuan_99
+<span class='user-meta'>7 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/418' target='_blank' rel='noopener noreferrer'>#418 fix: fix timezone for android</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：fix_timezone_main → main</div>
+<div class='pr-times'>创建：2025-12-03T15:44:23+08:00 ｜ 更新：2025-12-04T09:31:33+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/244' target='_blank' rel='noopener noreferrer'>#244 [open] [Bug]: time包读取时区文件逻辑适配安卓平台的时区文件（labels: bug）</a></div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/406' target='_blank' rel='noopener noreferrer'>#406 fix: fix timezone for android</a></div>
 <span class='badge badge-danger'>2 未解决</span>
 </div>
-<div class='pr-meta'>状态：merged</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
 <div class='pr-branch'>分支：fix_timezone_dev → dev</div>
 <div class='pr-times'>创建：2025-12-02T15:29:12+08:00 ｜ 更新：2025-12-03T16:45:56+08:00</div>
-<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/406' target='_blank' rel='noopener noreferrer'>查看 PR</a>
 <div class='section-title'>关联 Issues</div>
-<div class='issue-item'>#244 [open] [Bug]: time包读取时区文件逻辑适配安卓平台的时区文件（labels: bug）</div>
-<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/244</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/244' target='_blank' rel='noopener noreferrer'>#244 [open] [Bug]: time包读取时区文件逻辑适配安卓平台的时区文件（labels: bug）</a></div>
 <div class='section-title'>检视意见</div>
 <div class='review-item'>
 <div><strong>MinamiK</strong> · 未解决</div>
@@ -398,16 +570,27 @@ throw FSException(&quot;Parent path does not exist:: `${parent}`.&quot;)
 </div>
 <div class='pr-card'>
 <div class='pr-header'>
-<div class='pr-title'>#361 fix: remove fdebug-types-section</div>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/365' target='_blank' rel='noopener noreferrer'>#365 feat: std ios-simulator-x86_64 build</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：std_ios_x86 → dev</div>
+<div class='pr-times'>创建：2025-11-27T17:50:28+08:00 ｜ 更新：2025-12-03T17:06:01+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/229' target='_blank' rel='noopener noreferrer'>#229 [open] [新需求]: 标准库 std 、stdx支持构建选项 --target=ios-simulator-x86_64（labels: enhancement）</a></div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/361' target='_blank' rel='noopener noreferrer'>#361 fix: remove fdebug-types-section</a></div>
 <span class='badge badge-danger'>1 未解决</span>
 </div>
-<div class='pr-meta'>状态：merged</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
 <div class='pr-branch'>分支：fix_1127 → release/1.0</div>
 <div class='pr-times'>创建：2025-11-27T11:48:14+08:00 ｜ 更新：2025-12-03T16:37:40+08:00</div>
-<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/361' target='_blank' rel='noopener noreferrer'>查看 PR</a>
 <div class='section-title'>关联 Issues</div>
-<div class='issue-item'>#227 [closed] [Bug]: RelWithDebInfo下交叉编译windows报错error: unsupported option '-fdebug-types-section' for target 'x86_64-w64-windows-gnu'（labels: bug）</div>
-<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/227</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/227' target='_blank' rel='noopener noreferrer'>#227 [closed] [Bug]: RelWithDebInfo下交叉编译windows报错error: unsupported option '-fdebug-types-section' for target 'x86_64-w64-windows-gnu'（labels: bug）</a></div>
 <div class='section-title'>检视意见</div>
 <div class='review-item'>
 <div><strong>MinamiK</strong> · 未解决</div>
@@ -418,16 +601,14 @@ throw FSException(&quot;Parent path does not exist:: `${parent}`.&quot;)
 </div>
 <div class='pr-card'>
 <div class='pr-header'>
-<div class='pr-title'>#188 refactor: refactor some collection api</div>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/188' target='_blank' rel='noopener noreferrer'>#188 refactor: refactor some collection api</a></div>
 <span class='badge badge-danger'>3 未解决</span>
 </div>
-<div class='pr-meta'>状态：merged</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
 <div class='pr-branch'>分支：no_iterable_api → dev</div>
 <div class='pr-times'>创建：2025-10-31T20:47:48+08:00 ｜ 更新：2025-11-12T15:14:40+08:00</div>
-<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/188' target='_blank' rel='noopener noreferrer'>查看 PR</a>
 <div class='section-title'>关联 Issues</div>
-<div class='issue-item'>#117 [closed] refactor: refactor som collection api</div>
-<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/117</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/117' target='_blank' rel='noopener noreferrer'>#117 [closed] refactor: refactor som collection api</a></div>
 <div class='section-title'>检视意见</div>
 <div class='review-item'>
 <div><strong>jiyuan_99</strong> · 未解决</div>
@@ -447,16 +628,14 @@ throw FSException(&quot;Parent path does not exist:: `${parent}`.&quot;)
 </div>
 <div class='pr-card'>
 <div class='pr-header'>
-<div class='pr-title'>#181 feat: add noniterable api for collection</div>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/181' target='_blank' rel='noopener noreferrer'>#181 feat: add noniterable api for collection</a></div>
 <span class='badge badge-danger'>6 未解决</span>
 </div>
-<div class='pr-meta'>状态：merged</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
 <div class='pr-branch'>分支：no_iterable_api → dev</div>
 <div class='pr-times'>创建：2025-10-30T16:50:42+08:00 ｜ 更新：2025-11-12T15:49:25+08:00</div>
-<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/181' target='_blank' rel='noopener noreferrer'>查看 PR</a>
 <div class='section-title'>关联 Issues</div>
-<div class='issue-item'>#113 [open] feat: add noniterable api for collection</div>
-<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/113</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/113' target='_blank' rel='noopener noreferrer'>#113 [open] feat: add noniterable api for collection</a></div>
 <div class='section-title'>检视意见</div>
 <div class='review-item'>
 <div><strong>jiyuan_99</strong> · 未解决</div>
@@ -491,13 +670,12 @@ throw FSException(&quot;Parent path does not exist:: `${parent}`.&quot;)
 </div>
 <div class='pr-card'>
 <div class='pr-header'>
-<div class='pr-title'>#80 arm32 std build</div>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/80' target='_blank' rel='noopener noreferrer'>#80 arm32 std build</a></div>
 <span class='badge badge-danger'>1 未解决</span>
 </div>
-<div class='pr-meta'>状态：closed</div>
+<div class='pr-meta'>状态：<span class='state-label state-other'>closed</span></div>
 <div class='pr-branch'>分支：std_arm32 → dev</div>
 <div class='pr-times'>创建：2025-09-28T10:56:14+08:00 ｜ 更新：2025-09-28T11:10:52+08:00</div>
-<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/80' target='_blank' rel='noopener noreferrer'>查看 PR</a>
 <div class='section-title'>关联 Issues</div>
 <div class='empty-text'>无关联 Issue</div>
 <div class='section-title'>检视意见</div>
@@ -516,14 +694,14 @@ throw FSException(&quot;Parent path does not exist:: `${parent}`.&quot;)
 <details class='repo-block' open>
 <summary>
 <div class='repo-title'>仓库：cangjie/cangjie_stdx
-<span class='repo-meta'>共 1 个匹配 PR · 8 个用户</span>
+<span class='repo-meta'>共 9 个匹配 PR · 8 个用户</span>
 </div>
 <div class='repo-chevron'>▶</div>
 </summary>
 <div class='repo-content'>
 <details class='user-block' open>
 <summary>
-<div class='user-title'>用户：ovy
+<div class='user-title'>用户：ChaosJohn
 <span class='user-meta'>1 个 PR</span>
 </div>
 <div class='user-chevron'>▶</div>
@@ -532,16 +710,77 @@ throw FSException(&quot;Parent path does not exist:: `${parent}`.&quot;)
 <div class='pr-grid'>
 <div class='pr-card'>
 <div class='pr-header'>
-<div class='pr-title'>#82 feat: add http log</div>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/32' target='_blank' rel='noopener noreferrer'>#32 feat: prepare README &amp; architecture figures for OpenHarmony-Sig</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：feature_prepare4sig → dev</div>
+<div class='pr-times'>创建：2025-09-20T17:01:21+08:00 ｜ 更新：2025-12-03T17:17:01+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='empty-text'>无关联 Issue</div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+</div>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：chongweizhi
+<span class='user-meta'>1 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/18' target='_blank' rel='noopener noreferrer'>#18 fix readme</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：fix_readme → dev</div>
+<div class='pr-times'>创建：2025-08-12T16:57:28+08:00 ｜ 更新：2025-12-03T17:17:01+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='empty-text'>无关联 Issue</div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+</div>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：ovy
+<span class='user-meta'>2 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/211' target='_blank' rel='noopener noreferrer'>#211 debug</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：debug → dev</div>
+<div class='pr-times'>创建：2025-12-02T10:09:20+08:00 ｜ 更新：2025-12-03T17:17:01+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_stdx/issues/139' target='_blank' rel='noopener noreferrer'>#139 [open] [Bug]: stdx 中变量在运行时存在副本（labels: bug）</a></div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/82' target='_blank' rel='noopener noreferrer'>#82 feat: add http log</a></div>
 <span class='badge badge-danger'>2 未解决</span>
 </div>
-<div class='pr-meta'>状态：merged</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
 <div class='pr-branch'>分支：feature_add_http_log → dev</div>
 <div class='pr-times'>创建：2025-10-31T15:26:22+08:00 ｜ 更新：2025-11-12T14:38:45+08:00</div>
-<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/82' target='_blank' rel='noopener noreferrer'>查看 PR</a>
 <div class='section-title'>关联 Issues</div>
-<div class='issue-item'>#56 [open] feat: add http log</div>
-<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_stdx/issues/56</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_stdx/issues/56' target='_blank' rel='noopener noreferrer'>#56 [open] feat: add http log</a></div>
 <div class='section-title'>检视意见</div>
 <div class='review-item'>
 <div><strong>MinamiK</strong> · 未解决</div>
@@ -557,12 +796,101 @@ throw FSException(&quot;Parent path does not exist:: `${parent}`.&quot;)
 </div>
 </div>
 </details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：jiyuan_99
+<span class='user-meta'>2 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/206' target='_blank' rel='noopener noreferrer'>#206 feat: stdx ios-simulator-x86_64 build</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：ios_x86 → dev</div>
+<div class='pr-times'>创建：2025-11-27T19:37:51+08:00 ｜ 更新：2025-12-03T17:17:01+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/229' target='_blank' rel='noopener noreferrer'>#229 [open] [新需求]: 标准库 std 、stdx支持构建选项 --target=ios-simulator-x86_64（labels: enhancement）</a></div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/43' target='_blank' rel='noopener noreferrer'>#43 feat: https proxy &amp; html json</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：feat_httpsproxy_json_main → main</div>
+<div class='pr-times'>创建：2025-10-17T12:44:08+08:00 ｜ 更新：2025-11-27T11:11:35+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_stdx/issues/33' target='_blank' rel='noopener noreferrer'>#33 [open] main分支同步代码</a></div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+</div>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：MinamiK
+<span class='user-meta'>3 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/167' target='_blank' rel='noopener noreferrer'>#167 chore: add docs example code result checklist to PR template</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：chore_doc_pr_checklist_dev → dev</div>
+<div class='pr-times'>创建：2025-11-18T16:12:01+08:00 ｜ 更新：2025-12-03T17:17:01+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_stdx/issues/104' target='_blank' rel='noopener noreferrer'>#104 [open] [新需求]: dev分支更新issue和pr模板（labels: enhancement）</a></div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/145' target='_blank' rel='noopener noreferrer'>#145 feat: test codeowners</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：test_codeowners → main</div>
+<div class='pr-times'>创建：2025-11-14T10:43:47+08:00 ｜ 更新：2025-11-27T11:11:35+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='empty-text'>无关联 Issue</div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/140' target='_blank' rel='noopener noreferrer'>#140 feat: support static openssl</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：feat_support_static_openssl → release/v1.0.3-cjmp-beta</div>
+<div class='pr-times'>创建：2025-11-13T17:15:55+08:00 ｜ 更新：2025-11-14T14:17:58+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_stdx/issues/49' target='_blank' rel='noopener noreferrer'>#49 [open] 支持静态链接openssl</a></div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+</div>
+</div>
+</details>
 </div>
 </details>
 <details class='repo-block' open>
 <summary>
 <div class='repo-title'>仓库：cangjie/cangjie_test
-<span class='repo-meta'>共 1 个匹配 PR · 8 个用户</span>
+<span class='repo-meta'>共 3 个匹配 PR · 8 个用户</span>
 </div>
 <div class='repo-chevron'>▶</div>
 </summary>
@@ -578,22 +906,70 @@ throw FSException(&quot;Parent path does not exist:: `${parent}`.&quot;)
 <div class='pr-grid'>
 <div class='pr-card'>
 <div class='pr-header'>
-<div class='pr-title'>#397 fix: add http case</div>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/397' target='_blank' rel='noopener noreferrer'>#397 fix: add http case</a></div>
 <span class='badge badge-danger'>1 未解决</span>
 </div>
-<div class='pr-meta'>状态：open</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
 <div class='pr-branch'>分支：bugfix_add_case → release/OpenHarmony-release-6.0</div>
 <div class='pr-times'>创建：2025-11-24T10:25:01+08:00 ｜ 更新：2025-12-02T21:27:32+08:00</div>
-<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/397' target='_blank' rel='noopener noreferrer'>查看 PR</a>
 <div class='section-title'>关联 Issues</div>
-<div class='issue-item'>#111 [open] [Bug]: 补充OH6.0 http漏合的用例（labels: bug）</div>
-<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_test/issues/111</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_test/issues/111' target='_blank' rel='noopener noreferrer'>#111 [open] [Bug]: 补充OH6.0 http漏合的用例（labels: bug）</a></div>
 <div class='section-title'>检视意见</div>
 <div class='review-item'>
 <div><strong>ChaosJohn</strong> · 未解决</div>
 <div class='review-meta'>创建：2025-11-25T20:28:26+08:00 ｜ 更新：2025-11-25T20:28:26+08:00</div>
 <div class='review-body'>PR描述里标Required的都是必填项，请完善</div>
 </div>
+</div>
+</div>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：EMROF
+<span class='user-meta'>1 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/408' target='_blank' rel='noopener noreferrer'>#408 fix: optimize exceptions of std.fs</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：FsExceptionOptimization → dev</div>
+<div class='pr-times'>创建：2025-11-24T23:55:13+08:00 ｜ 更新：2025-12-03T17:17:17+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='empty-text'>无关联 Issue</div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
+</div>
+</div>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：ovy
+<span class='user-meta'>1 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/451' target='_blank' rel='noopener noreferrer'>#451 fix: synchronize testcases</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：fix_testcases → release/1.0</div>
+<div class='pr-times'>创建：2025-11-27T17:38:02+08:00 ｜ 更新：2025-12-03T19:08:00+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_test/issues/125' target='_blank' rel='noopener noreferrer'>#125 [open] [Bug]: 补充 String 相关用例（labels: bug）</a></div>
+<div class='section-title'>检视意见</div>
+<div class='empty-text'>无未解决的检视意见</div>
 </div>
 </div>
 </div>
