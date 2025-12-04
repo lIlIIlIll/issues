@@ -438,7 +438,7 @@
       border-radius: 10px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.35);
       padding: 10px 12px;
-      z-index: 10;
+      z-index: 50;
       display: none;
     }
     .filter-user-panel.open {
@@ -493,8 +493,8 @@
 <body>
 <div class='container'>
 <h1>GitCode PR Review Report</h1>
-<div class='sub-title'>执行时间：2025-12-04 16:02:51 CST</div>
-<div class='sub-title'>默认开启：只看未解决检视意见；默认开启：隐藏没有未解决检视意见的 PR；默认开启：隐藏当前筛选下没有 PR 的用户；默认显示 merged 的 PR（可切换）</div>
+<div class='sub-title'>执行时间：2025-12-04 16:24:05 CST</div>
+<div class='sub-title'>默认开启：只看未解决检视意见；默认开启：隐藏没有未解决检视意见的 PR；默认开启：隐藏当前筛选下没有 PR 的用户；默认显示 merged 的 PR（可切换）；支持按用户组过滤（配置 groups）</div>
 <div class='filter-bar'>
 <label class='filter-label'><input type='checkbox' id='filter-unresolved' checked /> 只看未解决检视意见</label>
 <label class='filter-label'><input type='checkbox' id='filter-hide-clean' checked /> 隐藏没有未解决检视意见的 PR</label>
@@ -518,6 +518,18 @@
 <label class='filter-user-item'><input type='checkbox' class='filter-user-checkbox' value='renyi43' checked /> renyi43</label>
 <label class='filter-user-item'><input type='checkbox' class='filter-user-checkbox' value='MinamiK' checked /> MinamiK</label>
 <label class='filter-user-item'><input type='checkbox' class='filter-user-checkbox' value='xdst' checked /> xdst</label>
+</div>
+</div>
+</div>
+<div class='filter-users' id='filter-group-dropdown'>
+<button type='button' class='filter-user-toggle' id='filter-group-toggle'>用户组：全部</button>
+<div class='filter-user-panel' id='filter-group-panel'>
+<div class='filter-user-actions'>
+<button type='button' class='filter-chip-btn' id='filter-group-all'>全选</button>
+<button type='button' class='filter-chip-btn' id='filter-group-none'>全不选</button>
+</div>
+<div class='filter-user-list'>
+<label class='filter-user-item'><input type='checkbox' class='filter-group-checkbox' value='标准库团队' checked /> 标准库团队 <span style='color:#9ca3af'>( EMROF, zhaoshenghua1, ChaosJohn, chongweizhi, ovy, jiyuan_99, renyi43, MinamiK, xdst )</span></label>
 </div>
 </div>
 </div>
@@ -2690,6 +2702,130 @@
 </div>
 </div>
 </details>
+<details class='user-block' open data-user-block data-username='jiyuan_99'>
+<summary>
+<div class='user-title'>用户：jiyuan_99
+<span class='user-meta' data-user-count>共 7 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/168' target='_blank' rel='noopener noreferrer'>#168 feat: stdx arm32 build</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
+<div class='pr-branch'>分支：stdx_arm32 → <span class='branch-target-pill branch-target-dev'>dev</span></div>
+<div class='pr-times'>创建：2025-11-18T16:42:07+08:00 ｜ 更新：2025-11-19T10:09:56+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/116' target='_blank' rel='noopener noreferrer'>#116 [open] [新需求]: stdx支持arm32构建（labels: enhancement）</a></div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/89' target='_blank' rel='noopener noreferrer'>#89 fix: fix stdx coverage build</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
+<div class='pr-branch'>分支：coverage_build_stdx_1030 → <span class='branch-target-pill branch-target-dev'>dev</span></div>
+<div class='pr-times'>创建：2025-11-03T10:18:20+08:00 ｜ 更新：2025-11-03T16:37:06+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/62' target='_blank' rel='noopener noreferrer'>#62 [open] fix: fix stdx coverage build</a></div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/58' target='_blank' rel='noopener noreferrer'>#58 docs: change summary format</a></div>
+<span class='badge badge-warn'>无检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
+<div class='pr-branch'>分支：main_stdx_23 → <span class='branch-target-pill branch-target-main'>main</span></div>
+<div class='pr-times'>创建：2025-10-24T00:13:58+08:00 ｜ 更新：2025-10-24T19:55:39+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_runtime/issues/85' target='_blank' rel='noopener noreferrer'>#85 [closed] feat: round code from dev to main</a></div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/50' target='_blank' rel='noopener noreferrer'>#50 fix: add coverage build option</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
+<div class='pr-branch'>分支：coverage_build_main → <span class='branch-target-pill branch-target-main'>main</span></div>
+<div class='pr-times'>创建：2025-10-23T11:16:53+08:00 ｜ 更新：2025-10-23T19:32:11+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/36' target='_blank' rel='noopener noreferrer'>#36 [open] stdx build增加coverage选项</a></div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/49' target='_blank' rel='noopener noreferrer'>#49 fix: add coverage build option</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
+<div class='pr-branch'>分支：coverage_build_option → <span class='branch-target-pill branch-target-dev'>dev</span></div>
+<div class='pr-times'>创建：2025-10-22T10:12:55+08:00 ｜ 更新：2025-10-23T14:46:16+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/36' target='_blank' rel='noopener noreferrer'>#36 [open] stdx build增加coverage选项</a></div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/206' target='_blank' rel='noopener noreferrer'>#206 feat: stdx ios-simulator-x86_64 build</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：ios_x86 → <span class='branch-target-pill branch-target-dev'>dev</span></div>
+<div class='pr-times'>创建：2025-11-27T19:37:51+08:00 ｜ 更新：2025-12-03T17:17:01+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_runtime/issues/229' target='_blank' rel='noopener noreferrer'>#229 [open] [新需求]: 标准库 std 、stdx支持构建选项 --target=ios-simulator-x86_64（labels: enhancement）</a></div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/43' target='_blank' rel='noopener noreferrer'>#43 feat: https proxy &amp; html json</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：feat_httpsproxy_json_main → <span class='branch-target-pill branch-target-main'>main</span></div>
+<div class='pr-times'>创建：2025-10-17T12:44:08+08:00 ｜ 更新：2025-12-04T15:57:50+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/33' target='_blank' rel='noopener noreferrer'>#33 [open] main分支同步代码</a></div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+</div>
+</div>
+</details>
 <details class='user-block' open data-user-block data-username='ovy'>
 <summary>
 <div class='user-title'>用户：ovy
@@ -2859,130 +2995,6 @@
 <div class='pr-times'>创建：2025-12-02T10:09:20+08:00 ｜ 更新：2025-12-03T17:17:01+08:00</div>
 <div class='section-title'>关联 Issues</div>
 <div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/139' target='_blank' rel='noopener noreferrer'>#139 [open] [Bug]: stdx 中变量在运行时存在副本（labels: bug）</a></div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-</div>
-</div>
-</details>
-<details class='user-block' open data-user-block data-username='jiyuan_99'>
-<summary>
-<div class='user-title'>用户：jiyuan_99
-<span class='user-meta' data-user-count>共 7 个 PR</span>
-</div>
-<div class='user-chevron'>▶</div>
-</summary>
-<div class='user-content'>
-<div class='pr-grid'>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/168' target='_blank' rel='noopener noreferrer'>#168 feat: stdx arm32 build</a></div>
-<span class='badge badge-ok'>无未解决检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
-<div class='pr-branch'>分支：stdx_arm32 → <span class='branch-target-pill branch-target-dev'>dev</span></div>
-<div class='pr-times'>创建：2025-11-18T16:42:07+08:00 ｜ 更新：2025-11-19T10:09:56+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/116' target='_blank' rel='noopener noreferrer'>#116 [open] [新需求]: stdx支持arm32构建（labels: enhancement）</a></div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/89' target='_blank' rel='noopener noreferrer'>#89 fix: fix stdx coverage build</a></div>
-<span class='badge badge-ok'>无未解决检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
-<div class='pr-branch'>分支：coverage_build_stdx_1030 → <span class='branch-target-pill branch-target-dev'>dev</span></div>
-<div class='pr-times'>创建：2025-11-03T10:18:20+08:00 ｜ 更新：2025-11-03T16:37:06+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/62' target='_blank' rel='noopener noreferrer'>#62 [open] fix: fix stdx coverage build</a></div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/58' target='_blank' rel='noopener noreferrer'>#58 docs: change summary format</a></div>
-<span class='badge badge-warn'>无检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
-<div class='pr-branch'>分支：main_stdx_23 → <span class='branch-target-pill branch-target-main'>main</span></div>
-<div class='pr-times'>创建：2025-10-24T00:13:58+08:00 ｜ 更新：2025-10-24T19:55:39+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_runtime/issues/85' target='_blank' rel='noopener noreferrer'>#85 [closed] feat: round code from dev to main</a></div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/50' target='_blank' rel='noopener noreferrer'>#50 fix: add coverage build option</a></div>
-<span class='badge badge-ok'>无未解决检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
-<div class='pr-branch'>分支：coverage_build_main → <span class='branch-target-pill branch-target-main'>main</span></div>
-<div class='pr-times'>创建：2025-10-23T11:16:53+08:00 ｜ 更新：2025-10-23T19:32:11+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/36' target='_blank' rel='noopener noreferrer'>#36 [open] stdx build增加coverage选项</a></div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/49' target='_blank' rel='noopener noreferrer'>#49 fix: add coverage build option</a></div>
-<span class='badge badge-ok'>无未解决检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
-<div class='pr-branch'>分支：coverage_build_option → <span class='branch-target-pill branch-target-dev'>dev</span></div>
-<div class='pr-times'>创建：2025-10-22T10:12:55+08:00 ｜ 更新：2025-10-23T14:46:16+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/36' target='_blank' rel='noopener noreferrer'>#36 [open] stdx build增加coverage选项</a></div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/206' target='_blank' rel='noopener noreferrer'>#206 feat: stdx ios-simulator-x86_64 build</a></div>
-<span class='badge badge-ok'>无未解决检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
-<div class='pr-branch'>分支：ios_x86 → <span class='branch-target-pill branch-target-dev'>dev</span></div>
-<div class='pr-times'>创建：2025-11-27T19:37:51+08:00 ｜ 更新：2025-12-03T17:17:01+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_runtime/issues/229' target='_blank' rel='noopener noreferrer'>#229 [open] [新需求]: 标准库 std 、stdx支持构建选项 --target=ios-simulator-x86_64（labels: enhancement）</a></div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/43' target='_blank' rel='noopener noreferrer'>#43 feat: https proxy &amp; html json</a></div>
-<span class='badge badge-ok'>无未解决检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
-<div class='pr-branch'>分支：feat_httpsproxy_json_main → <span class='branch-target-pill branch-target-main'>main</span></div>
-<div class='pr-times'>创建：2025-10-17T12:44:08+08:00 ｜ 更新：2025-12-04T15:57:50+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/33' target='_blank' rel='noopener noreferrer'>#33 [open] main分支同步代码</a></div>
 <div class='section-title'>检视意见</div>
 <div class='reviews' data-review-wrapper>
 <div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
@@ -4193,7 +4205,7 @@
 </div>
 <div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
 <div class='pr-branch'>分支：bugfix_add_case → <span class='branch-target-pill branch-target-release'>release/OpenHarmony-release-6.0</span></div>
-<div class='pr-times'>创建：2025-11-24T10:25:01+08:00 ｜ 更新：2025-12-04T14:17:30+08:00</div>
+<div class='pr-times'>创建：2025-11-24T10:25:01+08:00 ｜ 更新：2025-12-04T16:06:08+08:00</div>
 <div class='section-title'>关联 Issues</div>
 <div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_test/issues/111' target='_blank' rel='noopener noreferrer'>#111 [open] [Bug]: 补充OH6.0 http漏合的用例（labels: bug）</a></div>
 <div class='section-title'>检视意见</div>
@@ -4236,66 +4248,6 @@
 <div class='pr-times'>创建：2025-10-17T15:00:15+08:00 ｜ 更新：2025-12-01T11:46:54+08:00</div>
 <div class='section-title'>关联 Issues</div>
 <div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/26' target='_blank' rel='noopener noreferrer'>#26 [open] stdx.json.stream增加常用集合扩展</a></div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-</div>
-</div>
-</details>
-<details class='user-block' open data-user-block data-username='ChaosJohn'>
-<summary>
-<div class='user-title'>用户：ChaosJohn
-<span class='user-meta' data-user-count>共 3 个 PR</span>
-</div>
-<div class='user-chevron'>▶</div>
-</summary>
-<div class='user-content'>
-<div class='pr-grid'>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/370' target='_blank' rel='noopener noreferrer'>#370 feat: add test `stdSymbols.cj` to verify reflection for std</a></div>
-<span class='badge badge-ok'>无未解决检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
-<div class='pr-branch'>分支：feature_reflect_std_symbols → <span class='branch-target-pill branch-target-dev'>dev</span></div>
-<div class='pr-times'>创建：2025-11-20T20:08:11+08:00 ｜ 更新：2025-11-21T11:34:53+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_test/issues/101' target='_blank' rel='noopener noreferrer'>#101 [closed] [新需求]: 反射库支持反射标准库（labels: enhancement）</a></div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/91' target='_blank' rel='noopener noreferrer'>#91 test: enable testcases for signal</a></div>
-<span class='badge badge-ok'>无未解决检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
-<div class='pr-branch'>分支：dev → <span class='branch-target-pill branch-target-dev'>dev</span></div>
-<div class='pr-times'>创建：2025-10-23T16:28:59+08:00 ｜ 更新：2025-10-28T09:04:27+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_compiler/issues/34' target='_blank' rel='noopener noreferrer'>#34 [closed] 【feature】support func refEq intrinsic and signal</a></div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/34' target='_blank' rel='noopener noreferrer'>#34 test: update testlist for API</a></div>
-<span class='badge badge-warn'>无检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
-<div class='pr-branch'>分支：dev → <span class='branch-target-pill branch-target-dev'>dev</span></div>
-<div class='pr-times'>创建：2025-10-17T10:55:01+08:00 ｜ 更新：2025-10-17T11:06:02+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_test/issues/13' target='_blank' rel='noopener noreferrer'>#13 [closed] test: update testlist for API</a></div>
 <div class='section-title'>检视意见</div>
 <div class='reviews' data-review-wrapper>
 <div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
@@ -4381,10 +4333,10 @@
 </div>
 </div>
 </details>
-<details class='user-block' open data-user-block data-username='renyi43'>
+<details class='user-block' open data-user-block data-username='ChaosJohn'>
 <summary>
-<div class='user-title'>用户：renyi43
-<span class='user-meta' data-user-count>共 1 个 PR</span>
+<div class='user-title'>用户：ChaosJohn
+<span class='user-meta' data-user-count>共 3 个 PR</span>
 </div>
 <div class='user-chevron'>▶</div>
 </summary>
@@ -4392,14 +4344,46 @@
 <div class='pr-grid'>
 <div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0'>
 <div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/185' target='_blank' rel='noopener noreferrer'>#185 feat: add url testcase</a></div>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/370' target='_blank' rel='noopener noreferrer'>#370 feat: add test `stdSymbols.cj` to verify reflection for std</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
+<div class='pr-branch'>分支：feature_reflect_std_symbols → <span class='branch-target-pill branch-target-dev'>dev</span></div>
+<div class='pr-times'>创建：2025-11-20T20:08:11+08:00 ｜ 更新：2025-11-21T11:34:53+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_test/issues/101' target='_blank' rel='noopener noreferrer'>#101 [closed] [新需求]: 反射库支持反射标准库（labels: enhancement）</a></div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/91' target='_blank' rel='noopener noreferrer'>#91 test: enable testcases for signal</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
 </div>
 <div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
 <div class='pr-branch'>分支：dev → <span class='branch-target-pill branch-target-dev'>dev</span></div>
-<div class='pr-times'>创建：2025-11-04T19:50:31+08:00 ｜ 更新：2025-11-06T10:12:16+08:00</div>
+<div class='pr-times'>创建：2025-10-23T16:28:59+08:00 ｜ 更新：2025-10-28T09:04:27+08:00</div>
 <div class='section-title'>关联 Issues</div>
-<div class='empty-text'>无关联 Issue</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_compiler/issues/34' target='_blank' rel='noopener noreferrer'>#34 [closed] 【feature】support func refEq intrinsic and signal</a></div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/34' target='_blank' rel='noopener noreferrer'>#34 test: update testlist for API</a></div>
+<span class='badge badge-warn'>无检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
+<div class='pr-branch'>分支：dev → <span class='branch-target-pill branch-target-dev'>dev</span></div>
+<div class='pr-times'>创建：2025-10-17T10:55:01+08:00 ｜ 更新：2025-10-17T11:06:02+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_test/issues/13' target='_blank' rel='noopener noreferrer'>#13 [closed] test: update testlist for API</a></div>
 <div class='section-title'>检视意见</div>
 <div class='reviews' data-review-wrapper>
 <div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
@@ -4427,7 +4411,7 @@
 <div class='pr-branch'>分支：fix_treemapentryview → <span class='branch-target-pill branch-target-dev'>dev</span></div>
 <div class='pr-times'>创建：2025-11-19T12:19:19+08:00 ｜ 更新：2025-11-20T15:37:56+08:00</div>
 <div class='section-title'>关联 Issues</div>
-<div class='empty-text'>无关联 Issue</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/UsersForum/issues/2608' target='_blank' rel='noopener noreferrer'>#2608 [closed] 【缺陷】TreeMap的EntryView有一个BUG（labels: bug）</a></div>
 <div class='section-title'>检视意见</div>
 <div class='reviews' data-review-wrapper>
 <div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
@@ -4442,6 +4426,34 @@
 <div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
 <div class='pr-branch'>分支：no_iterable_api → <span class='branch-target-pill branch-target-dev'>dev</span></div>
 <div class='pr-times'>创建：2025-10-30T18:57:37+08:00 ｜ 更新：2025-10-31T12:24:02+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='empty-text'>无关联 Issue</div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+</div>
+</div>
+</details>
+<details class='user-block' open data-user-block data-username='renyi43'>
+<summary>
+<div class='user-title'>用户：renyi43
+<span class='user-meta' data-user-count>共 1 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/185' target='_blank' rel='noopener noreferrer'>#185 feat: add url testcase</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
+<div class='pr-branch'>分支：dev → <span class='branch-target-pill branch-target-dev'>dev</span></div>
+<div class='pr-times'>创建：2025-11-04T19:50:31+08:00 ｜ 更新：2025-11-06T10:12:16+08:00</div>
 <div class='section-title'>关联 Issues</div>
 <div class='empty-text'>无关联 Issue</div>
 <div class='section-title'>检视意见</div>
@@ -4531,7 +4543,7 @@
 <div class='pr-branch'>分支：feature_array_exception_release6.0 → <span class='branch-target-pill branch-target-release'>release/OpenHarmony-release-6.0</span></div>
 <div class='pr-times'>创建：2025-12-01T09:50:10+08:00 ｜ 更新：2025-12-02T17:53:19+08:00</div>
 <div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_runtime/issues/237' target='_blank' rel='noopener noreferrer'>#237 [closed] [Bug]: 同步 Array 异常信息到 release 6.0 分支（labels: bug）</a></div>
+<div class='empty-text'>无关联 Issue</div>
 <div class='section-title'>检视意见</div>
 <div class='reviews' data-review-wrapper>
 <div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
@@ -4824,6 +4836,12 @@
   const userToggle = document.getElementById('filter-user-toggle');
   const userPanel = document.getElementById('filter-user-panel');
   const userDropdown = document.getElementById('filter-user-dropdown');
+  const groupChecks = Array.from(document.querySelectorAll('.filter-group-checkbox'));
+  const groupSelectAllBtn = document.getElementById('filter-group-all');
+  const groupSelectNoneBtn = document.getElementById('filter-group-none');
+  const groupToggle = document.getElementById('filter-group-toggle');
+  const groupPanel = document.getElementById('filter-group-panel');
+  const groupDropdown = document.getElementById('filter-group-dropdown');
   if (!filterUnresolved || !filterHideClean || !filterShowMerged) return;
 
   const getSelectedUsers = () => {
@@ -4832,6 +4850,15 @@
       userChecks.filter((c) => c.checked).map((c) => c.value || '')
     );
   };
+
+  const getSelectedGroups = () => {
+    if (!groupChecks.length) return null;
+    return new Set(
+      groupChecks.filter((c) => c.checked).map((c) => c.value || '')
+    );
+  };
+
+  const GROUP_MEMBERS = {"标准库团队": ["EMROF", "zhaoshenghua1", "ChaosJohn", "chongweizhi", "ovy", "jiyuan_99", "renyi43", "MinamiK", "xdst"]};
 
   const refreshUserToggleText = (selectedUsers) => {
     if (!userToggle) return;
@@ -4846,13 +4873,35 @@
     }
   };
 
+  const refreshGroupToggleText = (selectedGroups) => {
+    if (!groupToggle) return;
+    if (!selectedGroups || selectedGroups.size === groupChecks.length) {
+      groupToggle.textContent = "用户组：全部";
+    } else if (selectedGroups.size === 0) {
+      groupToggle.textContent = "用户组：无";
+    } else if (selectedGroups.size <= 2) {
+      groupToggle.textContent = `用户组：${Array.from(selectedGroups).join(", ")}`;
+    } else {
+      groupToggle.textContent = `用户组：${selectedGroups.size} 个已选`;
+    }
+  };
+
   const applyFilters = () => {
     const onlyUnresolved = filterUnresolved.checked;
     const hideClean = filterHideClean.checked;
     const showMerged = filterShowMerged.checked;
     const hideEmptyUsers = filterHideEmptyUsers?.checked;
     const selectedUsers = getSelectedUsers();
+    const selectedGroups = getSelectedGroups();
+    const selectedGroupUsers = new Set();
+    if (selectedGroups) {
+      selectedGroups.forEach((name) => {
+        const arr = GROUP_MEMBERS[name] || [];
+        arr.forEach((u) => selectedGroupUsers.add(u));
+      });
+    }
     refreshUserToggleText(selectedUsers);
+    refreshGroupToggleText(selectedGroups);
 
     document.querySelectorAll('.pr-card').forEach((card) => {
       const reviewWrapper = card.querySelector('[data-review-wrapper]');
@@ -4867,7 +4916,9 @@
       card.dataset.hasUnresolved = hasUnresolved ? '1' : '0';
 
       const state = (card.dataset.state || '').toLowerCase();
-      const shouldHideMerged = !showMerged && state === 'merged';
+      const totalComments = parseInt(card.dataset.totalComments || '0', 10) || 0;
+      const shouldHideMerged =
+        !showMerged && state === 'merged' && totalComments === 0;
       const shouldHidePr =
         (hideClean && state !== 'open' && !hasUnresolved) || shouldHideMerged;
       card.style.display = shouldHidePr ? 'none' : '';
@@ -4917,7 +4968,10 @@
     document.querySelectorAll('[data-user-block]').forEach((userBlock) => {
       const username = (userBlock.dataset.username || '').trim();
       const userAllowed =
-        !selectedUsers || selectedUsers.has(username) || !username;
+        (!selectedUsers && !selectedGroups) ||
+        (selectedUsers && selectedUsers.has(username)) ||
+        (selectedGroups && selectedGroupUsers.has(username)) ||
+        !username;
 
       const cards = Array.from(userBlock.querySelectorAll('.pr-card'));
       const visibleCards = userAllowed
@@ -4971,15 +5025,38 @@
     userToggle.addEventListener('click', () => {
       userPanel.classList.toggle('open');
     });
-    document.addEventListener('click', (e) => {
-      if (!userDropdown.contains(e.target)) {
-        userPanel.classList.remove('open');
-      }
+    userToggle.addEventListener('click', (e) => e.stopPropagation());
+  }
+  if (groupToggle && groupPanel && groupDropdown) {
+    groupToggle.addEventListener('click', () => {
+      groupPanel.classList.toggle('open');
+    });
+    groupToggle.addEventListener('click', (e) => e.stopPropagation());
+  }
+  document.addEventListener('click', (e) => {
+    if (userDropdown && !userDropdown.contains(e.target)) {
+      userPanel?.classList.remove('open');
+    }
+    if (groupDropdown && !groupDropdown.contains(e.target)) {
+      groupPanel?.classList.remove('open');
+    }
+  });
+  if (groupSelectAllBtn) {
+    groupSelectAllBtn.addEventListener('click', () => {
+      groupChecks.forEach((c) => (c.checked = true));
+      applyFilters();
     });
   }
+  if (groupSelectNoneBtn) {
+    groupSelectNoneBtn.addEventListener('click', () => {
+      groupChecks.forEach((c) => (c.checked = false));
+      applyFilters();
+    });
+  }
+  groupChecks.forEach((c) => c.addEventListener('change', applyFilters));
   applyFilters();
 })();
 </script>
 
-<div class='footer'>由自动脚本生成 · 数据来源：GitCode API · 执行时间：2025-12-04 16:02:51 CST</div>
+<div class='footer'>由自动脚本生成 · 数据来源：GitCode API · 执行时间：2025-12-04 16:24:05 CST</div>
 </div></body></html>

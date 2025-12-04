@@ -4,7 +4,20 @@ access_token = ""
 # 默认 PR 状态 & 每页数量（单个仓库也可以覆盖）
 states = ["merged", "open"]
 per_page = 20
+users = [
+  "EMROF",
+  "zhaoshenghua1",
+  "ChaosJohn",
+  "chongweizhi",
+  "ovy",
+  "jiyuan_99",
+  "renyi43",
+  "MinamiK",
+  "xdst",
+]
 
+[[groups]]
+name = "标准库团队"
 users = [
   "EMROF",
   "zhaoshenghua1",

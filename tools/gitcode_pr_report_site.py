@@ -6,6 +6,7 @@
 - 多仓库、多用户、多 PR 状态
 - 页面筛选：只看未解决检视意见 / 隐藏没有未解决检视意见的 PR
   （CLI 参数 --only-unresolved / --hide-clean-prs 只影响页面默认勾选状态）
+- 支持配置用户组（[[groups]]），前端可按组/用户筛选
 - 输出一个静态 HTML，可直接部署到 GitHub Pages
 """
 
@@ -15,6 +16,7 @@ import argparse
 import os
 import sys
 import time
+import json
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from dataclasses import dataclass, field
@@ -48,6 +50,7 @@ class RepoConfig:
 class Config:
     access_token: Optional[str]
     users: List[str]
+    groups: Dict[str, List[str]]
     repos: List[RepoConfig]
 
 
@@ -111,6 +114,15 @@ def _normalize_states(obj: Dict[str, Any], default_states: List[str]) -> List[st
 
 
 def load_config(path: str) -> Config:
+    def _normalize_user_list(obj: Any) -> List[str]:
+        if not obj:
+            return []
+        if isinstance(obj, list):
+            return [str(u) for u in obj if u]
+        if isinstance(obj, str):
+            return [obj]
+        return []
+
     with open(path, "rb") as f:
         data = tomllib.load(f)
 
@@ -121,8 +133,28 @@ def load_config(path: str) -> Config:
     )
 
     users = data.get("users")
-    if not users or not isinstance(users, list):
-        raise ValueError('配置文件必须包含 users 数组，例如: users = ["alice", "bob"]')
+    users_list = _normalize_user_list(users)
+
+    groups_raw = data.get("groups") or []
+    groups: Dict[str, List[str]] = {}
+    if groups_raw:
+        if not isinstance(groups_raw, list):
+            raise ValueError(
+                'groups 需要是数组表，例如 [[groups]] name="team" users=["alice"]'
+            )
+        for g in groups_raw:
+            if not isinstance(g, dict):
+                continue
+            name = g.get("name")
+            members = _normalize_user_list(g.get("users") or g.get("members"))
+            if not name:
+                raise ValueError("每个 [[groups]] 需要 name 字段")
+            groups[name] = members
+
+    if not users_list and not groups:
+        raise ValueError(
+            '配置文件必须包含 users 或 groups，例如 users=["alice"] 或 [[groups]]...'
+        )
 
     global_states = data.get("states", ["open"])
 
@@ -153,7 +185,22 @@ def load_config(path: str) -> Config:
             RepoConfig(owner=owner, repo=repo, states=states, per_page=per_page)
         )
 
-    return Config(access_token=access_token, users=users, repos=repos)
+    # 汇总用户列表：显式 users + groups 中的成员，去重保序
+    seen_users: set[str] = set()
+    merged_users: List[str] = []
+    for name in users_list:
+        if name not in seen_users:
+            merged_users.append(name)
+            seen_users.add(name)
+    for members in groups.values():
+        for name in members:
+            if name not in seen_users:
+                merged_users.append(name)
+                seen_users.add(name)
+
+    return Config(
+        access_token=access_token, users=merged_users, groups=groups, repos=repos
+    )
 
 
 # ----------------- HTTP 封装 -----------------
@@ -232,7 +279,6 @@ def fetch_prs_for_user(
                 title = pr.get("title", "") or ""
                 # 有些 GitLab/GitCode 风格的接口还会给 work_in_progress/draft 字段
                 if pr.get("work_in_progress") is True or pr.get("draft") is True:
-                    print(pr.get("html_url", ""))
                     continue
 
                 if is_wip_title(title):
@@ -924,7 +970,7 @@ def build_html(
       border-radius: 10px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.35);
       padding: 10px 12px;
-      z-index: 10;
+      z-index: 50;
       display: none;
     }
     .filter-user-panel.open {
@@ -975,6 +1021,8 @@ def build_html(
     }
     """
 
+    group_json = json.dumps(cfg.groups, ensure_ascii=False)
+
     html_parts: List[str] = [
         "<!DOCTYPE html>",
         "<html lang='zh-CN'>",
@@ -996,15 +1044,17 @@ def build_html(
     )
     filter_desc: List[str] = []
     if default_only_unresolved:
-        filter_desc.append("默认开启：只看未解决检视意见")
+        filter_desc.append("只看未解决检视意见")
     if default_hide_clean_prs:
-        filter_desc.append("默认开启：隐藏没有未解决检视意见的 PR")
-    filter_desc.append("默认开启：隐藏当前筛选下没有 PR 的用户")
-    filter_desc.append("默认显示 merged 的 PR（可切换）")
+        filter_desc.append("隐藏无未解决检视意见的 PR")
+    filter_desc.append("隐藏当前筛选下无 PR 的用户")
+    filter_desc.append("显示 merged（可切换）")
+    if cfg.groups:
+        filter_desc.append("支持用户组过滤")
     if not filter_desc:
         filter_desc.append("可直接在页面上切换过滤，无需重新生成报表")
     html_parts.append(
-        f"<div class='sub-title'>{escape_html('；'.join(filter_desc))}</div>"
+        f"<div class='sub-title'>默认：{escape_html(' · '.join(filter_desc))}</div>"
     )
 
     html_parts.append("<div class='filter-bar'>")
@@ -1052,11 +1102,45 @@ def build_html(
         )
         html_parts.append("</div>")
         html_parts.append("<div class='filter-user-list'>")
-        for uname in cfg.users:
+        if cfg.users:
+            for uname in cfg.users:
+                html_parts.append(
+                    "<label class='filter-user-item'>"
+                    f"<input type='checkbox' class='filter-user-checkbox' value='{escape_html(uname)}' checked /> "
+                    f"{escape_html(uname)}"
+                    "</label>"
+                )
+        else:
+            html_parts.append("<div class='empty-text'>配置中没有用户</div>")
+        html_parts.append("</div>")  # list
+        html_parts.append("</div>")  # panel
+        html_parts.append("</div>")  # dropdown
+
+    # 用户组筛选
+    if cfg.groups:
+        html_parts.append("<div class='filter-users' id='filter-group-dropdown'>")
+        html_parts.append(
+            "<button type='button' class='filter-user-toggle' id='filter-group-toggle'>"
+            "用户组：全部"
+            "</button>"
+        )
+        html_parts.append("<div class='filter-user-panel' id='filter-group-panel'>")
+        html_parts.append("<div class='filter-user-actions'>")
+        html_parts.append(
+            "<button type='button' class='filter-chip-btn' id='filter-group-all'>全选</button>"
+        )
+        html_parts.append(
+            "<button type='button' class='filter-chip-btn' id='filter-group-none'>全不选</button>"
+        )
+        html_parts.append("</div>")
+        html_parts.append("<div class='filter-user-list'>")
+        for gname, members in cfg.groups.items():
+            members_text = ", ".join(escape_html(m) for m in members)
             html_parts.append(
                 "<label class='filter-user-item'>"
-                f"<input type='checkbox' class='filter-user-checkbox' value='{escape_html(uname)}' checked /> "
-                f"{escape_html(uname)}"
+                f"<input type='checkbox' class='filter-group-checkbox' value='{escape_html(gname)}' checked /> "
+                f"{escape_html(gname)}"
+                f" <span style='color:#9ca3af'>( {members_text} )</span>"
                 "</label>"
             )
         html_parts.append("</div>")  # list
@@ -1366,8 +1450,7 @@ def build_html(
             html_parts.append("</div>")  # repo-content
             html_parts.append("</details>")  # repo-block
 
-    html_parts.append(
-        """
+    script = """
 <script>
 (() => {
   const filterUnresolved = document.getElementById('filter-unresolved');
@@ -1380,6 +1463,12 @@ def build_html(
   const userToggle = document.getElementById('filter-user-toggle');
   const userPanel = document.getElementById('filter-user-panel');
   const userDropdown = document.getElementById('filter-user-dropdown');
+  const groupChecks = Array.from(document.querySelectorAll('.filter-group-checkbox'));
+  const groupSelectAllBtn = document.getElementById('filter-group-all');
+  const groupSelectNoneBtn = document.getElementById('filter-group-none');
+  const groupToggle = document.getElementById('filter-group-toggle');
+  const groupPanel = document.getElementById('filter-group-panel');
+  const groupDropdown = document.getElementById('filter-group-dropdown');
   if (!filterUnresolved || !filterHideClean || !filterShowMerged) return;
 
   const getSelectedUsers = () => {
@@ -1388,6 +1477,15 @@ def build_html(
       userChecks.filter((c) => c.checked).map((c) => c.value || '')
     );
   };
+
+  const getSelectedGroups = () => {
+    if (!groupChecks.length) return null;
+    return new Set(
+      groupChecks.filter((c) => c.checked).map((c) => c.value || '')
+    );
+  };
+
+  const GROUP_MEMBERS = __GROUP_MEMBERS__;
 
   const refreshUserToggleText = (selectedUsers) => {
     if (!userToggle) return;
@@ -1402,13 +1500,35 @@ def build_html(
     }
   };
 
+  const refreshGroupToggleText = (selectedGroups) => {
+    if (!groupToggle) return;
+    if (!selectedGroups || selectedGroups.size === groupChecks.length) {
+      groupToggle.textContent = "用户组：全部";
+    } else if (selectedGroups.size === 0) {
+      groupToggle.textContent = "用户组：无";
+    } else if (selectedGroups.size <= 2) {
+      groupToggle.textContent = `用户组：${Array.from(selectedGroups).join(", ")}`;
+    } else {
+      groupToggle.textContent = `用户组：${selectedGroups.size} 个已选`;
+    }
+  };
+
   const applyFilters = () => {
     const onlyUnresolved = filterUnresolved.checked;
     const hideClean = filterHideClean.checked;
     const showMerged = filterShowMerged.checked;
     const hideEmptyUsers = filterHideEmptyUsers?.checked;
     const selectedUsers = getSelectedUsers();
+    const selectedGroups = getSelectedGroups();
+    const selectedGroupUsers = new Set();
+    if (selectedGroups) {
+      selectedGroups.forEach((name) => {
+        const arr = GROUP_MEMBERS[name] || [];
+        arr.forEach((u) => selectedGroupUsers.add(u));
+      });
+    }
     refreshUserToggleText(selectedUsers);
+    refreshGroupToggleText(selectedGroups);
 
     document.querySelectorAll('.pr-card').forEach((card) => {
       const reviewWrapper = card.querySelector('[data-review-wrapper]');
@@ -1423,7 +1543,9 @@ def build_html(
       card.dataset.hasUnresolved = hasUnresolved ? '1' : '0';
 
       const state = (card.dataset.state || '').toLowerCase();
-      const shouldHideMerged = !showMerged && state === 'merged';
+      const totalComments = parseInt(card.dataset.totalComments || '0', 10) || 0;
+      const shouldHideMerged =
+        !showMerged && state === 'merged' && totalComments === 0;
       const shouldHidePr =
         (hideClean && state !== 'open' && !hasUnresolved) || shouldHideMerged;
       card.style.display = shouldHidePr ? 'none' : '';
@@ -1473,7 +1595,10 @@ def build_html(
     document.querySelectorAll('[data-user-block]').forEach((userBlock) => {
       const username = (userBlock.dataset.username || '').trim();
       const userAllowed =
-        !selectedUsers || selectedUsers.has(username) || !username;
+        (!selectedUsers && !selectedGroups) ||
+        (selectedUsers && selectedUsers.has(username)) ||
+        (selectedGroups && selectedGroupUsers.has(username)) ||
+        !username;
 
       const cards = Array.from(userBlock.querySelectorAll('.pr-card'));
       const visibleCards = userAllowed
@@ -1527,17 +1652,41 @@ def build_html(
     userToggle.addEventListener('click', () => {
       userPanel.classList.toggle('open');
     });
-    document.addEventListener('click', (e) => {
-      if (!userDropdown.contains(e.target)) {
-        userPanel.classList.remove('open');
-      }
+    userToggle.addEventListener('click', (e) => e.stopPropagation());
+  }
+  if (groupToggle && groupPanel && groupDropdown) {
+    groupToggle.addEventListener('click', () => {
+      groupPanel.classList.toggle('open');
+    });
+    groupToggle.addEventListener('click', (e) => e.stopPropagation());
+  }
+  document.addEventListener('click', (e) => {
+    if (userDropdown && !userDropdown.contains(e.target)) {
+      userPanel?.classList.remove('open');
+    }
+    if (groupDropdown && !groupDropdown.contains(e.target)) {
+      groupPanel?.classList.remove('open');
+    }
+  });
+  if (groupSelectAllBtn) {
+    groupSelectAllBtn.addEventListener('click', () => {
+      groupChecks.forEach((c) => (c.checked = true));
+      applyFilters();
     });
   }
+  if (groupSelectNoneBtn) {
+    groupSelectNoneBtn.addEventListener('click', () => {
+      groupChecks.forEach((c) => (c.checked = false));
+      applyFilters();
+    });
+  }
+  groupChecks.forEach((c) => c.addEventListener('change', applyFilters));
   applyFilters();
 })();
 </script>
 """
-    )
+
+    html_parts.append(script.replace("__GROUP_MEMBERS__", group_json))
 
     html_parts.append(
         f"<div class='footer'>由自动脚本生成 · 数据来源：GitCode API · 执行时间：{escape_html(executed_at)}</div>"
