@@ -5,7 +5,15 @@ access_token = ""
 state = ["merged", "open"]
 per_page = 50
 
-users = ["EMROF"]
+users = [
+  "EMROF",
+  "zhaoshenghua1",
+  "ChaosJohn",
+  "chongweizhi",
+  "ovy",
+  "jiyuan_99",
+  "renyi43",
+]
 
 [[repos]]
 owner = "cangjie"
@@ -14,3 +22,7 @@ repo = "cangjie_test"
 [[repos]]
 owner = "cangjie"
 repo = "cangjie_runtime"
+
+[[repos]]
+owner = "cangjie"
+repo = "cangjie_stdx"
