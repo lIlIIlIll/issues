@@ -119,7 +119,7 @@ def load_config(path: str) -> Config:
 
     users = data.get("users")
     if not users or not isinstance(users, list):
-        raise ValueError("配置文件必须包含 users 数组，例如: users = [\"alice\", \"bob\"]")
+        raise ValueError('配置文件必须包含 users 数组，例如: users = ["alice", "bob"]')
 
     global_states = _normalize_states(data, ["all"])
 
@@ -131,7 +131,7 @@ def load_config(path: str) -> Config:
     if not repos_raw or not isinstance(repos_raw, list):
         raise ValueError(
             "配置文件必须包含 [[repos]] 数组表，例如:\n"
-            "[[repos]]\nowner = \"org\"\nrepo = \"project\"\n"
+            '[[repos]]\nowner = "org"\nrepo = "project"\n'
         )
 
     repos: List[RepoConfig] = []
@@ -146,7 +146,9 @@ def load_config(path: str) -> Config:
         if per_page < 1 or per_page > 100:
             per_page = global_per_page
 
-        repos.append(RepoConfig(owner=owner, repo=repo, states=states, per_page=per_page))
+        repos.append(
+            RepoConfig(owner=owner, repo=repo, states=states, per_page=per_page)
+        )
 
     return Config(access_token=access_token, users=users, repos=repos)
 
@@ -154,7 +156,9 @@ def load_config(path: str) -> Config:
 # ----------------- HTTP 封装 -----------------
 
 
-def gitcode_get(path: str, *, access_token: Optional[str], params: Dict[str, Any]) -> Any:
+def gitcode_get(
+    path: str, *, access_token: Optional[str], params: Dict[str, Any]
+) -> Any:
     url = BASE_URL + path
     params = dict(params) if params else {}
     if access_token:
@@ -293,6 +297,43 @@ def _infer_resolved(comment: Dict[str, Any]) -> Optional[bool]:
     return None
 
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+
+def fetch_repo_user_data(
+    access_token: Optional[str],
+    repo_cfg: RepoConfig,
+    username: str,
+    *,
+    only_unresolved: bool,
+    hide_clean_prs: bool,
+) -> List[PRInfo]:
+    """
+    拉取一个仓库 + 一个用户的所有 PR，并填充 issues/comments，
+    根据 only_unresolved/hide_clean_prs 做必要的过滤。
+    """
+    prs = fetch_prs_for_user(access_token, repo_cfg, username)
+
+    result: List[PRInfo] = []
+    for pr in prs:
+        # 先拉评论
+        comments = fetch_comments_for_pr(access_token, repo_cfg, pr.number)
+        pr.comments = comments
+
+        # 如果启用了 hide_clean_prs 且没有未解决的意见，直接跳过这个 PR，
+        # 连 issues 都不查，省一次请求。
+        has_unresolved = any(cm.resolved is False for cm in comments)
+        if hide_clean_prs and not has_unresolved:
+            continue
+
+        # 再拉 issues
+        pr.issues = fetch_issues_for_pr(access_token, repo_cfg, pr.number)
+
+        result.append(pr)
+
+    return result
+
+
 def fetch_comments_for_pr(
     access_token: Optional[str],
     repo_cfg: RepoConfig,
@@ -370,7 +411,6 @@ def build_html(
     """
     title = "GitCode PR Review Report"
 
-    # 简单但还算好看的 CSS
     style = """
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -412,22 +452,87 @@ def build_html(
       background: #065f46;
       color: #d1fae5;
     }
+
     .repo-block {
-      margin-top: 24px;
-      margin-bottom: 24px;
+      margin-top: 16px;
+      margin-bottom: 16px;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      background: #020617;
+    }
+    .repo-block > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .repo-block > summary::-webkit-details-marker {
+      display: none;
     }
     .repo-title {
-      font-size: 20px;
-      margin-bottom: 8px;
+      font-size: 16px;
+      font-weight: 600;
     }
+    .repo-meta {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-left: 8px;
+    }
+    .repo-chevron {
+      font-size: 12px;
+      color: #6b7280;
+      transition: transform 0.15s ease-out;
+    }
+    .repo-block[open] .repo-chevron {
+      transform: rotate(90deg);
+    }
+
+    .repo-content {
+      padding: 0 12px 10px 12px;
+      border-top: 1px solid #1f2937;
+    }
+
     .user-block {
       margin-top: 8px;
-      margin-bottom: 16px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      background: #020617;
+    }
+    .user-block > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .user-block > summary::-webkit-details-marker {
+      display: none;
     }
     .user-title {
-      font-size: 16px;
-      margin: 12px 0;
+      font-size: 14px;
     }
+    .user-meta {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-left: 8px;
+    }
+    .user-chevron {
+      font-size: 11px;
+      color: #6b7280;
+      transition: transform 0.15s ease-out;
+    }
+    .user-block[open] .user-chevron {
+      transform: rotate(90deg);
+    }
+
+    .user-content {
+      padding: 6px 10px 8px 10px;
+    }
+
     .pr-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -507,12 +612,11 @@ def build_html(
     }
     """
 
-    # 头部
     html_parts: List[str] = [
         "<!DOCTYPE html>",
         "<html lang='zh-CN'>",
         "<head>",
-        f"<meta charset='utf-8' />",
+        "<meta charset='utf-8' />",
         f"<title>{escape_html(title)}</title>",
         "<meta name='viewport' content='width=device-width, initial-scale=1' />",
         "<style>",
@@ -524,7 +628,6 @@ def build_html(
         f"<h1>{escape_html(title)}</h1>",
     ]
 
-    # 顶部说明
     flags = []
     if only_unresolved:
         flags.append("仅显示未解决检视意见")
@@ -532,41 +635,53 @@ def build_html(
         flags.append("隐藏没有未解决检视意见的 PR")
     flag_text = "，".join(flags) if flags else "显示所有包含检视意见状态的 PR"
 
-    html_parts.append(
-        f"<div class='sub-title'>模式：{escape_html(flag_text)}</div>"
-    )
+    html_parts.append(f"<div class='sub-title'>模式：{escape_html(flag_text)}</div>")
 
-    # 内容
     if not data:
         html_parts.append("<p class='empty-text'>没有任何符合条件的 PR。</p>")
     else:
         for repo_name, users_prs in data.items():
-            html_parts.append("<div class='repo-block'>")
-            html_parts.append(f"<div class='repo-title'>仓库：{escape_html(repo_name)}</div>")
-
-            # 统计这个 repo 有多少 PR
+            # 统计这个 repo 有多少 PR（过滤后）
             total_prs = sum(len(v) for v in users_prs.values())
+
+            html_parts.append(f"<details class='repo-block' open>")
+            html_parts.append("<summary>")
+            html_parts.append(f"<div class='repo-title'>仓库：{escape_html(repo_name)}")
             html_parts.append(
-                f"<div class='sub-title'>共 {total_prs} 个匹配 PR</div>"
+                f"<span class='repo-meta'>共 {total_prs} 个匹配 PR · {len(users_prs)} 个用户</span>"
             )
+            html_parts.append("</div>")
+            html_parts.append("<div class='repo-chevron'>▶</div>")
+            html_parts.append("</summary>")
+
+            html_parts.append("<div class='repo-content'>")
 
             for username, prs in users_prs.items():
-                html_parts.append("<div class='user-block'>")
+                html_parts.append("<details class='user-block' open>")
+                html_parts.append("<summary>")
                 html_parts.append(
-                    f"<div class='user-title'>用户：{escape_html(username)}（{len(prs)} 个 PR）</div>"
+                    f"<div class='user-title'>用户：{escape_html(username)}"
                 )
+                html_parts.append(f"<span class='user-meta'>{len(prs)} 个 PR</span>")
+                html_parts.append("</div>")
+                html_parts.append("<div class='user-chevron'>▶</div>")
+                html_parts.append("</summary>")
+
+                html_parts.append("<div class='user-content'>")
 
                 if not prs:
-                    html_parts.append(
-                        "<div class='empty-text'>该用户在当前筛选条件下没有 PR。</div>"
-                    )
+                    pass
+                    # html_parts.append(
+                    #     "<div class='empty-text'>该用户在当前筛选条件下没有 PR。</div>"
+                    # )
                 else:
                     html_parts.append("<div class='pr-grid'>")
                     for pr in prs:
-                        unresolved_comments = [cm for cm in pr.comments if cm.resolved is False]
+                        unresolved_comments = [
+                            cm for cm in pr.comments if cm.resolved is False
+                        ]
                         unresolved_count = len(unresolved_comments)
 
-                        # 状态 badge
                         if unresolved_count > 0:
                             badge_cls = "badge-danger"
                             badge_text = f"{unresolved_count} 未解决"
@@ -579,7 +694,6 @@ def build_html(
 
                         html_parts.append("<div class='pr-card'>")
 
-                        # header
                         html_parts.append("<div class='pr-header'>")
                         html_parts.append(
                             f"<div class='pr-title'>#{pr.number} {escape_html(pr.title)}</div>"
@@ -589,12 +703,10 @@ def build_html(
                         )
                         html_parts.append("</div>")  # pr-header
 
-                        # meta: state
                         html_parts.append(
                             f"<div class='pr-meta'>状态：{escape_html(pr.state)}</div>"
                         )
 
-                        # branch
                         if pr.target_branch:
                             branch_str = f"{pr.source_branch} → {pr.target_branch}"
                         else:
@@ -604,22 +716,20 @@ def build_html(
                                 f"<div class='pr-branch'>分支：{escape_html(branch_str)}</div>"
                             )
 
-                        # times
                         times_line = f"创建：{escape_html(pr.created_at)}"
                         if pr.updated_at:
                             times_line += f" ｜ 更新：{escape_html(pr.updated_at)}"
-                        html_parts.append(
-                            f"<div class='pr-times'>{times_line}</div>"
-                        )
+                        html_parts.append(f"<div class='pr-times'>{times_line}</div>")
 
-                        # link
                         if pr.html_url:
                             html_parts.append(
                                 f"<a class='pr-link' href='{escape_html(pr.html_url)}' target='_blank' rel='noopener noreferrer'>查看 PR</a>"
                             )
 
                         # Issues
-                        html_parts.append("<div class='section-title'>关联 Issues</div>")
+                        html_parts.append(
+                            "<div class='section-title'>关联 Issues</div>"
+                        )
                         if not pr.issues:
                             html_parts.append(
                                 "<div class='empty-text'>无关联 Issue</div>"
@@ -645,7 +755,9 @@ def build_html(
                         if only_unresolved:
                             filtered_comments = unresolved_comments
                         else:
-                            filtered_comments = [cm for cm in pr.comments if cm.resolved is not None]
+                            filtered_comments = [
+                                cm for cm in pr.comments if cm.resolved is not None
+                            ]
 
                         if not filtered_comments:
                             if only_unresolved:
@@ -658,9 +770,7 @@ def build_html(
                                 )
                         else:
                             for cm in filtered_comments:
-                                resolved_str = (
-                                    "已解决" if cm.resolved else "未解决"
-                                )
+                                resolved_str = "已解决" if cm.resolved else "未解决"
                                 loc = ""
                                 if cm.path:
                                     loc = f"（{cm.path}"
@@ -684,9 +794,11 @@ def build_html(
                         html_parts.append("</div>")  # pr-card
                     html_parts.append("</div>")  # pr-grid
 
-                html_parts.append("</div>")  # user-block
+                html_parts.append("</div>")  # user-content
+                html_parts.append("</details>")  # user-block
 
-            html_parts.append("</div>")  # repo-block
+            html_parts.append("</div>")  # repo-content
+            html_parts.append("</details>")  # repo-block
 
     html_parts.append(
         "<div class='footer'>由自动脚本生成 · 数据来源：GitCode API</div>"
@@ -741,38 +853,43 @@ def main() -> None:
             file=sys.stderr,
         )
 
-    # 收集数据：{ repo_name -> { username -> [PRInfo] } }
+    # { repo_name -> { username -> [PRInfo] } }
     repo_user_prs: Dict[str, Dict[str, List[PRInfo]]] = {}
 
+    # 先把所有 (repo_cfg, username) 任务列出来
+    tasks = []
     for repo_cfg in cfg.repos:
         repo_name = f"{repo_cfg.owner}/{repo_cfg.repo}"
-        repo_user_prs.setdefault(repo_name, {})
         for username in cfg.users:
+            tasks.append((repo_name, repo_cfg, username))
+
+    # 并发执行，max_workers 可以按你仓库/用户规模调，8–16 一般够
+    max_workers = min(len(tasks), 8) or 1
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_key = {}
+        for repo_name, repo_cfg, username in tasks:
+            fut = executor.submit(
+                fetch_repo_user_data,
+                cfg.access_token,
+                repo_cfg,
+                username,
+                only_unresolved=args.only_unresolved,
+                hide_clean_prs=args.hide_clean_prs,
+            )
+            future_to_key[fut] = (repo_name, username)
+
+        for fut in as_completed(future_to_key):
+            repo_name, username = future_to_key[fut]
             try:
-                prs = fetch_prs_for_user(cfg.access_token, repo_cfg, username)
-                # 填充 issues & comments
-                for pr in prs:
-                    pr.issues = fetch_issues_for_pr(
-                        cfg.access_token, repo_cfg, pr.number
-                    )
-                    pr.comments = fetch_comments_for_pr(
-                        cfg.access_token, repo_cfg, pr.number
-                    )
-
-                # hide_clean_prs：过滤掉没有未解决检视意见的 PR
-                if args.hide_clean_prs:
-                    visible = []
-                    for pr in prs:
-                        if any(cm.resolved is False for cm in pr.comments):
-                            visible.append(pr)
-                    prs = visible
-
-                repo_user_prs[repo_name][username] = prs
+                prs = fut.result()
             except Exception as e:
                 print(
                     f"\n!!! 获取 {repo_name} 中 {username} 的 PR 时出错: {e}",
                     file=sys.stderr,
                 )
+                prs = []
+
+            repo_user_prs.setdefault(repo_name, {})[username] = prs
 
     # 生成 HTML
     html = build_html(
@@ -792,4 +909,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

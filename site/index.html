@@ -46,22 +46,87 @@
       background: #065f46;
       color: #d1fae5;
     }
+
     .repo-block {
-      margin-top: 24px;
-      margin-bottom: 24px;
+      margin-top: 16px;
+      margin-bottom: 16px;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      background: #020617;
+    }
+    .repo-block > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .repo-block > summary::-webkit-details-marker {
+      display: none;
     }
     .repo-title {
-      font-size: 20px;
-      margin-bottom: 8px;
+      font-size: 16px;
+      font-weight: 600;
     }
+    .repo-meta {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-left: 8px;
+    }
+    .repo-chevron {
+      font-size: 12px;
+      color: #6b7280;
+      transition: transform 0.15s ease-out;
+    }
+    .repo-block[open] .repo-chevron {
+      transform: rotate(90deg);
+    }
+
+    .repo-content {
+      padding: 0 12px 10px 12px;
+      border-top: 1px solid #1f2937;
+    }
+
     .user-block {
       margin-top: 8px;
-      margin-bottom: 16px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      background: #020617;
+    }
+    .user-block > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .user-block > summary::-webkit-details-marker {
+      display: none;
     }
     .user-title {
-      font-size: 16px;
-      margin: 12px 0;
+      font-size: 14px;
     }
+    .user-meta {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-left: 8px;
+    }
+    .user-chevron {
+      font-size: 11px;
+      color: #6b7280;
+      transition: transform 0.15s ease-out;
+    }
+    .user-block[open] .user-chevron {
+      transform: rotate(90deg);
+    }
+
+    .user-content {
+      padding: 6px 10px 8px 10px;
+    }
+
     .pr-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -146,19 +211,120 @@
 <div class='container'>
 <h1>GitCode PR Review Report</h1>
 <div class='sub-title'>模式：仅显示未解决检视意见，隐藏没有未解决检视意见的 PR</div>
-<div class='repo-block'>
-<div class='repo-title'>仓库：cangjie/cangjie_test</div>
-<div class='sub-title'>共 0 个匹配 PR</div>
-<div class='user-block'>
-<div class='user-title'>用户：EMROF（0 个 PR）</div>
-<div class='empty-text'>该用户在当前筛选条件下没有 PR。</div>
+<details class='repo-block' open>
+<summary>
+<div class='repo-title'>仓库：cangjie/cangjie_runtime
+<span class='repo-meta'>共 9 个匹配 PR · 8 个用户</span>
+</div>
+<div class='repo-chevron'>▶</div>
+</summary>
+<div class='repo-content'>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：ChaosJohn
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：chongweizhi
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：ovy
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：zhaoshenghua1
+<span class='user-meta'>2 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'>#260 fix: timezone issue</div>
+<span class='badge badge-danger'>1 未解决</span>
+</div>
+<div class='pr-meta'>状态：merged</div>
+<div class='pr-branch'>分支：feature_ohos_timezone → dev</div>
+<div class='pr-times'>创建：2025-11-14T16:13:31+08:00 ｜ 更新：2025-12-03T16:43:52+08:00</div>
+<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/260' target='_blank' rel='noopener noreferrer'>查看 PR</a>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'>#159 [closed] TimeZone 适配 ohos</div>
+<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/159</div>
+<div class='section-title'>检视意见</div>
+<div class='review-item'>
+<div><strong>EMROF</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-12-03T16:23:38+08:00 ｜ 更新：2025-12-03T16:23:38+08:00</div>
+<div class='review-body'>为啥去掉了try-with-resource，free没写到finally里，那不是getOhosTzDataById如果出了异常，cstr就泄漏了</div>
 </div>
 </div>
-<div class='repo-block'>
-<div class='repo-title'>仓库：cangjie/cangjie_runtime</div>
-<div class='sub-title'>共 2 个匹配 PR</div>
-<div class='user-block'>
-<div class='user-title'>用户：EMROF（2 个 PR）</div>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'>#247 feat: timezone adapt ohos</div>
+<span class='badge badge-danger'>3 未解决</span>
+</div>
+<div class='pr-meta'>状态：merged</div>
+<div class='pr-branch'>分支：feature_ohos_timezone → dev</div>
+<div class='pr-times'>创建：2025-11-12T16:05:46+08:00 ｜ 更新：2025-12-03T16:20:08+08:00</div>
+<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/247' target='_blank' rel='noopener noreferrer'>查看 PR</a>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'>#159 [closed] TimeZone 适配 ohos</div>
+<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/159</div>
+<div class='section-title'>检视意见</div>
+<div class='review-item'>
+<div><strong>EMROF</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-12-03T16:11:19+08:00 ｜ 更新：2025-12-03T16:11:19+08:00</div>
+<div class='review-body'>函数内const并非常量，依然会占用栈空间，可以搞#define</div>
+</div>
+<div class='review-item'>
+<div><strong>EMROF</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-12-03T16:19:03+08:00 ｜ 更新：2025-12-03T16:19:03+08:00</div>
+<div class='review-body'>换成
+#ifdef __android__
+...
+#elifdef __ohos__
+...
+#else
+return NULL;
+#endif
+会不会好一点现在的一直有冗余return NULL;</div>
+</div>
+<div class='review-item'>
+<div><strong>EMROF</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-12-03T16:20:07+08:00 ｜ 更新：2025-12-03T16:20:07+08:00</div>
+<div class='review-body'>可以简化成一行return initOhosDefault() ?? initLocalDefault()</div>
+</div>
+</div>
+</div>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：EMROF
+<span class='user-meta'>2 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
 <div class='pr-grid'>
 <div class='pr-card'>
 <div class='pr-header'>
@@ -226,6 +392,403 @@ throw FSException(&quot;Parent path does not exist:: `${parent}`.&quot;)
 </div>
 </div>
 </div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：MinamiK
+<span class='user-meta'>0 个 PR</span>
 </div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：renyi43
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：jiyuan_99
+<span class='user-meta'>5 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'>#406 fix: fix timezone for android</div>
+<span class='badge badge-danger'>2 未解决</span>
+</div>
+<div class='pr-meta'>状态：merged</div>
+<div class='pr-branch'>分支：fix_timezone_dev → dev</div>
+<div class='pr-times'>创建：2025-12-02T15:29:12+08:00 ｜ 更新：2025-12-03T16:45:56+08:00</div>
+<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/406' target='_blank' rel='noopener noreferrer'>查看 PR</a>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'>#244 [open] [Bug]: time包读取时区文件逻辑适配安卓平台的时区文件（labels: bug）</div>
+<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/244</div>
+<div class='section-title'>检视意见</div>
+<div class='review-item'>
+<div><strong>MinamiK</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-12-03T16:41:28+08:00 ｜ 更新：2025-12-03T16:41:28+08:00</div>
+<div class='review-body'>异常信息不明确，异常信息里面能不能具体到某个错误？</div>
+</div>
+<div class='review-item'>
+<div><strong>MinamiK</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-12-03T16:45:56+08:00 ｜ 更新：2025-12-03T16:45:56+08:00</div>
+<div class='review-body'>这一段新增代码和timezone.cj新增代码能否提取成公共函数</div>
+</div>
+</div>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'>#361 fix: remove fdebug-types-section</div>
+<span class='badge badge-danger'>1 未解决</span>
+</div>
+<div class='pr-meta'>状态：merged</div>
+<div class='pr-branch'>分支：fix_1127 → release/1.0</div>
+<div class='pr-times'>创建：2025-11-27T11:48:14+08:00 ｜ 更新：2025-12-03T16:37:40+08:00</div>
+<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/361' target='_blank' rel='noopener noreferrer'>查看 PR</a>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'>#227 [closed] [Bug]: RelWithDebInfo下交叉编译windows报错error: unsupported option '-fdebug-types-section' for target 'x86_64-w64-windows-gnu'（labels: bug）</div>
+<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/227</div>
+<div class='section-title'>检视意见</div>
+<div class='review-item'>
+<div><strong>MinamiK</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-12-03T16:37:39+08:00 ｜ 更新：2025-12-03T16:37:39+08:00</div>
+<div class='review-body'>查了下，windows是使用PDB调试格式，-fdebug-types-section 是DWARF4的高级特性，用于合并类型信息。
+直接删除会不会导致程序变大？建议调研一下windows下有没有可替代方案。</div>
+</div>
+</div>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'>#188 refactor: refactor some collection api</div>
+<span class='badge badge-danger'>3 未解决</span>
+</div>
+<div class='pr-meta'>状态：merged</div>
+<div class='pr-branch'>分支：no_iterable_api → dev</div>
+<div class='pr-times'>创建：2025-10-31T20:47:48+08:00 ｜ 更新：2025-11-12T15:14:40+08:00</div>
+<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/188' target='_blank' rel='noopener noreferrer'>查看 PR</a>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'>#117 [closed] refactor: refactor som collection api</div>
+<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/117</div>
+<div class='section-title'>检视意见</div>
+<div class='review-item'>
+<div><strong>jiyuan_99</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-11-12T15:10:12+08:00 ｜ 更新：2025-11-12T15:10:28+08:00</div>
+<div class='review-body'>子晗：使用let</div>
+</div>
+<div class='review-item'>
+<div><strong>jiyuan_99</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-11-12T15:14:19+08:00 ｜ 更新：2025-11-12T15:14:19+08:00</div>
+<div class='review-body'>zihan: childs -&gt; children</div>
+</div>
+<div class='review-item'>
+<div><strong>jiyuan_99</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-11-12T15:14:39+08:00 ｜ 更新：2025-11-12T15:14:59+08:00</div>
+<div class='review-body'>陈乾：提取公共函数</div>
+</div>
+</div>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'>#181 feat: add noniterable api for collection</div>
+<span class='badge badge-danger'>6 未解决</span>
+</div>
+<div class='pr-meta'>状态：merged</div>
+<div class='pr-branch'>分支：no_iterable_api → dev</div>
+<div class='pr-times'>创建：2025-10-30T16:50:42+08:00 ｜ 更新：2025-11-12T15:49:25+08:00</div>
+<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/181' target='_blank' rel='noopener noreferrer'>查看 PR</a>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'>#113 [open] feat: add noniterable api for collection</div>
+<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_runtime/issues/113</div>
+<div class='section-title'>检视意见</div>
+<div class='review-item'>
+<div><strong>jiyuan_99</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-11-12T15:24:30+08:00 ｜ 更新：2025-11-12T15:24:30+08:00</div>
+<div class='review-body'>陈乾：提前退出</div>
+</div>
+<div class='review-item'>
+<div><strong>jiyuan_99</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-11-12T15:28:57+08:00 ｜ 更新：2025-11-12T15:28:57+08:00</div>
+<div class='review-body'>陈乾：在for循环中使用where</div>
+</div>
+<div class='review-item'>
+<div><strong>jiyuan_99</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-11-12T15:29:39+08:00 ｜ 更新：2025-11-12T15:29:39+08:00</div>
+<div class='review-body'>陈乾：格式化</div>
+</div>
+<div class='review-item'>
+<div><strong>jiyuan_99</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-11-12T15:31:42+08:00 ｜ 更新：2025-11-12T15:31:42+08:00</div>
+<div class='review-body'>陈乾： 一个if就行无须else</div>
+</div>
+<div class='review-item'>
+<div><strong>jiyuan_99</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-11-12T15:46:53+08:00 ｜ 更新：2025-11-12T15:46:53+08:00</div>
+<div class='review-body'>陈乾： 改成if let</div>
+</div>
+<div class='review-item'>
+<div><strong>jiyuan_99</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-11-12T15:49:25+08:00 ｜ 更新：2025-11-12T15:49:25+08:00</div>
+<div class='review-body'>注意格式</div>
+</div>
+</div>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'>#80 arm32 std build</div>
+<span class='badge badge-danger'>1 未解决</span>
+</div>
+<div class='pr-meta'>状态：closed</div>
+<div class='pr-branch'>分支：std_arm32 → dev</div>
+<div class='pr-times'>创建：2025-09-28T10:56:14+08:00 ｜ 更新：2025-09-28T11:10:52+08:00</div>
+<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/80' target='_blank' rel='noopener noreferrer'>查看 PR</a>
+<div class='section-title'>关联 Issues</div>
+<div class='empty-text'>无关联 Issue</div>
+<div class='section-title'>检视意见</div>
+<div class='review-item'>
+<div><strong>ChaosJohn</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-09-28T11:04:37+08:00 ｜ 更新：2025-09-28T11:04:37+08:00</div>
+<div class='review-body'>`--disable-reflection`需要套条件
+![image.png](https://raw.gitcode.com/user-images/assets/7239731/5638e64a-4920-44ad-8a1f-dc741ff7ee0e/image.png 'image.png')</div>
+</div>
+</div>
+</div>
+</div>
+</details>
+</div>
+</details>
+<details class='repo-block' open>
+<summary>
+<div class='repo-title'>仓库：cangjie/cangjie_stdx
+<span class='repo-meta'>共 1 个匹配 PR · 8 个用户</span>
+</div>
+<div class='repo-chevron'>▶</div>
+</summary>
+<div class='repo-content'>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：zhaoshenghua1
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：chongweizhi
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：ChaosJohn
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：EMROF
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：ovy
+<span class='user-meta'>1 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'>#82 feat: add http log</div>
+<span class='badge badge-danger'>2 未解决</span>
+</div>
+<div class='pr-meta'>状态：merged</div>
+<div class='pr-branch'>分支：feature_add_http_log → dev</div>
+<div class='pr-times'>创建：2025-10-31T15:26:22+08:00 ｜ 更新：2025-11-12T14:38:45+08:00</div>
+<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/82' target='_blank' rel='noopener noreferrer'>查看 PR</a>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'>#56 [open] feat: add http log</div>
+<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_stdx/issues/56</div>
+<div class='section-title'>检视意见</div>
+<div class='review-item'>
+<div><strong>MinamiK</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-11-12T14:37:06+08:00 ｜ 更新：2025-11-12T14:37:06+08:00</div>
+<div class='review-body'>@陈乾：  `errorCode:` 多余，需删除</div>
+</div>
+<div class='review-item'>
+<div><strong>MinamiK</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-11-12T14:38:45+08:00 ｜ 更新：2025-11-12T14:38:45+08:00</div>
+<div class='review-body'>@陈乾：  句尾句号需统一</div>
+</div>
+</div>
+</div>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：jiyuan_99
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：MinamiK
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：renyi43
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+</div>
+</details>
+<details class='repo-block' open>
+<summary>
+<div class='repo-title'>仓库：cangjie/cangjie_test
+<span class='repo-meta'>共 1 个匹配 PR · 8 个用户</span>
+</div>
+<div class='repo-chevron'>▶</div>
+</summary>
+<div class='repo-content'>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：zhaoshenghua1
+<span class='user-meta'>1 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card'>
+<div class='pr-header'>
+<div class='pr-title'>#397 fix: add http case</div>
+<span class='badge badge-danger'>1 未解决</span>
+</div>
+<div class='pr-meta'>状态：open</div>
+<div class='pr-branch'>分支：bugfix_add_case → release/OpenHarmony-release-6.0</div>
+<div class='pr-times'>创建：2025-11-24T10:25:01+08:00 ｜ 更新：2025-12-02T21:27:32+08:00</div>
+<a class='pr-link' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/397' target='_blank' rel='noopener noreferrer'>查看 PR</a>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'>#111 [open] [Bug]: 补充OH6.0 http漏合的用例（labels: bug）</div>
+<div class='issue-url'>https://api.gitcode.com/api/v5/repos/Cangjie/cangjie_test/issues/111</div>
+<div class='section-title'>检视意见</div>
+<div class='review-item'>
+<div><strong>ChaosJohn</strong> · 未解决</div>
+<div class='review-meta'>创建：2025-11-25T20:28:26+08:00 ｜ 更新：2025-11-25T20:28:26+08:00</div>
+<div class='review-body'>PR描述里标Required的都是必填项，请完善</div>
+</div>
+</div>
+</div>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：ChaosJohn
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：EMROF
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：chongweizhi
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：renyi43
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：jiyuan_99
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：MinamiK
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+<details class='user-block' open>
+<summary>
+<div class='user-title'>用户：ovy
+<span class='user-meta'>0 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+</div>
+</details>
+</div>
+</details>
 <div class='footer'>由自动脚本生成 · 数据来源：GitCode API</div>
 </div></body></html>
