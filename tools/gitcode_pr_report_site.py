@@ -657,6 +657,8 @@ def build_html(
             html_parts.append("<div class='repo-content'>")
 
             for username, prs in users_prs.items():
+                if len(prs) == 0:
+                    continue
                 html_parts.append("<details class='user-block' open>")
                 html_parts.append("<summary>")
                 html_parts.append(
