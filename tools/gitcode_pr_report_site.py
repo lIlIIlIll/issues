@@ -894,6 +894,73 @@ def build_html(
       font-size: 12px;
       color: #9ca3af;
     }
+    .filter-users {
+      position: relative;
+      display: inline-block;
+    }
+    .filter-user-toggle {
+      border: 1px solid #334155;
+      background: #0b1220;
+      color: #e5e7eb;
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .filter-user-toggle:hover {
+      border-color: #60a5fa;
+      color: #bfdbfe;
+    }
+    .filter-user-panel {
+      position: absolute;
+      left: 0;
+      top: calc(100% + 6px);
+      min-width: 240px;
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      padding: 10px 12px;
+      z-index: 10;
+      display: none;
+    }
+    .filter-user-panel.open {
+      display: block;
+    }
+    .filter-user-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 220px;
+      overflow-y: auto;
+      margin: 8px 0;
+    }
+    .filter-user-item {
+      font-size: 12px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .filter-user-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .filter-chip-btn {
+      border: 1px solid #334155;
+      background: #1f2937;
+      color: #e5e7eb;
+      border-radius: 6px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .filter-chip-btn:hover {
+      border-color: #60a5fa;
+      color: #bfdbfe;
+    }
 
     .empty-text {
       font-size: 12px;
@@ -931,7 +998,9 @@ def build_html(
     if default_only_unresolved:
         filter_desc.append("默认开启：只看未解决检视意见")
     if default_hide_clean_prs:
-        filter_desc.append("默认开启：隐藏没有未解决检视意见的 PR（已关闭）")
+        filter_desc.append("默认开启：隐藏没有未解决检视意见的 PR")
+    filter_desc.append("默认开启：隐藏当前筛选下没有 PR 的用户")
+    filter_desc.append("默认显示 merged 的 PR（可切换）")
     if not filter_desc:
         filter_desc.append("可直接在页面上切换过滤，无需重新生成报表")
     html_parts.append(
@@ -951,7 +1020,48 @@ def build_html(
         " 隐藏没有未解决检视意见的 PR"
         "</label>"
     )
+    html_parts.append(
+        "<label class='filter-label'>"
+        "<input type='checkbox' id='filter-show-merged' checked />"
+        " 显示 merged 的 PR"
+        "</label>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
+        "<input type='checkbox' id='filter-hide-empty-users' checked />"
+        " 隐藏当前筛选下没有 PR 的用户"
+        "</label>"
+    )
     html_parts.append("</div>")
+
+    # 用户筛选区域（默认全选），用下拉面板减少占位
+    if cfg.users:
+        html_parts.append("<div class='filter-users' id='filter-user-dropdown'>")
+        html_parts.append(
+            "<button type='button' class='filter-user-toggle' id='filter-user-toggle'>"
+            "用户：全部"
+            "</button>"
+        )
+        html_parts.append("<div class='filter-user-panel' id='filter-user-panel'>")
+        html_parts.append("<div class='filter-user-actions'>")
+        html_parts.append(
+            "<button type='button' class='filter-chip-btn' id='filter-user-all'>全选</button>"
+        )
+        html_parts.append(
+            "<button type='button' class='filter-chip-btn' id='filter-user-none'>全不选</button>"
+        )
+        html_parts.append("</div>")
+        html_parts.append("<div class='filter-user-list'>")
+        for uname in cfg.users:
+            html_parts.append(
+                "<label class='filter-user-item'>"
+                f"<input type='checkbox' class='filter-user-checkbox' value='{escape_html(uname)}' checked /> "
+                f"{escape_html(uname)}"
+                "</label>"
+            )
+        html_parts.append("</div>")  # list
+        html_parts.append("</div>")  # panel
+        html_parts.append("</div>")  # dropdown
 
     if not data:
         html_parts.append("<p class='empty-text'>没有任何符合条件的 PR。</p>")
@@ -960,11 +1070,11 @@ def build_html(
             # 统计这个 repo 有多少 PR（过滤后）
             total_prs = sum(len(v) for v in users_prs.values())
 
-            html_parts.append(f"<details class='repo-block' open>")
+            html_parts.append(f"<details class='repo-block' open data-repo-block>")
             html_parts.append("<summary>")
             html_parts.append(f"<div class='repo-title'>仓库：{escape_html(repo_name)}")
             html_parts.append(
-                f"<span class='repo-meta'>共 {total_prs} 个 PR（页面可再筛选）</span>"
+                f"<span class='repo-meta' data-repo-count>共 {total_prs} 个 PR（页面可再筛选）</span>"
             )
             html_parts.append("</div>")
             html_parts.append("<div class='repo-chevron'>▶</div>")
@@ -975,12 +1085,16 @@ def build_html(
             for username, prs in users_prs.items():
                 if len(prs) == 0:
                     continue
-                html_parts.append("<details class='user-block' open>")
+                html_parts.append(
+                    f"<details class='user-block' open data-user-block data-username='{escape_html(username)}'>"
+                )
                 html_parts.append("<summary>")
                 html_parts.append(
                     f"<div class='user-title'>用户：{escape_html(username)}"
                 )
-                html_parts.append(f"<span class='user-meta'>{len(prs)} 个 PR</span>")
+                html_parts.append(
+                    f"<span class='user-meta' data-user-count>共 {len(prs)} 个 PR</span>"
+                )
                 html_parts.append("</div>")
                 html_parts.append("<div class='user-chevron'>▶</div>")
                 html_parts.append("</summary>")
@@ -1258,11 +1372,43 @@ def build_html(
 (() => {
   const filterUnresolved = document.getElementById('filter-unresolved');
   const filterHideClean = document.getElementById('filter-hide-clean');
-  if (!filterUnresolved || !filterHideClean) return;
+  const filterShowMerged = document.getElementById('filter-show-merged');
+  const filterHideEmptyUsers = document.getElementById('filter-hide-empty-users');
+  const userChecks = Array.from(document.querySelectorAll('.filter-user-checkbox'));
+  const userSelectAllBtn = document.getElementById('filter-user-all');
+  const userSelectNoneBtn = document.getElementById('filter-user-none');
+  const userToggle = document.getElementById('filter-user-toggle');
+  const userPanel = document.getElementById('filter-user-panel');
+  const userDropdown = document.getElementById('filter-user-dropdown');
+  if (!filterUnresolved || !filterHideClean || !filterShowMerged) return;
+
+  const getSelectedUsers = () => {
+    if (!userChecks.length) return null;
+    return new Set(
+      userChecks.filter((c) => c.checked).map((c) => c.value || '')
+    );
+  };
+
+  const refreshUserToggleText = (selectedUsers) => {
+    if (!userToggle) return;
+    if (!selectedUsers || selectedUsers.size === userChecks.length) {
+      userToggle.textContent = "用户：全部";
+    } else if (selectedUsers.size === 0) {
+      userToggle.textContent = "用户：无";
+    } else if (selectedUsers.size <= 3) {
+      userToggle.textContent = `用户：${Array.from(selectedUsers).join(", ")}`;
+    } else {
+      userToggle.textContent = `用户：${selectedUsers.size} 个已选`;
+    }
+  };
 
   const applyFilters = () => {
     const onlyUnresolved = filterUnresolved.checked;
     const hideClean = filterHideClean.checked;
+    const showMerged = filterShowMerged.checked;
+    const hideEmptyUsers = filterHideEmptyUsers?.checked;
+    const selectedUsers = getSelectedUsers();
+    refreshUserToggleText(selectedUsers);
 
     document.querySelectorAll('.pr-card').forEach((card) => {
       const reviewWrapper = card.querySelector('[data-review-wrapper]');
@@ -1277,7 +1423,9 @@ def build_html(
       card.dataset.hasUnresolved = hasUnresolved ? '1' : '0';
 
       const state = (card.dataset.state || '').toLowerCase();
-      const shouldHidePr = hideClean && state !== 'open' && !hasUnresolved;
+      const shouldHideMerged = !showMerged && state === 'merged';
+      const shouldHidePr =
+        (hideClean && state !== 'open' && !hasUnresolved) || shouldHideMerged;
       card.style.display = shouldHidePr ? 'none' : '';
 
       reviewItems.forEach((it) => {
@@ -1321,10 +1469,70 @@ def build_html(
         }
       }
     });
+
+    document.querySelectorAll('[data-user-block]').forEach((userBlock) => {
+      const username = (userBlock.dataset.username || '').trim();
+      const userAllowed =
+        !selectedUsers || selectedUsers.has(username) || !username;
+
+      const cards = Array.from(userBlock.querySelectorAll('.pr-card'));
+      const visibleCards = userAllowed
+        ? cards.filter((c) => c.style.display !== 'none')
+        : [];
+      const meta = userBlock.querySelector('[data-user-count]');
+      if (meta) {
+        meta.textContent = `共 ${visibleCards.length} 个 PR（当前筛选）`;
+      }
+      const shouldHideUser =
+        !userAllowed || (hideEmptyUsers && visibleCards.length === 0);
+      userBlock.style.display = shouldHideUser ? 'none' : '';
+    });
+
+    document.querySelectorAll('[data-repo-block]').forEach((repoBlock) => {
+      const cards = Array.from(repoBlock.querySelectorAll('.pr-card'));
+      const visibleCards = cards.filter((c) => {
+        const userBlock = c.closest('[data-user-block]');
+        const userHidden =
+          userBlock && userBlock.style.display && userBlock.style.display !== '';
+        return c.style.display !== 'none' && !userHidden;
+      });
+      const meta = repoBlock.querySelector('[data-repo-count]');
+      if (meta) {
+        meta.textContent = `共 ${visibleCards.length} 个 PR（当前筛选）`;
+      }
+    });
   };
 
   filterUnresolved.addEventListener('change', applyFilters);
   filterHideClean.addEventListener('change', applyFilters);
+  filterShowMerged.addEventListener('change', applyFilters);
+  if (filterHideEmptyUsers) {
+    filterHideEmptyUsers.addEventListener('change', applyFilters);
+  }
+  if (userSelectAllBtn) {
+    userSelectAllBtn.addEventListener('click', () => {
+      userChecks.forEach((c) => (c.checked = true));
+      applyFilters();
+    });
+  }
+  if (userSelectNoneBtn) {
+    userSelectNoneBtn.addEventListener('click', () => {
+      userChecks.forEach((c) => (c.checked = false));
+      applyFilters();
+    });
+  }
+  userChecks.forEach((c) => c.addEventListener('change', applyFilters));
+
+  if (userToggle && userPanel && userDropdown) {
+    userToggle.addEventListener('click', () => {
+      userPanel.classList.toggle('open');
+    });
+    document.addEventListener('click', (e) => {
+      if (!userDropdown.contains(e.target)) {
+        userPanel.classList.remove('open');
+      }
+    });
+  }
   applyFilters();
 })();
 </script>
