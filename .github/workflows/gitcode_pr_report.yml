@@ -5,6 +5,9 @@ on:
   schedule:
     # 每天 UTC 22:00 运行 → 北京时间 06:00（工作日 1-5）
     - cron: "0 22 * * 1-5"
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
