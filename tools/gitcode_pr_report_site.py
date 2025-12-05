@@ -537,6 +537,21 @@ def build_html(
     """
     title = "GitCode PR Review Report"
 
+    # 汇总 Issue 标签，用于前端过滤
+    seen_issue_labels: set[str] = set()
+    issue_labels: List[str] = []
+    for repo_prs in data.values():
+        for prs in repo_prs.values():
+            for pr in prs:
+                for iss in pr.issues:
+                    for lab in iss.labels:
+                        if not lab:
+                            continue
+                        lab_str = str(lab)
+                        if lab_str not in seen_issue_labels:
+                            issue_labels.append(lab_str)
+                            seen_issue_labels.add(lab_str)
+
     def _parse_ts(ts: str) -> float:
         if not ts:
             return 0.0
@@ -1163,6 +1178,8 @@ def build_html(
     filter_desc.append("当前筛选下无 PR 的用户默认隐藏，可切换显示")
     if cfg.groups:
         filter_desc.append("支持按用户组/个人筛选")
+    if issue_labels:
+        filter_desc.append("支持按 Issue 标签过滤")
     if not filter_desc:
         filter_desc.append("可直接在页面上切换过滤，无需重新生成报表")
     html_parts.append(
@@ -1229,6 +1246,21 @@ def build_html(
         "</label>"
     )
     html_parts.append("</div>")
+
+    # Issue 标签
+    if issue_labels:
+        html_parts.append("<div class='filter-group'>")
+        html_parts.append("<h3>Issue 标签 <span>(多选)</span></h3>")
+        html_parts.append("<div class='filter-user-list'>")
+        for lab in issue_labels:
+            html_parts.append(
+                "<label class='filter-label'>"
+                f"<input type='checkbox' class='filter-issue-label-checkbox' value='{escape_html(lab)}' checked /> "
+                f"{escape_html(lab)}"
+                "</label>"
+            )
+        html_parts.append("</div>")
+        html_parts.append("</div>")
 
     # 时间 / 用户开关
     html_parts.append("<div class='filter-group'>")
@@ -1378,6 +1410,14 @@ def build_html(
                             [cm for cm in all_comments if cm.resolved is True]
                         )
 
+                        issue_labels_flat: List[str] = []
+                        for iss in pr.issues:
+                            for lab in iss.labels:
+                                if not lab:
+                                    continue
+                                if lab not in issue_labels_flat:
+                                    issue_labels_flat.append(lab)
+
                         if unresolved_count > 0:
                             badge_cls = "badge-danger"
                             badge_text = f"{unresolved_count} 未解决"
@@ -1396,7 +1436,8 @@ def build_html(
                             f" data-total-comments='{len(all_comments)}'"
                             f" data-unresolved-count='{unresolved_count}'"
                             f" data-resolved-count='{resolved_count}'"
-                            f" data-created='{escape_html(pr.created_at)}'>"
+                            f" data-created='{escape_html(pr.created_at)}'"
+                            f" data-issue-labels='{escape_html('||'.join(issue_labels_flat))}'>"
                         )
 
                         html_parts.append("<div class='pr-header'>")
@@ -1643,6 +1684,7 @@ def build_html(
   const filterSummary = document.getElementById('filter-summary');
   const stateChecks = Array.from(document.querySelectorAll('.filter-state-checkbox'));
   const commentChecks = Array.from(document.querySelectorAll('.filter-comment-checkbox'));
+  const issueLabelChecks = Array.from(document.querySelectorAll('.filter-issue-label-checkbox'));
   const userChecks = Array.from(document.querySelectorAll('.filter-user-checkbox'));
   const userSelectAllBtn = document.getElementById('filter-user-all');
   const userSelectNoneBtn = document.getElementById('filter-user-none');
@@ -1683,6 +1725,12 @@ def build_html(
     return new Set(checked.length ? checked : ['unresolved', 'resolved', 'none']);
   };
 
+  const getSelectedIssueLabels = () => {
+    if (!issueLabelChecks.length) return new Set();
+    const checked = issueLabelChecks.filter((c) => c.checked).map((c) => c.value);
+    return new Set(checked);
+  };
+
   const refreshUserToggleText = (selectedUsers) => {
     if (!userToggle) return;
     if (!selectedUsers || selectedUsers.size === userChecks.length) {
@@ -1715,6 +1763,7 @@ def build_html(
     const hideEmptyUsers = filterHideEmptyUsers?.checked;
     const selectedStates = getSelectedStates();
     const selectedComments = getSelectedCommentKinds();
+    const selectedIssueLabels = getSelectedIssueLabels();
     const selectedUsers = getSelectedUsers();
     const selectedGroups = getSelectedGroups();
     const selectedGroupUsers = new Set();
@@ -1773,10 +1822,18 @@ def build_html(
           dateAllowed = dateAllowed && created <= to + 24 * 60 * 60 * 1000;
         }
       }
+      const issueLabelStr = card.dataset.issueLabels || '';
+      const issueLabels = issueLabelStr ? issueLabelStr.split('||').filter(Boolean) : [];
+      let issueAllowed = true;
+      if (selectedIssueLabels.size) {
+        issueAllowed = issueLabels.some((lab) => selectedIssueLabels.has(lab));
+      }
+
       const shouldHidePr =
         !stateAllowed ||
         !commentAllowed ||
         !dateAllowed ||
+        !issueAllowed ||
         (hideClean && state !== 'open' && !hasUnresolved);
       card.style.display = shouldHidePr ? 'none' : '';
 
@@ -1873,12 +1930,14 @@ def build_html(
     };
     const states = Array.from(getSelectedStates());
     const comments = Array.from(getSelectedCommentKinds());
+    const labels = Array.from(getSelectedIssueLabels());
     const statesText = states.length
       ? states.map((s) => stateLabels[s] || s).join(", ")
       : "全部";
     const commentsText = comments.length
       ? comments.map((s) => commentLabels[s] || s).join(", ")
       : "全部";
+    const labelText = labels.length ? labels.join(", ") : "全部";
     const dateFrom = fmtDate(filterDateStart?.value || "");
     const dateTo = fmtDate(filterDateEnd?.value || "");
     let datePart = "全部时间";
@@ -1886,7 +1945,7 @@ def build_html(
       datePart = `${dateFrom || '不限'} ~ ${dateTo || '不限'}`;
     }
     const hideEmpty = filterHideEmptyUsers?.checked ? "隐藏空用户" : "显示空用户";
-    filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 日期(${datePart}) · ${hideEmpty}`;
+    filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 标签(${labelText}) · 日期(${datePart}) · ${hideEmpty}`;
   };
 
   if (filterToggle && filterBar) {
@@ -1938,6 +1997,10 @@ def build_html(
     c.addEventListener('change', wrappedApply);
   });
   commentChecks.forEach((c) => {
+    c.removeEventListener('change', applyFilters);
+    c.addEventListener('change', wrappedApply);
+  });
+  issueLabelChecks.forEach((c) => {
     c.removeEventListener('change', applyFilters);
     c.addEventListener('change', wrappedApply);
   });

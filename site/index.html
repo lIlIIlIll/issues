@@ -586,8 +586,8 @@
 <body>
 <div class='container'>
 <h1>GitCode PR Review Report</h1>
-<div class='sub-title'>执行时间：2025-12-05 10:53:47 CST</div>
-<div class='sub-title'>默认：默认仅展示未解决检视意见（可切换） · 默认隐藏已关闭/已合并且无未解决检视意见的 PR（可切换） · 状态、检视意见均可多选，支持创建日期筛选 · 当前筛选下无 PR 的用户默认隐藏，可切换显示 · 支持按用户组/个人筛选</div>
+<div class='sub-title'>执行时间：2025-12-05 10:57:50 CST</div>
+<div class='sub-title'>默认：默认仅展示未解决检视意见（可切换） · 默认隐藏已关闭/已合并且无未解决检视意见的 PR（可切换） · 状态、检视意见均可多选，支持创建日期筛选 · 当前筛选下无 PR 的用户默认隐藏，可切换显示 · 支持按用户组/个人筛选 · 支持按 Issue 标签过滤</div>
 <div class='filter-container'>
 <div class='filter-header'>
 <button type='button' class='filter-toggle' id='filter-toggle'>收起筛选</button>
@@ -607,6 +607,13 @@
 <label class='filter-label'><input type='checkbox' class='filter-comment-checkbox' value='unresolved' checked /> 未解决检视意见</label>
 <label class='filter-label'><input type='checkbox' class='filter-comment-checkbox' value='resolved' checked /> 已解决检视意见</label>
 <label class='filter-label'><input type='checkbox' class='filter-comment-checkbox' value='none' checked /> 无检视意见</label>
+</div>
+<div class='filter-group'>
+<h3>Issue 标签 <span>(多选)</span></h3>
+<div class='filter-user-list'>
+<label class='filter-label'><input type='checkbox' class='filter-issue-label-checkbox' value='enhancement' checked /> enhancement</label>
+<label class='filter-label'><input type='checkbox' class='filter-issue-label-checkbox' value='bug' checked /> bug</label>
+</div>
 </div>
 <div class='filter-group'>
 <h3>时间 / 用户</h3>
@@ -658,50 +665,6 @@
 <div class='repo-chevron'>▶</div>
 </summary>
 <div class='repo-content'>
-<details class='user-block' open data-user-block data-username='ChaosJohn'>
-<summary>
-<div class='user-title'>用户：ChaosJohn
-<span class='user-meta' data-user-count>共 2 个 PR</span>
-</div>
-<div class='user-chevron'>▶</div>
-</summary>
-<div class='user-content'>
-<div class='pr-grid'>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-22T10:30:34+08:00'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/316' target='_blank' rel='noopener noreferrer'>#316 BREAKING CHANGE: add non-public members to `open class`</a></div>
-<span class='badge badge-ok'>无未解决检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
-<div class='pr-branch'>分支：breaking_change_add_member_to_open_class → <span class='branch-target-pill branch-target-dev'>dev</span></div>
-<div class='pr-times'>创建：2025-11-22T10:30:34+08:00 ｜ 更新：2025-11-24T09:22:28+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_runtime/issues/191' target='_blank' rel='noopener noreferrer'>#191 [closed] [新需求]: 标准库合入2处ABI不兼容变更（labels: enhancement）</a></div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-07-31T10:39:40+08:00'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/5' target='_blank' rel='noopener noreferrer'>#5 fix: hyperlink in README</a></div>
-<span class='badge badge-ok'>无未解决检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
-<div class='pr-branch'>分支：dev → <span class='branch-target-pill branch-target-dev'>dev</span></div>
-<div class='pr-times'>创建：2025-07-31T10:39:40+08:00 ｜ 更新：2025-07-31T14:52:56+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='empty-text'>无关联 Issue</div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-</div>
-</div>
-</details>
 <details class='user-block' open data-user-block data-username='chongweizhi'>
 <summary>
 <div class='user-title'>用户：chongweizhi
@@ -711,7 +674,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-07T14:23:40+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-07T14:23:40+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/30' target='_blank' rel='noopener noreferrer'>#30 add signal registerSignalHandler</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -727,7 +690,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-10-23T21:16:28+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-10-23T21:16:28+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/146' target='_blank' rel='noopener noreferrer'>#146 feat: add signal related functions</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -758,6 +721,50 @@
 </div>
 </div>
 </details>
+<details class='user-block' open data-user-block data-username='ChaosJohn'>
+<summary>
+<div class='user-title'>用户：ChaosJohn
+<span class='user-meta' data-user-count>共 2 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-22T10:30:34+08:00' data-issue-labels='enhancement'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/316' target='_blank' rel='noopener noreferrer'>#316 BREAKING CHANGE: add non-public members to `open class`</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
+<div class='pr-branch'>分支：breaking_change_add_member_to_open_class → <span class='branch-target-pill branch-target-dev'>dev</span></div>
+<div class='pr-times'>创建：2025-11-22T10:30:34+08:00 ｜ 更新：2025-11-24T09:22:28+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_runtime/issues/191' target='_blank' rel='noopener noreferrer'>#191 [closed] [新需求]: 标准库合入2处ABI不兼容变更（labels: enhancement）</a></div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-07-31T10:39:40+08:00' data-issue-labels=''>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/5' target='_blank' rel='noopener noreferrer'>#5 fix: hyperlink in README</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
+<div class='pr-branch'>分支：dev → <span class='branch-target-pill branch-target-dev'>dev</span></div>
+<div class='pr-times'>创建：2025-07-31T10:39:40+08:00 ｜ 更新：2025-07-31T14:52:56+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='empty-text'>无关联 Issue</div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+</div>
+</div>
+</details>
 <details class='user-block' open data-user-block data-username='zhaoshenghua1'>
 <summary>
 <div class='user-title'>用户：zhaoshenghua1
@@ -767,7 +774,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-11-14T16:13:31+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-11-14T16:13:31+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/260' target='_blank' rel='noopener noreferrer'>#260 fix: timezone issue</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -795,7 +802,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='1' data-total-comments='7' data-unresolved-count='3' data-resolved-count='4' data-created='2025-11-12T16:05:46+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='1' data-total-comments='7' data-unresolved-count='3' data-resolved-count='4' data-created='2025-11-12T16:05:46+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/247' target='_blank' rel='noopener noreferrer'>#247 feat: timezone adapt ohos</a></div>
 <span class='badge badge-danger'>3 未解决</span>
@@ -873,7 +880,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-12-04T20:46:58+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-12-04T20:46:58+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/432' target='_blank' rel='noopener noreferrer'>#432 feat(stdlib BREAKING CHANGE): add non-public members to `open class`</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -889,7 +896,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-12-01T09:48:16+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-12-01T09:48:16+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/380' target='_blank' rel='noopener noreferrer'>#380 feat(stdlib BREAKING CHANGE): add exception message. add non-public members to `open class`</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -917,7 +924,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-26T12:47:50+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-26T12:47:50+08:00' data-issue-labels='enhancement'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/352' target='_blank' rel='noopener noreferrer'>#352 feat: add string api</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -933,7 +940,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-22T14:55:20+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-22T14:55:20+08:00' data-issue-labels='enhancement'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/318' target='_blank' rel='noopener noreferrer'>#318 perf: optimize for performance and codesize for changes of exception messages</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -949,7 +956,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-21T16:11:53+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-21T16:11:53+08:00' data-issue-labels='enhancement'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/312' target='_blank' rel='noopener noreferrer'>#312 feat: support for user-defined certificate validation logic</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -977,7 +984,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-25T16:20:28+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-25T16:20:28+08:00' data-issue-labels='enhancement'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/343' target='_blank' rel='noopener noreferrer'>#343 fix: unified std.fs exception format</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -993,7 +1000,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='open' data-has-unresolved='1' data-total-comments='2' data-unresolved-count='2' data-resolved-count='0' data-created='2025-11-19T16:14:53+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='1' data-total-comments='2' data-unresolved-count='2' data-resolved-count='0' data-created='2025-11-19T16:14:53+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/295' target='_blank' rel='noopener noreferrer'>#295 fix: optimize exceptions of std.fs</a></div>
 <span class='badge badge-danger'>2 未解决</span>
@@ -1026,7 +1033,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-10T16:50:34+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-10T16:50:34+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/231' target='_blank' rel='noopener noreferrer'>#231 fix: timer can not be canceled when time is small</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1042,7 +1049,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-06T15:16:51+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-06T15:16:51+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/214' target='_blank' rel='noopener noreferrer'>#214 feat: support '+' in tryParse of integer</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1058,7 +1065,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='1' data-total-comments='3' data-unresolved-count='3' data-resolved-count='0' data-created='2025-11-25T17:37:53+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='1' data-total-comments='3' data-unresolved-count='3' data-resolved-count='0' data-created='2025-11-25T17:37:53+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/346' target='_blank' rel='noopener noreferrer'>#346 fix: optimize std.fs exception of path empty or contains null byte</a></div>
 <span class='badge badge-danger'>3 未解决</span>
@@ -1096,7 +1103,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-06T15:33:07+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-06T15:33:07+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/216' target='_blank' rel='noopener noreferrer'>#216 fix: syntax on deprecated of DateTime::parse</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1112,7 +1119,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-28T11:40:59+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-28T11:40:59+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/170' target='_blank' rel='noopener noreferrer'>#170 fix: timer can not be canceled at its callback</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1140,7 +1147,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-27T15:14:53+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-27T15:14:53+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/362' target='_blank' rel='noopener noreferrer'>#362 fix: sync problem fix code</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1156,7 +1163,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-01T16:45:39+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-01T16:45:39+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/189' target='_blank' rel='noopener noreferrer'>#189 feat: add exclusiveScope func</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1172,7 +1179,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-27T10:44:03+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-27T10:44:03+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/360' target='_blank' rel='noopener noreferrer'>#360 fix: sync problem fix code</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1188,7 +1195,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='11' data-unresolved-count='0' data-resolved-count='11' data-created='2025-11-25T14:05:48+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='11' data-unresolved-count='0' data-resolved-count='11' data-created='2025-11-25T14:05:48+08:00' data-issue-labels='enhancement'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/342' target='_blank' rel='noopener noreferrer'>#342 feat: add thread dump runtime api</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1274,7 +1281,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='5' data-unresolved-count='0' data-resolved-count='5' data-created='2025-11-25T01:25:30+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='5' data-unresolved-count='0' data-resolved-count='5' data-created='2025-11-25T01:25:30+08:00' data-issue-labels='enhancement'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/336' target='_blank' rel='noopener noreferrer'>#336 fix: optimize exceptions of std.fs</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1322,7 +1329,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-19T20:52:36+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-19T20:52:36+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/299' target='_blank' rel='noopener noreferrer'>#299 revert: fix treemap bug</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1338,7 +1345,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-31T17:13:58+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-31T17:13:58+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/187' target='_blank' rel='noopener noreferrer'>#187 feat: add thread dump interface doc</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1354,7 +1361,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='1' data-total-comments='5' data-unresolved-count='5' data-resolved-count='0' data-created='2025-10-25T09:33:00+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='1' data-total-comments='5' data-unresolved-count='5' data-resolved-count='0' data-created='2025-10-25T09:33:00+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/153' target='_blank' rel='noopener noreferrer'>#153 feat: add thread dump interface</a></div>
 <span class='badge badge-danger'>5 未解决</span>
@@ -1414,7 +1421,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-18T15:19:28+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-18T15:19:28+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/280' target='_blank' rel='noopener noreferrer'>#280 chore: add docs example code result checklist to PR template</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1430,7 +1437,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-18T15:12:48+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-18T15:12:48+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/279' target='_blank' rel='noopener noreferrer'>#279 chore: add docs example code result checklist to PR template</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1446,7 +1453,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-26T10:22:16+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-26T10:22:16+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/351' target='_blank' rel='noopener noreferrer'>#351 fix: runtime find typeinfo failed</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1462,7 +1469,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-14T16:43:52+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-14T16:43:52+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/261' target='_blank' rel='noopener noreferrer'>#261 chore: update issue and PR templates</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1478,7 +1485,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-14T11:17:19+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-14T11:17:19+08:00' data-issue-labels='enhancement'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/256' target='_blank' rel='noopener noreferrer'>#256 chore: update issue and PR templates</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1494,7 +1501,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-14T10:23:03+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-14T10:23:03+08:00' data-issue-labels='enhancement'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/254' target='_blank' rel='noopener noreferrer'>#254 feat: revert reflect multi-annotation feature</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1510,7 +1517,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-13T16:05:08+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-13T16:05:08+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/251' target='_blank' rel='noopener noreferrer'>#251 chore: update issue and PR templates</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1526,7 +1533,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-06T16:22:23+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-06T16:22:23+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/217' target='_blank' rel='noopener noreferrer'>#217 feat: reflect support get organization name</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1542,7 +1549,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T14:32:45+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T14:32:45+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/197' target='_blank' rel='noopener noreferrer'>#197 fix: posix isType function</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1558,7 +1565,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-31T12:10:18+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-31T12:10:18+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/184' target='_blank' rel='noopener noreferrer'>#184 fix: posix isType function can not be used in android</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1574,7 +1581,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-29T12:22:41+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-29T12:22:41+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/177' target='_blank' rel='noopener noreferrer'>#177 feat: support static openssl</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1590,7 +1597,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-27T17:43:48+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-27T17:43:48+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/164' target='_blank' rel='noopener noreferrer'>#164 feat: net.tls support keyless handshake</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1618,7 +1625,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-12-02T10:12:02+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-12-02T10:12:02+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/401' target='_blank' rel='noopener noreferrer'>#401 feat: doc add examples</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1634,7 +1641,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-11-29T11:23:19+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-11-29T11:23:19+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/374' target='_blank' rel='noopener noreferrer'>#374 fix: doc API Alphabetical Order</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1662,7 +1669,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-28T17:26:16+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-28T17:26:16+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/372' target='_blank' rel='noopener noreferrer'>#372 feat: doc add example</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1678,7 +1685,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-11T15:23:44+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-11T15:23:44+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/241' target='_blank' rel='noopener noreferrer'>#241 fix: doc example lacks tag</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1694,7 +1701,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='2' data-unresolved-count='0' data-resolved-count='2' data-created='2025-11-06T11:22:03+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='2' data-unresolved-count='0' data-resolved-count='2' data-created='2025-11-06T11:22:03+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/212' target='_blank' rel='noopener noreferrer'>#212 fix: doc example lacks tag</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1727,7 +1734,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='6' data-unresolved-count='0' data-resolved-count='6' data-created='2025-11-04T15:49:10+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='6' data-unresolved-count='0' data-resolved-count='6' data-created='2025-11-04T15:49:10+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/206' target='_blank' rel='noopener noreferrer'>#206 feat: doc example add</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1788,7 +1795,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='13' data-unresolved-count='0' data-resolved-count='13' data-created='2025-10-28T15:08:20+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='13' data-unresolved-count='0' data-resolved-count='13' data-created='2025-10-28T15:08:20+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/173' target='_blank' rel='noopener noreferrer'>#173 fix: platform sys</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1876,7 +1883,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-27T15:13:43+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-27T15:13:43+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/162' target='_blank' rel='noopener noreferrer'>#162 fix: doc link</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1892,7 +1899,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='2' data-unresolved-count='0' data-resolved-count='2' data-created='2025-10-24T14:34:43+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='2' data-unresolved-count='0' data-resolved-count='2' data-created='2025-10-24T14:34:43+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/147' target='_blank' rel='noopener noreferrer'>#147 fix: modify doc platform</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1925,7 +1932,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-17T15:49:27+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-17T15:49:27+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/108' target='_blank' rel='noopener noreferrer'>#108 fix: doc</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1941,7 +1948,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-10-17T10:31:33+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-10-17T10:31:33+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/106' target='_blank' rel='noopener noreferrer'>#106 feat: add doc example &amp; fix something</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1969,7 +1976,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-09-24T15:21:56+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-09-24T15:21:56+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/78' target='_blank' rel='noopener noreferrer'>#78 fix: raead -&gt; read</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -1985,7 +1992,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-13T09:13:21+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-13T09:13:21+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/40' target='_blank' rel='noopener noreferrer'>#40 fix: document consistency</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2001,7 +2008,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-12T09:54:37+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-12T09:54:37+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/38' target='_blank' rel='noopener noreferrer'>#38 fix: document consistency</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2017,7 +2024,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-08T17:36:34+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-08T17:36:34+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/34' target='_blank' rel='noopener noreferrer'>#34 fix: document consistency</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2033,7 +2040,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-07T17:42:57+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-07T17:42:57+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/31' target='_blank' rel='noopener noreferrer'>#31 fix: document consistency</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2049,7 +2056,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-06T19:06:36+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-06T19:06:36+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/25' target='_blank' rel='noopener noreferrer'>#25 [std]: Doc fix document consistency</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2065,7 +2072,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-05T09:45:45+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-05T09:45:45+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/18' target='_blank' rel='noopener noreferrer'>#18 [std]: doc fix</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2093,7 +2100,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-27T17:50:28+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-27T17:50:28+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/365' target='_blank' rel='noopener noreferrer'>#365 feat: std ios-simulator-x86_64 build</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2109,7 +2116,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-12-03T15:44:23+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-12-03T15:44:23+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/418' target='_blank' rel='noopener noreferrer'>#418 fix: fix timezone for android</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2125,7 +2132,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='1' data-total-comments='3' data-unresolved-count='2' data-resolved-count='1' data-created='2025-12-02T15:29:12+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='1' data-total-comments='3' data-unresolved-count='2' data-resolved-count='1' data-created='2025-12-02T15:29:12+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/406' target='_blank' rel='noopener noreferrer'>#406 fix: fix timezone for android</a></div>
 <span class='badge badge-danger'>2 未解决</span>
@@ -2171,7 +2178,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='1' data-total-comments='1' data-unresolved-count='1' data-resolved-count='0' data-created='2025-11-27T11:48:14+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='1' data-total-comments='1' data-unresolved-count='1' data-resolved-count='0' data-created='2025-11-27T11:48:14+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/361' target='_blank' rel='noopener noreferrer'>#361 fix: remove fdebug-types-section</a></div>
 <span class='badge badge-danger'>1 未解决</span>
@@ -2199,7 +2206,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-20T20:29:38+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-20T20:29:38+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/308' target='_blank' rel='noopener noreferrer'>#308 fix: optimize the collection API of the non-iterator version</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2215,7 +2222,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-20T10:26:00+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-20T10:26:00+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/301' target='_blank' rel='noopener noreferrer'>#301 fix: fix treemap entryview bug</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2231,7 +2238,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-19T11:46:30+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-19T11:46:30+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/292' target='_blank' rel='noopener noreferrer'>#292 fix: fix treemap bug</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2247,7 +2254,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-17T09:42:30+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-17T09:42:30+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/267' target='_blank' rel='noopener noreferrer'>#267 fix: fix env doc</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2256,14 +2263,14 @@
 <div class='pr-branch'>分支：fix_env_doc → <span class='branch-target-pill branch-target-dev'>dev</span></div>
 <div class='pr-times'>创建：2025-11-17T09:42:30+08:00 ｜ 更新：2025-11-18T14:49:59+08:00</div>
 <div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_runtime/issues/171' target='_blank' rel='noopener noreferrer'>#171 [closed] [Bug]: 修复env文档错误（labels: bug）</a></div>
+<div class='empty-text'>无关联 Issue</div>
 <div class='section-title'>检视意见</div>
 <div class='reviews' data-review-wrapper>
 <div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-11-11T14:43:38+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-11-11T14:43:38+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/239' target='_blank' rel='noopener noreferrer'>#239 fix: fix treemap entryview prop value</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2291,7 +2298,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-11-11T14:35:03+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-11-11T14:35:03+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/238' target='_blank' rel='noopener noreferrer'>#238 fix: fix array slice doc</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2319,7 +2326,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-11T14:26:53+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-11T14:26:53+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/237' target='_blank' rel='noopener noreferrer'>#237 docs: BufferedInputStream remainLength</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2335,7 +2342,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-06T20:14:31+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-06T20:14:31+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/218' target='_blank' rel='noopener noreferrer'>#218 fix: Remove the fastnative annotation from the blocking FFI functions</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2351,7 +2358,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='3' data-unresolved-count='0' data-resolved-count='3' data-created='2025-11-05T19:02:07+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='3' data-unresolved-count='0' data-resolved-count='3' data-created='2025-11-05T19:02:07+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/210' target='_blank' rel='noopener noreferrer'>#210 fix: fix timezone for android</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2389,7 +2396,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-04T16:21:25+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-04T16:21:25+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/207' target='_blank' rel='noopener noreferrer'>#207 fix: fix ConcurrentHashMapEntryView prop key</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2405,7 +2412,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T15:28:59+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T15:28:59+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/200' target='_blank' rel='noopener noreferrer'>#200 fix: fix collection doc</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2421,7 +2428,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='1' data-total-comments='3' data-unresolved-count='3' data-resolved-count='0' data-created='2025-10-31T20:47:48+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='1' data-total-comments='3' data-unresolved-count='3' data-resolved-count='0' data-created='2025-10-31T20:47:48+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/188' target='_blank' rel='noopener noreferrer'>#188 refactor: refactor some collection api</a></div>
 <span class='badge badge-danger'>3 未解决</span>
@@ -2459,7 +2466,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-31T15:18:40+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-31T15:18:40+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/186' target='_blank' rel='noopener noreferrer'>#186 fix: fix std coverage build</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2475,7 +2482,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='1' data-total-comments='6' data-unresolved-count='6' data-resolved-count='0' data-created='2025-10-30T16:50:42+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='1' data-total-comments='6' data-unresolved-count='6' data-resolved-count='0' data-created='2025-10-30T16:50:42+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/181' target='_blank' rel='noopener noreferrer'>#181 feat: add noniterable api for collection</a></div>
 <span class='badge badge-danger'>6 未解决</span>
@@ -2528,7 +2535,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-28T10:36:34+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-28T10:36:34+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/167' target='_blank' rel='noopener noreferrer'>#167 fix: fix treemap inserEntry bug</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2544,7 +2551,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-23T20:52:01+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-23T20:52:01+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/145' target='_blank' rel='noopener noreferrer'>#145 fix: fix arm32 typeinfo</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2560,7 +2567,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-21T21:19:07+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-21T21:19:07+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/134' target='_blank' rel='noopener noreferrer'>#134 fix: add coverage build option</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2576,7 +2583,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-20T15:24:11+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-20T15:24:11+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_runtime/merge_requests/120' target='_blank' rel='noopener noreferrer'>#120 fix: adjust typeinfo for arm32</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2614,7 +2621,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='2' data-unresolved-count='0' data-resolved-count='2' data-created='2025-11-10T10:12:07+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='2' data-unresolved-count='0' data-resolved-count='2' data-created='2025-11-10T10:12:07+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/116' target='_blank' rel='noopener noreferrer'>#116 feat: adapt ohos system root cert</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2647,7 +2654,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-23T17:08:35+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-23T17:08:35+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/52' target='_blank' rel='noopener noreferrer'>#52 docs: fix overview.md</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2675,7 +2682,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-12T16:57:28+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-12T16:57:28+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/18' target='_blank' rel='noopener noreferrer'>#18 fix readme</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2691,7 +2698,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-30T20:42:24+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-30T20:42:24+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/77' target='_blank' rel='noopener noreferrer'>#77 fix: add json support doc</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2707,7 +2714,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='2' data-unresolved-count='0' data-resolved-count='2' data-created='2025-10-13T15:19:33+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='2' data-unresolved-count='0' data-resolved-count='2' data-created='2025-10-13T15:19:33+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/38' target='_blank' rel='noopener noreferrer'>#38 feat: stream json add expand</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2752,7 +2759,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-06T22:00:45+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-06T22:00:45+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/111' target='_blank' rel='noopener noreferrer'>#111 fix: different behavior when version not provided between linux/macOS and Windows</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2768,7 +2775,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-31T00:17:09+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-31T00:17:09+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/79' target='_blank' rel='noopener noreferrer'>#79 feat: add stdx binary downloader</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2784,7 +2791,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-08T18:42:18+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-08T18:42:18+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/14' target='_blank' rel='noopener noreferrer'>#14 feat: add docx to OAT.xml</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2800,7 +2807,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-06T17:57:52+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-06T17:57:52+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/6' target='_blank' rel='noopener noreferrer'>#6 feat: add README_OpenHarmony.md &amp; README.OpenSource &amp; OTA.xml</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2828,7 +2835,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-26T12:50:30+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-26T12:50:30+08:00' data-issue-labels='enhancement'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/202' target='_blank' rel='noopener noreferrer'>#202 feat: add close api</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2844,7 +2851,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-25T21:59:43+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-25T21:59:43+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/200' target='_blank' rel='noopener noreferrer'>#200 fix: set cipher suites for server</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2860,7 +2867,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-11-22T18:15:39+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-11-22T18:15:39+08:00' data-issue-labels='enhancement'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/189' target='_blank' rel='noopener noreferrer'>#189 feat: samples for user-defined certificate validation logic</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2888,7 +2895,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='2' data-unresolved-count='0' data-resolved-count='2' data-created='2025-11-21T11:52:43+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='2' data-unresolved-count='0' data-resolved-count='2' data-created='2025-11-21T11:52:43+08:00' data-issue-labels='enhancement'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/184' target='_blank' rel='noopener noreferrer'>#184 feat: support for user-defined certificate validation logic</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2929,7 +2936,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-18T12:02:08+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-18T12:02:08+08:00' data-issue-labels='enhancement'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/166' target='_blank' rel='noopener noreferrer'>#166 feat: revert PR for TLS abstraction</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -2945,7 +2952,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='1' data-total-comments='2' data-unresolved-count='2' data-resolved-count='0' data-created='2025-10-31T15:26:22+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='1' data-total-comments='2' data-unresolved-count='2' data-resolved-count='0' data-created='2025-10-31T15:26:22+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/82' target='_blank' rel='noopener noreferrer'>#82 feat: add http log</a></div>
 <span class='badge badge-danger'>2 未解决</span>
@@ -2981,6 +2988,130 @@
 </div>
 </div>
 </details>
+<details class='user-block' open data-user-block data-username='jiyuan_99'>
+<summary>
+<div class='user-title'>用户：jiyuan_99
+<span class='user-meta' data-user-count>共 7 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-27T19:37:51+08:00' data-issue-labels='enhancement'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/206' target='_blank' rel='noopener noreferrer'>#206 feat: stdx ios-simulator-x86_64 build</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：ios_x86 → <span class='branch-target-pill branch-target-dev'>dev</span></div>
+<div class='pr-times'>创建：2025-11-27T19:37:51+08:00 ｜ 更新：2025-12-03T17:17:01+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_runtime/issues/229' target='_blank' rel='noopener noreferrer'>#229 [open] [新需求]: 标准库 std 、stdx支持构建选项 --target=ios-simulator-x86_64（labels: enhancement）</a></div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-17T12:44:08+08:00' data-issue-labels=''>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/43' target='_blank' rel='noopener noreferrer'>#43 feat: https proxy &amp; html json</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
+<div class='pr-branch'>分支：feat_httpsproxy_json_main → <span class='branch-target-pill branch-target-main'>main</span></div>
+<div class='pr-times'>创建：2025-10-17T12:44:08+08:00 ｜ 更新：2025-12-04T15:57:50+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/33' target='_blank' rel='noopener noreferrer'>#33 [open] main分支同步代码</a></div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-18T16:42:07+08:00' data-issue-labels='enhancement'>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/168' target='_blank' rel='noopener noreferrer'>#168 feat: stdx arm32 build</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
+<div class='pr-branch'>分支：stdx_arm32 → <span class='branch-target-pill branch-target-dev'>dev</span></div>
+<div class='pr-times'>创建：2025-11-18T16:42:07+08:00 ｜ 更新：2025-11-19T10:09:56+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/116' target='_blank' rel='noopener noreferrer'>#116 [open] [新需求]: stdx支持arm32构建（labels: enhancement）</a></div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T10:18:20+08:00' data-issue-labels=''>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/89' target='_blank' rel='noopener noreferrer'>#89 fix: fix stdx coverage build</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
+<div class='pr-branch'>分支：coverage_build_stdx_1030 → <span class='branch-target-pill branch-target-dev'>dev</span></div>
+<div class='pr-times'>创建：2025-11-03T10:18:20+08:00 ｜ 更新：2025-11-03T16:37:06+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/62' target='_blank' rel='noopener noreferrer'>#62 [open] fix: fix stdx coverage build</a></div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-24T00:13:58+08:00' data-issue-labels=''>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/58' target='_blank' rel='noopener noreferrer'>#58 docs: change summary format</a></div>
+<span class='badge badge-warn'>无检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
+<div class='pr-branch'>分支：main_stdx_23 → <span class='branch-target-pill branch-target-main'>main</span></div>
+<div class='pr-times'>创建：2025-10-24T00:13:58+08:00 ｜ 更新：2025-10-24T19:55:39+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_runtime/issues/85' target='_blank' rel='noopener noreferrer'>#85 [closed] feat: round code from dev to main</a></div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-23T11:16:53+08:00' data-issue-labels=''>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/50' target='_blank' rel='noopener noreferrer'>#50 fix: add coverage build option</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
+<div class='pr-branch'>分支：coverage_build_main → <span class='branch-target-pill branch-target-main'>main</span></div>
+<div class='pr-times'>创建：2025-10-23T11:16:53+08:00 ｜ 更新：2025-10-23T19:32:11+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/36' target='_blank' rel='noopener noreferrer'>#36 [open] stdx build增加coverage选项</a></div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-22T10:12:55+08:00' data-issue-labels=''>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/49' target='_blank' rel='noopener noreferrer'>#49 fix: add coverage build option</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
+<div class='pr-branch'>分支：coverage_build_option → <span class='branch-target-pill branch-target-dev'>dev</span></div>
+<div class='pr-times'>创建：2025-10-22T10:12:55+08:00 ｜ 更新：2025-10-23T14:46:16+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/36' target='_blank' rel='noopener noreferrer'>#36 [open] stdx build增加coverage选项</a></div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+</div>
+</div>
+</details>
 <details class='user-block' open data-user-block data-username='xdst'>
 <summary>
 <div class='user-title'>用户：xdst
@@ -2990,7 +3121,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='5' data-unresolved-count='0' data-resolved-count='5' data-created='2025-11-27T10:45:21+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='5' data-unresolved-count='0' data-resolved-count='5' data-created='2025-11-27T10:45:21+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/205' target='_blank' rel='noopener noreferrer'>#205 fix: sync problem fix code</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3038,7 +3169,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-24T10:38:23+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-24T10:38:23+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/191' target='_blank' rel='noopener noreferrer'>#191 fix: fix stdx error doc link</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3054,7 +3185,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='5' data-unresolved-count='0' data-resolved-count='5' data-created='2025-11-20T14:22:32+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='5' data-unresolved-count='0' data-resolved-count='5' data-created='2025-11-20T14:22:32+08:00' data-issue-labels='enhancement'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/178' target='_blank' rel='noopener noreferrer'>#178 docs: add alpha.40 release notes</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3110,7 +3241,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='46' data-unresolved-count='0' data-resolved-count='46' data-created='2025-11-17T10:20:13+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='46' data-unresolved-count='0' data-resolved-count='46' data-created='2025-11-17T10:20:13+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/156' target='_blank' rel='noopener noreferrer'>#156 fix: modify the stdx doc file directory</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3363,7 +3494,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-15T10:00:52+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-15T10:00:52+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/152' target='_blank' rel='noopener noreferrer'>#152 fix: modify the stdx doc file directory</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3382,130 +3513,6 @@
 </div>
 </div>
 </details>
-<details class='user-block' open data-user-block data-username='jiyuan_99'>
-<summary>
-<div class='user-title'>用户：jiyuan_99
-<span class='user-meta' data-user-count>共 7 个 PR</span>
-</div>
-<div class='user-chevron'>▶</div>
-</summary>
-<div class='user-content'>
-<div class='pr-grid'>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-27T19:37:51+08:00'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/206' target='_blank' rel='noopener noreferrer'>#206 feat: stdx ios-simulator-x86_64 build</a></div>
-<span class='badge badge-ok'>无未解决检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
-<div class='pr-branch'>分支：ios_x86 → <span class='branch-target-pill branch-target-dev'>dev</span></div>
-<div class='pr-times'>创建：2025-11-27T19:37:51+08:00 ｜ 更新：2025-12-03T17:17:01+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_runtime/issues/229' target='_blank' rel='noopener noreferrer'>#229 [open] [新需求]: 标准库 std 、stdx支持构建选项 --target=ios-simulator-x86_64（labels: enhancement）</a></div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-17T12:44:08+08:00'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/43' target='_blank' rel='noopener noreferrer'>#43 feat: https proxy &amp; html json</a></div>
-<span class='badge badge-ok'>无未解决检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-open'>open</span></div>
-<div class='pr-branch'>分支：feat_httpsproxy_json_main → <span class='branch-target-pill branch-target-main'>main</span></div>
-<div class='pr-times'>创建：2025-10-17T12:44:08+08:00 ｜ 更新：2025-12-04T15:57:50+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='empty-text'>无关联 Issue</div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-18T16:42:07+08:00'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/168' target='_blank' rel='noopener noreferrer'>#168 feat: stdx arm32 build</a></div>
-<span class='badge badge-ok'>无未解决检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
-<div class='pr-branch'>分支：stdx_arm32 → <span class='branch-target-pill branch-target-dev'>dev</span></div>
-<div class='pr-times'>创建：2025-11-18T16:42:07+08:00 ｜ 更新：2025-11-19T10:09:56+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/116' target='_blank' rel='noopener noreferrer'>#116 [open] [新需求]: stdx支持arm32构建（labels: enhancement）</a></div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T10:18:20+08:00'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/89' target='_blank' rel='noopener noreferrer'>#89 fix: fix stdx coverage build</a></div>
-<span class='badge badge-ok'>无未解决检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
-<div class='pr-branch'>分支：coverage_build_stdx_1030 → <span class='branch-target-pill branch-target-dev'>dev</span></div>
-<div class='pr-times'>创建：2025-11-03T10:18:20+08:00 ｜ 更新：2025-11-03T16:37:06+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/62' target='_blank' rel='noopener noreferrer'>#62 [open] fix: fix stdx coverage build</a></div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-24T00:13:58+08:00'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/58' target='_blank' rel='noopener noreferrer'>#58 docs: change summary format</a></div>
-<span class='badge badge-warn'>无检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
-<div class='pr-branch'>分支：main_stdx_23 → <span class='branch-target-pill branch-target-main'>main</span></div>
-<div class='pr-times'>创建：2025-10-24T00:13:58+08:00 ｜ 更新：2025-10-24T19:55:39+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_runtime/issues/85' target='_blank' rel='noopener noreferrer'>#85 [closed] feat: round code from dev to main</a></div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-23T11:16:53+08:00'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/50' target='_blank' rel='noopener noreferrer'>#50 fix: add coverage build option</a></div>
-<span class='badge badge-ok'>无未解决检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
-<div class='pr-branch'>分支：coverage_build_main → <span class='branch-target-pill branch-target-main'>main</span></div>
-<div class='pr-times'>创建：2025-10-23T11:16:53+08:00 ｜ 更新：2025-10-23T19:32:11+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/36' target='_blank' rel='noopener noreferrer'>#36 [open] stdx build增加coverage选项</a></div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-22T10:12:55+08:00'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/49' target='_blank' rel='noopener noreferrer'>#49 fix: add coverage build option</a></div>
-<span class='badge badge-ok'>无未解决检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
-<div class='pr-branch'>分支：coverage_build_option → <span class='branch-target-pill branch-target-dev'>dev</span></div>
-<div class='pr-times'>创建：2025-10-22T10:12:55+08:00 ｜ 更新：2025-10-23T14:46:16+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='issue-item'><a class='issue-link' href='https://gitcode.com/Cangjie/cangjie_stdx/issues/36' target='_blank' rel='noopener noreferrer'>#36 [open] stdx build增加coverage选项</a></div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-</div>
-</div>
-</details>
 <details class='user-block' open data-user-block data-username='EMROF'>
 <summary>
 <div class='user-title'>用户：EMROF
@@ -3515,7 +3522,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='2' data-unresolved-count='0' data-resolved-count='2' data-created='2025-11-19T15:49:59+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='2' data-unresolved-count='0' data-resolved-count='2' data-created='2025-11-19T15:49:59+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/172' target='_blank' rel='noopener noreferrer'>#172 fix: optimize tar code</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3556,7 +3563,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-14T11:41:58+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-14T11:41:58+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/147' target='_blank' rel='noopener noreferrer'>#147 fix: sort doc of tar</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3572,7 +3579,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-13T15:36:24+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-13T15:36:24+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/135' target='_blank' rel='noopener noreferrer'>#135 fix: doc of tar</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3588,7 +3595,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-11T15:47:00+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-11T15:47:00+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/127' target='_blank' rel='noopener noreferrer'>#127 fix: doc of compress</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3604,7 +3611,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-10T09:58:35+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-10T09:58:35+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/115' target='_blank' rel='noopener noreferrer'>#115 fix: some bug in tar</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3620,7 +3627,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-05T14:47:33+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-05T14:47:33+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/103' target='_blank' rel='noopener noreferrer'>#103 fix: wrong readonly mode on windows when archive tar</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3636,7 +3643,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T16:46:50+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T16:46:50+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/97' target='_blank' rel='noopener noreferrer'>#97 docs: add english doc of tar</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3652,7 +3659,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T15:37:03+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T15:37:03+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/94' target='_blank' rel='noopener noreferrer'>#94 doc: doc of tar</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3668,7 +3675,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T15:21:45+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T15:21:45+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/93' target='_blank' rel='noopener noreferrer'>#93 feat: optimize tar api</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3684,7 +3691,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-31T11:45:44+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-31T11:45:44+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/81' target='_blank' rel='noopener noreferrer'>#81 feat: add root directory protect</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3700,7 +3707,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-30T14:36:03+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-30T14:36:03+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/74' target='_blank' rel='noopener noreferrer'>#74 feat: support tar and targzip</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3728,7 +3735,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-18T16:12:01+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-18T16:12:01+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/167' target='_blank' rel='noopener noreferrer'>#167 chore: add docs example code result checklist to PR template</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3744,7 +3751,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-17T11:55:35+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-17T11:55:35+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/157' target='_blank' rel='noopener noreferrer'>#157 fix: codecheck for tls</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3760,7 +3767,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='2' data-unresolved-count='0' data-resolved-count='2' data-created='2025-11-14T16:57:11+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='2' data-unresolved-count='0' data-resolved-count='2' data-created='2025-11-14T16:57:11+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/151' target='_blank' rel='noopener noreferrer'>#151 chore: update issue and PR templates</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3793,7 +3800,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-14T16:04:59+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-14T16:04:59+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/149' target='_blank' rel='noopener noreferrer'>#149 docs: named parameters for KeylessTlsServerConfig.init</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3809,7 +3816,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-14T11:08:15+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-14T11:08:15+08:00' data-issue-labels='enhancement'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/146' target='_blank' rel='noopener noreferrer'>#146 chore: update issue and PR templates</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3825,7 +3832,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-13T16:05:36+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-13T16:05:36+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/136' target='_blank' rel='noopener noreferrer'>#136 chore: update issue and PR templates</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3841,7 +3848,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T16:04:07+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T16:04:07+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/95' target='_blank' rel='noopener noreferrer'>#95 fix: optimize net.tls doc and code</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3857,7 +3864,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-29T12:20:15+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-29T12:20:15+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/72' target='_blank' rel='noopener noreferrer'>#72 feat: support static openssl</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3873,7 +3880,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-24T15:58:29+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-24T15:58:29+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/60' target='_blank' rel='noopener noreferrer'>#60 feat: net.tls support keyless handshake</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3901,7 +3908,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-29T15:10:32+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-29T15:10:32+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/208' target='_blank' rel='noopener noreferrer'>#208 fix: doc API Alphabetical order</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3917,7 +3924,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-27T10:28:13+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-27T10:28:13+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/204' target='_blank' rel='noopener noreferrer'>#204 fix: doc</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3933,7 +3940,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-27T10:18:23+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-27T10:18:23+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/203' target='_blank' rel='noopener noreferrer'>#203 fix: doc</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3949,7 +3956,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-17T09:40:29+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-17T09:40:29+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/155' target='_blank' rel='noopener noreferrer'>#155 fix: url doc</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3965,7 +3972,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-11T16:15:26+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-11T16:15:26+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/128' target='_blank' rel='noopener noreferrer'>#128 fix: the sample code in the document lacks tags</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3981,7 +3988,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-10T17:18:39+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-10T17:18:39+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/121' target='_blank' rel='noopener noreferrer'>#121 feat: remove static func en decode url</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -3997,7 +4004,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-11-05T16:37:04+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-11-05T16:37:04+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/105' target='_blank' rel='noopener noreferrer'>#105 fix: the sample code in the document lacks tags</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4025,7 +4032,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-04T19:48:29+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-04T19:48:29+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/101' target='_blank' rel='noopener noreferrer'>#101 feat: add URL interface</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4041,7 +4048,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-04T16:53:33+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-04T16:53:33+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/100' target='_blank' rel='noopener noreferrer'>#100 fix: readme.md &amp; crypto</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4057,7 +4064,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-27T15:13:59+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-27T15:13:59+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/65' target='_blank' rel='noopener noreferrer'>#65 fix: doc link</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4073,7 +4080,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-10-25T10:42:32+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='1' data-unresolved-count='0' data-resolved-count='1' data-created='2025-10-25T10:42:32+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/62' target='_blank' rel='noopener noreferrer'>#62 fix: doc - platform etc.</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4101,7 +4108,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-17T17:24:04+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-17T17:24:04+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/44' target='_blank' rel='noopener noreferrer'>#44 fix: doc</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4117,7 +4124,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-09-16T20:35:49+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-09-16T20:35:49+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/30' target='_blank' rel='noopener noreferrer'>#30 feat: cherrypick build to dev</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4133,7 +4140,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-09-01T20:12:48+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-09-01T20:12:48+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/24' target='_blank' rel='noopener noreferrer'>#24 fix: delete Readme Project Directory</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4149,7 +4156,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-28T14:38:32+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-28T14:38:32+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/23' target='_blank' rel='noopener noreferrer'>#23 feat: fix readme doc</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4165,7 +4172,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-12T11:07:41+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-12T11:07:41+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/16' target='_blank' rel='noopener noreferrer'>#16 fix: document consistency</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4181,7 +4188,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-08T17:37:47+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-08T17:37:47+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/13' target='_blank' rel='noopener noreferrer'>#13 fix: document consistency</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4197,7 +4204,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-07T19:30:48+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-07T19:30:48+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/12' target='_blank' rel='noopener noreferrer'>#12 fix: document consistency</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4213,7 +4220,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-06T19:57:05+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-06T19:57:05+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/7' target='_blank' rel='noopener noreferrer'>#7 [stdx]: Doc fix document consistency</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4229,7 +4236,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-05T21:45:03+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-08-05T21:45:03+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_stdx/merge_requests/5' target='_blank' rel='noopener noreferrer'>#5 [std]: Doc fix - Modified the sample code</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4267,7 +4274,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='open' data-has-unresolved='1' data-total-comments='1' data-unresolved-count='1' data-resolved-count='0' data-created='2025-11-24T10:25:01+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='1' data-total-comments='1' data-unresolved-count='1' data-resolved-count='0' data-created='2025-11-24T10:25:01+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/397' target='_blank' rel='noopener noreferrer'>#397 fix: add http case</a></div>
 <span class='badge badge-danger'>1 未解决</span>
@@ -4307,7 +4314,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-17T15:00:15+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-17T15:00:15+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/39' target='_blank' rel='noopener noreferrer'>#39 feat: stream json add expand</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4335,7 +4342,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-24T23:55:13+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-24T23:55:13+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/408' target='_blank' rel='noopener noreferrer'>#408 fix: optimize exceptions of std.fs</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4351,7 +4358,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-26T17:35:50+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-26T17:35:50+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/438' target='_blank' rel='noopener noreferrer'>#438 fix: optimize std.fs exception</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4367,7 +4374,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-06T15:33:23+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-06T15:33:23+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/199' target='_blank' rel='noopener noreferrer'>#199 fix: syntax on deprecated of DateTime::parse</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4383,7 +4390,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-31T15:06:23+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-31T15:06:23+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/160' target='_blank' rel='noopener noreferrer'>#160 test: add LLT for stdx.compress and stdx.compress.tar</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4411,7 +4418,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-20T20:08:11+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-20T20:08:11+08:00' data-issue-labels='enhancement'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/370' target='_blank' rel='noopener noreferrer'>#370 feat: add test `stdSymbols.cj` to verify reflection for std</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4427,7 +4434,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-23T16:28:59+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-23T16:28:59+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/91' target='_blank' rel='noopener noreferrer'>#91 test: enable testcases for signal</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4443,7 +4450,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-17T10:55:01+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-17T10:55:01+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/34' target='_blank' rel='noopener noreferrer'>#34 test: update testlist for API</a></div>
 <span class='badge badge-warn'>无检视意见</span>
@@ -4462,6 +4469,34 @@
 </div>
 </div>
 </details>
+<details class='user-block' open data-user-block data-username='renyi43'>
+<summary>
+<div class='user-title'>用户：renyi43
+<span class='user-meta' data-user-count>共 1 个 PR</span>
+</div>
+<div class='user-chevron'>▶</div>
+</summary>
+<div class='user-content'>
+<div class='pr-grid'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-04T19:50:31+08:00' data-issue-labels=''>
+<div class='pr-header'>
+<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/185' target='_blank' rel='noopener noreferrer'>#185 feat: add url testcase</a></div>
+<span class='badge badge-ok'>无未解决检视意见</span>
+</div>
+<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
+<div class='pr-branch'>分支：dev → <span class='branch-target-pill branch-target-dev'>dev</span></div>
+<div class='pr-times'>创建：2025-11-04T19:50:31+08:00 ｜ 更新：2025-11-06T10:12:16+08:00</div>
+<div class='section-title'>关联 Issues</div>
+<div class='empty-text'>无关联 Issue</div>
+<div class='section-title'>检视意见</div>
+<div class='reviews' data-review-wrapper>
+<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
+<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
+</div>
+</div>
+</div>
+</div>
+</details>
 <details class='user-block' open data-user-block data-username='jiyuan_99'>
 <summary>
 <div class='user-title'>用户：jiyuan_99
@@ -4471,7 +4506,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-19T12:19:19+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-19T12:19:19+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/349' target='_blank' rel='noopener noreferrer'>#349 fix: fix treemap entryview</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4487,7 +4522,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-30T18:57:37+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-30T18:57:37+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/150' target='_blank' rel='noopener noreferrer'>#150 feat: add noniterable collection api</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4495,34 +4530,6 @@
 <div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
 <div class='pr-branch'>分支：no_iterable_api → <span class='branch-target-pill branch-target-dev'>dev</span></div>
 <div class='pr-times'>创建：2025-10-30T18:57:37+08:00 ｜ 更新：2025-10-31T12:24:02+08:00</div>
-<div class='section-title'>关联 Issues</div>
-<div class='empty-text'>无关联 Issue</div>
-<div class='section-title'>检视意见</div>
-<div class='reviews' data-review-wrapper>
-<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>
-<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
-</div>
-</div>
-</div>
-</div>
-</details>
-<details class='user-block' open data-user-block data-username='renyi43'>
-<summary>
-<div class='user-title'>用户：renyi43
-<span class='user-meta' data-user-count>共 1 个 PR</span>
-</div>
-<div class='user-chevron'>▶</div>
-</summary>
-<div class='user-content'>
-<div class='pr-grid'>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-04T19:50:31+08:00'>
-<div class='pr-header'>
-<div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/185' target='_blank' rel='noopener noreferrer'>#185 feat: add url testcase</a></div>
-<span class='badge badge-ok'>无未解决检视意见</span>
-</div>
-<div class='pr-meta'>状态：<span class='state-label state-merged'>merged</span></div>
-<div class='pr-branch'>分支：dev → <span class='branch-target-pill branch-target-dev'>dev</span></div>
-<div class='pr-times'>创建：2025-11-04T19:50:31+08:00 ｜ 更新：2025-11-06T10:12:16+08:00</div>
 <div class='section-title'>关联 Issues</div>
 <div class='empty-text'>无关联 Issue</div>
 <div class='section-title'>检视意见</div>
@@ -4543,7 +4550,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-14T12:02:37+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-14T12:02:37+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/300' target='_blank' rel='noopener noreferrer'>#300 feat: revert reflect multi-annotation feature</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4559,7 +4566,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-06T17:03:04+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-06T17:03:04+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/202' target='_blank' rel='noopener noreferrer'>#202 feat: reflect support get organization name</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4575,7 +4582,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-24T16:04:38+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-24T16:04:38+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/101' target='_blank' rel='noopener noreferrer'>#101 feat: net.tls support keyless handshake</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4603,7 +4610,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-12-04T20:47:35+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-12-04T20:47:35+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/514' target='_blank' rel='noopener noreferrer'>#514 perf: optimize for performance and codesize for changes of exception messages</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4619,7 +4626,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-27T17:38:02+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-27T17:38:02+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/451' target='_blank' rel='noopener noreferrer'>#451 fix: synchronize testcases</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4635,7 +4642,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-12-01T09:50:10+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-12-01T09:50:10+08:00' data-issue-labels='bug'>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/476' target='_blank' rel='noopener noreferrer'>#476 perf: optimize for performance and codesize for changes of exception messages</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4651,7 +4658,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-26T15:04:38+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-26T15:04:38+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/432' target='_blank' rel='noopener noreferrer'>#432 feat: add close api</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4667,7 +4674,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-22T20:27:53+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-22T20:27:53+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/393' target='_blank' rel='noopener noreferrer'>#393 fix: exclude testcasesç</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4683,7 +4690,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-22T17:15:23+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-22T17:15:23+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/389' target='_blank' rel='noopener noreferrer'>#389 perf: optimize for performance and codesize for changes of exception messages</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4699,7 +4706,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-22T16:57:07+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-22T16:57:07+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/387' target='_blank' rel='noopener noreferrer'>#387 feat: support for user-defined certificate validation logic</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4715,7 +4722,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-22T15:15:04+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-22T15:15:04+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/384' target='_blank' rel='noopener noreferrer'>#384 fix: exclude a unittest case</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4731,7 +4738,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-18T12:04:11+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-18T12:04:11+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/338' target='_blank' rel='noopener noreferrer'>#338 feat: revert PR for TLS abstraction</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4759,7 +4766,7 @@
 </summary>
 <div class='user-content'>
 <div class='pr-grid'>
-<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-19T15:26:25+08:00'>
+<div class='pr-card' data-state='open' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-19T15:26:25+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/352' target='_blank' rel='noopener noreferrer'>#352 fix: Shielding Flaky Test Cases</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4775,7 +4782,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-27T10:46:47+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-27T10:46:47+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/445' target='_blank' rel='noopener noreferrer'>#445 fix: sync problem fix code</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4791,7 +4798,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-25T14:08:13+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-25T14:08:13+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/411' target='_blank' rel='noopener noreferrer'>#411 feat: add thread dump interface llt</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4807,7 +4814,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-24T22:02:26+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-24T22:02:26+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/407' target='_blank' rel='noopener noreferrer'>#407 fix: optimize exceptions of std.fs</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4823,7 +4830,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-18T21:44:46+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-18T21:44:46+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/345' target='_blank' rel='noopener noreferrer'>#345 test: exclude tc</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4839,7 +4846,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-04T14:38:28+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-04T14:38:28+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/181' target='_blank' rel='noopener noreferrer'>#181 fix: add std stdx exclude case</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4855,7 +4862,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T15:18:22+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T15:18:22+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/176' target='_blank' rel='noopener noreferrer'>#176 fix: block case</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4871,7 +4878,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T14:28:49+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-11-03T14:28:49+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/173' target='_blank' rel='noopener noreferrer'>#173 fix: block failed cases</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4887,7 +4894,7 @@
 <div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>
 </div>
 </div>
-<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-20T15:00:50+08:00'>
+<div class='pr-card' data-state='merged' data-has-unresolved='0' data-total-comments='0' data-unresolved-count='0' data-resolved-count='0' data-created='2025-10-20T15:00:50+08:00' data-issue-labels=''>
 <div class='pr-header'>
 <div class='pr-title'><a class='pr-link-inline' href='https://gitcode.com/Cangjie/cangjie_test/merge_requests/48' target='_blank' rel='noopener noreferrer'>#48 feat: add thread dump interface llt</a></div>
 <span class='badge badge-ok'>无未解决检视意见</span>
@@ -4921,6 +4928,7 @@
   const filterSummary = document.getElementById('filter-summary');
   const stateChecks = Array.from(document.querySelectorAll('.filter-state-checkbox'));
   const commentChecks = Array.from(document.querySelectorAll('.filter-comment-checkbox'));
+  const issueLabelChecks = Array.from(document.querySelectorAll('.filter-issue-label-checkbox'));
   const userChecks = Array.from(document.querySelectorAll('.filter-user-checkbox'));
   const userSelectAllBtn = document.getElementById('filter-user-all');
   const userSelectNoneBtn = document.getElementById('filter-user-none');
@@ -4961,6 +4969,12 @@
     return new Set(checked.length ? checked : ['unresolved', 'resolved', 'none']);
   };
 
+  const getSelectedIssueLabels = () => {
+    if (!issueLabelChecks.length) return new Set();
+    const checked = issueLabelChecks.filter((c) => c.checked).map((c) => c.value);
+    return new Set(checked);
+  };
+
   const refreshUserToggleText = (selectedUsers) => {
     if (!userToggle) return;
     if (!selectedUsers || selectedUsers.size === userChecks.length) {
@@ -4993,6 +5007,7 @@
     const hideEmptyUsers = filterHideEmptyUsers?.checked;
     const selectedStates = getSelectedStates();
     const selectedComments = getSelectedCommentKinds();
+    const selectedIssueLabels = getSelectedIssueLabels();
     const selectedUsers = getSelectedUsers();
     const selectedGroups = getSelectedGroups();
     const selectedGroupUsers = new Set();
@@ -5051,10 +5066,18 @@
           dateAllowed = dateAllowed && created <= to + 24 * 60 * 60 * 1000;
         }
       }
+      const issueLabelStr = card.dataset.issueLabels || '';
+      const issueLabels = issueLabelStr ? issueLabelStr.split('||').filter(Boolean) : [];
+      let issueAllowed = true;
+      if (selectedIssueLabels.size) {
+        issueAllowed = issueLabels.some((lab) => selectedIssueLabels.has(lab));
+      }
+
       const shouldHidePr =
         !stateAllowed ||
         !commentAllowed ||
         !dateAllowed ||
+        !issueAllowed ||
         (hideClean && state !== 'open' && !hasUnresolved);
       card.style.display = shouldHidePr ? 'none' : '';
 
@@ -5151,12 +5174,14 @@
     };
     const states = Array.from(getSelectedStates());
     const comments = Array.from(getSelectedCommentKinds());
+    const labels = Array.from(getSelectedIssueLabels());
     const statesText = states.length
       ? states.map((s) => stateLabels[s] || s).join(", ")
       : "全部";
     const commentsText = comments.length
       ? comments.map((s) => commentLabels[s] || s).join(", ")
       : "全部";
+    const labelText = labels.length ? labels.join(", ") : "全部";
     const dateFrom = fmtDate(filterDateStart?.value || "");
     const dateTo = fmtDate(filterDateEnd?.value || "");
     let datePart = "全部时间";
@@ -5164,7 +5189,7 @@
       datePart = `${dateFrom || '不限'} ~ ${dateTo || '不限'}`;
     }
     const hideEmpty = filterHideEmptyUsers?.checked ? "隐藏空用户" : "显示空用户";
-    filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 日期(${datePart}) · ${hideEmpty}`;
+    filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 标签(${labelText}) · 日期(${datePart}) · ${hideEmpty}`;
   };
 
   if (filterToggle && filterBar) {
@@ -5216,6 +5241,10 @@
     c.addEventListener('change', wrappedApply);
   });
   commentChecks.forEach((c) => {
+    c.removeEventListener('change', applyFilters);
+    c.addEventListener('change', wrappedApply);
+  });
+  issueLabelChecks.forEach((c) => {
     c.removeEventListener('change', applyFilters);
     c.addEventListener('change', wrappedApply);
   });
@@ -5296,5 +5325,5 @@
 })();
 </script>
 
-<div class='footer'>由自动脚本生成 · 数据来源：GitCode API · 执行时间：2025-12-05 10:53:47 CST</div>
+<div class='footer'>由自动脚本生成 · 数据来源：GitCode API · 执行时间：2025-12-05 10:57:50 CST</div>
 </div></body></html>
