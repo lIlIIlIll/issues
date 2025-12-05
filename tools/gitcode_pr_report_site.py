@@ -914,22 +914,71 @@ def build_html(
       padding-bottom: 4px;
     }
 
+    .filter-container {
+      margin: 6px 0 18px;
+    }
+    .filter-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .filter-toggle {
+      border: 1px solid #334155;
+      background: #0b1220;
+      color: #e5e7eb;
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .filter-toggle:hover {
+      border-color: #60a5fa;
+      color: #bfdbfe;
+    }
+    .filter-summary {
+      font-size: 12px;
+      color: #9ca3af;
+      flex: 1;
+    }
+
     .filter-bar {
       display: flex;
       flex-wrap: wrap;
-      align-items: center;
       gap: 12px;
-      padding: 10px 12px;
-      margin: 4px 0 18px;
+      padding: 14px;
+      margin: 8px 0 22px;
       border-radius: 10px;
       border: 1px solid #1f2937;
       background: #0b1220;
+    }
+    .filter-group {
+      flex: 1 1 260px;
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #0a101e;
+    }
+    .filter-group h3 {
+      margin: 0 0 6px;
+      font-size: 13px;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .filter-group h3 span {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 500;
     }
     .filter-label {
       font-size: 13px;
       display: flex;
       align-items: center;
       gap: 6px;
+      margin: 4px 0;
     }
     .filter-bar input[type="checkbox"] {
       accent-color: #60a5fa;
@@ -939,6 +988,32 @@ def build_html(
     .filter-hint {
       font-size: 12px;
       color: #9ca3af;
+    }
+    .filter-dates {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .filter-dates input[type="date"] {
+      background: #0b1220;
+      color: #e5e7eb;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 4px 6px;
+    }
+    .date-picker-btn {
+      border: 1px solid #334155;
+      background: #0b1220;
+      color: #e5e7eb;
+      border-radius: 6px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .date-picker-btn:hover {
+      border-color: #60a5fa;
+      color: #bfdbfe;
     }
     .filter-users {
       position: relative;
@@ -1047,8 +1122,10 @@ def build_html(
         filter_desc.append("只看未解决检视意见")
     if default_hide_clean_prs:
         filter_desc.append("隐藏无未解决检视意见的 PR")
+    filter_desc.append("可多选状态（open/merged）")
+    filter_desc.append("可多选评论（未解决/已解决/无检视）")
+    filter_desc.append("可按创建日期过滤")
     filter_desc.append("隐藏当前筛选下无 PR 的用户")
-    filter_desc.append("显示 merged（可切换）")
     if cfg.groups:
         filter_desc.append("支持用户组过滤")
     if not filter_desc:
@@ -1057,24 +1134,79 @@ def build_html(
         f"<div class='sub-title'>默认：{escape_html(' · '.join(filter_desc))}</div>"
     )
 
-    html_parts.append("<div class='filter-bar'>")
+    html_parts.append("<div class='filter-container'>")
+    html_parts.append("<div class='filter-header'>")
+    html_parts.append("<button type='button' class='filter-toggle' id='filter-toggle'>收起筛选</button>")
+    html_parts.append("<div class='filter-summary' id='filter-summary'>当前筛选：全部</div>")
+    html_parts.append("</div>")
+    html_parts.append("<div class='filter-bar' id='filter-bar' data-open='1'>")
+    # 状态
+    html_parts.append("<div class='filter-group'>")
+    html_parts.append("<h3>PR 状态 <span>(多选)</span></h3>")
+    html_parts.append(
+        "<label class='filter-label'>"
+        "<input type='checkbox' class='filter-state-checkbox' value='open' checked />"
+        " 状态：open"
+        "</label>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
+        "<input type='checkbox' class='filter-state-checkbox' value='merged' checked />"
+        " 状态：merged"
+        "</label>"
+    )
+    html_parts.append("</div>")
+
+    # 评论
+    html_parts.append("<div class='filter-group'>")
+    html_parts.append("<h3>检视意见 <span>(多选 / PR 过滤)</span></h3>")
+    html_parts.append(
+        "<div class='filter-hint'>复选框决定哪些 PR 保留；下方开关仅影响评论显示/隐藏。</div>"
+    )
     html_parts.append(
         "<label class='filter-label'>"
         f"<input type='checkbox' id='filter-unresolved' {'checked' if default_only_unresolved else ''} />"
-        " 只看未解决检视意见"
+        " 只看未解决检视意见（仅影响评论展示）"
         "</label>"
     )
     html_parts.append(
         "<label class='filter-label'>"
         f"<input type='checkbox' id='filter-hide-clean' {'checked' if default_hide_clean_prs else ''} />"
-        " 隐藏没有未解决检视意见的 PR"
+        " 隐藏没有未解决检视意见的已关闭/已合并 PR"
         "</label>"
     )
     html_parts.append(
         "<label class='filter-label'>"
-        "<input type='checkbox' id='filter-show-merged' checked />"
-        " 显示 merged 的 PR"
+        "<input type='checkbox' class='filter-comment-checkbox' value='unresolved' checked />"
+        " 未解决检视意见"
         "</label>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
+        "<input type='checkbox' class='filter-comment-checkbox' value='resolved' checked />"
+        " 已解决检视意见"
+        "</label>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
+        "<input type='checkbox' class='filter-comment-checkbox' value='none' checked />"
+        " 无检视意见"
+        "</label>"
+    )
+    html_parts.append("</div>")
+
+    # 时间 / 用户开关
+    html_parts.append("<div class='filter-group'>")
+    html_parts.append("<h3>时间 / 用户</h3>")
+    html_parts.append(
+        "<div class='filter-dates'>"
+        "<span>创建日期：</span>"
+        "<input type='date' id='filter-date-start' />"
+        "<button type='button' class='date-picker-btn' data-picker='start'>选择</button>"
+        "<span>至</span>"
+        "<input type='date' id='filter-date-end' />"
+        "<button type='button' class='date-picker-btn' data-picker='end'>选择</button>"
+        "</div>"
     )
     html_parts.append(
         "<label class='filter-label'>"
@@ -1084,6 +1216,9 @@ def build_html(
     )
     html_parts.append("</div>")
 
+    # 用户 / 组
+    html_parts.append("<div class='filter-group'>")
+    html_parts.append("<h3>用户 / 组</h3>")
     # 用户筛选区域（默认全选），用下拉面板减少占位
     if cfg.users:
         html_parts.append("<div class='filter-users' id='filter-user-dropdown'>")
@@ -1146,6 +1281,11 @@ def build_html(
         html_parts.append("</div>")  # list
         html_parts.append("</div>")  # panel
         html_parts.append("</div>")  # dropdown
+    html_parts.append("</div>")  # filter-group 用户/组
+    html_parts.append("</div>")  # filter-bar
+    html_parts.append("</div>")  # filter-container
+    html_parts.append("</div>")  # filter-group 用户/组
+    html_parts.append("</div>")  # filter-bar
 
     if not data:
         html_parts.append("<p class='empty-text'>没有任何符合条件的 PR。</p>")
@@ -1200,6 +1340,9 @@ def build_html(
                             cm for cm in all_comments if cm.resolved is False
                         ]
                         unresolved_count = len(unresolved_comments)
+                        resolved_count = len(
+                            [cm for cm in all_comments if cm.resolved is True]
+                        )
 
                         if unresolved_count > 0:
                             badge_cls = "badge-danger"
@@ -1216,7 +1359,10 @@ def build_html(
                             "<div class='pr-card'"
                             f" data-state='{escape_html(state_lower)}'"
                             f" data-has-unresolved='{1 if unresolved_count > 0 else 0}'"
-                            f" data-total-comments='{len(all_comments)}'>"
+                            f" data-total-comments='{len(all_comments)}'"
+                            f" data-unresolved-count='{unresolved_count}'"
+                            f" data-resolved-count='{resolved_count}'"
+                            f" data-created='{escape_html(pr.created_at)}'>"
                         )
 
                         html_parts.append("<div class='pr-header'>")
@@ -1455,8 +1601,14 @@ def build_html(
 (() => {
   const filterUnresolved = document.getElementById('filter-unresolved');
   const filterHideClean = document.getElementById('filter-hide-clean');
-  const filterShowMerged = document.getElementById('filter-show-merged');
   const filterHideEmptyUsers = document.getElementById('filter-hide-empty-users');
+  const filterDateStart = document.getElementById('filter-date-start');
+  const filterDateEnd = document.getElementById('filter-date-end');
+  const filterBar = document.getElementById('filter-bar');
+  const filterToggle = document.getElementById('filter-toggle');
+  const filterSummary = document.getElementById('filter-summary');
+  const stateChecks = Array.from(document.querySelectorAll('.filter-state-checkbox'));
+  const commentChecks = Array.from(document.querySelectorAll('.filter-comment-checkbox'));
   const userChecks = Array.from(document.querySelectorAll('.filter-user-checkbox'));
   const userSelectAllBtn = document.getElementById('filter-user-all');
   const userSelectNoneBtn = document.getElementById('filter-user-none');
@@ -1469,7 +1621,7 @@ def build_html(
   const groupToggle = document.getElementById('filter-group-toggle');
   const groupPanel = document.getElementById('filter-group-panel');
   const groupDropdown = document.getElementById('filter-group-dropdown');
-  if (!filterUnresolved || !filterHideClean || !filterShowMerged) return;
+  if (!filterUnresolved || !filterHideClean) return;
 
   const getSelectedUsers = () => {
     if (!userChecks.length) return null;
@@ -1486,6 +1638,16 @@ def build_html(
   };
 
   const GROUP_MEMBERS = __GROUP_MEMBERS__;
+
+  const getSelectedStates = () => {
+    const checked = stateChecks.filter((c) => c.checked).map((c) => c.value);
+    return new Set(checked.length ? checked : ['open', 'merged']);
+  };
+
+  const getSelectedCommentKinds = () => {
+    const checked = commentChecks.filter((c) => c.checked).map((c) => c.value);
+    return new Set(checked.length ? checked : ['has', 'none']);
+  };
 
   const refreshUserToggleText = (selectedUsers) => {
     if (!userToggle) return;
@@ -1516,8 +1678,9 @@ def build_html(
   const applyFilters = () => {
     const onlyUnresolved = filterUnresolved.checked;
     const hideClean = filterHideClean.checked;
-    const showMerged = filterShowMerged.checked;
     const hideEmptyUsers = filterHideEmptyUsers?.checked;
+    const selectedStates = getSelectedStates();
+    const selectedComments = getSelectedCommentKinds();
     const selectedUsers = getSelectedUsers();
     const selectedGroups = getSelectedGroups();
     const selectedGroupUsers = new Set();
@@ -1538,16 +1701,49 @@ def build_html(
       const unresolvedItems = reviewItems.filter(
         (it) => it.dataset.resolved === 'false'
       );
-      const hasUnresolved = unresolvedItems.length > 0;
 
+      const unresolvedCount =
+        parseInt(card.dataset.unresolvedCount || '0', 10) || 0;
+      const resolvedCount =
+        parseInt(card.dataset.resolvedCount || '0', 10) || 0;
+      const totalComments =
+        parseInt(card.dataset.totalComments || '0', 10) || 0;
+      const hasUnresolved = unresolvedCount > 0;
       card.dataset.hasUnresolved = hasUnresolved ? '1' : '0';
 
       const state = (card.dataset.state || '').toLowerCase();
-      const totalComments = parseInt(card.dataset.totalComments || '0', 10) || 0;
-      const shouldHideMerged =
-        !showMerged && state === 'merged' && totalComments === 0;
+      const stateAllowed = selectedStates.has(state);
+      const hasReview = totalComments > 0;
+      const hasResolved = resolvedCount > 0;
+      const commentTags = [];
+      if (hasUnresolved) commentTags.push('unresolved');
+      if (hasResolved) commentTags.push('resolved');
+      if (!hasReview) commentTags.push('none');
+      const commentAllowed = commentTags.some((t) =>
+        selectedComments.has(t)
+      );
+      const createdStr = card.dataset.created || '';
+      let dateAllowed = true;
+      if (filterDateStart && filterDateStart.value) {
+        const from = new Date(filterDateStart.value).getTime();
+        const created = new Date(createdStr).getTime();
+        if (!Number.isNaN(from) && !Number.isNaN(created)) {
+          dateAllowed = dateAllowed && created >= from;
+        }
+      }
+      if (filterDateEnd && filterDateEnd.value) {
+        const to = new Date(filterDateEnd.value).getTime();
+        const created = new Date(createdStr).getTime();
+        if (!Number.isNaN(to) && !Number.isNaN(created)) {
+          // inclusive of end date day
+          dateAllowed = dateAllowed && created <= to + 24 * 60 * 60 * 1000;
+        }
+      }
       const shouldHidePr =
-        (hideClean && state !== 'open' && !hasUnresolved) || shouldHideMerged;
+        !stateAllowed ||
+        !commentAllowed ||
+        !dateAllowed ||
+        (hideClean && state !== 'open' && !hasUnresolved);
       card.style.display = shouldHidePr ? 'none' : '';
 
       reviewItems.forEach((it) => {
@@ -1608,6 +1804,7 @@ def build_html(
       if (meta) {
         meta.textContent = `共 ${visibleCards.length} 个 PR（当前筛选）`;
       }
+      // 按开关控制空用户是否隐藏；不在筛选范围内的用户始终隐藏
       const shouldHideUser =
         !userAllowed || (hideEmptyUsers && visibleCards.length === 0);
       userBlock.style.display = shouldHideUser ? 'none' : '';
@@ -1628,60 +1825,126 @@ def build_html(
     });
   };
 
-  filterUnresolved.addEventListener('change', applyFilters);
-  filterHideClean.addEventListener('change', applyFilters);
-  filterShowMerged.addEventListener('change', applyFilters);
+  const updateSummary = () => {
+    if (!filterSummary) return;
+    const fmtDate = (val) => {
+      if (!val) return '';
+      return val.replace(/-/g, '/');
+    };
+    const states = Array.from(getSelectedStates()).join(", ") || "全部";
+    const comments = Array.from(getSelectedCommentKinds()).join(", ") || "全部";
+    const dateFrom = fmtDate(filterDateStart?.value || "");
+    const dateTo = fmtDate(filterDateEnd?.value || "");
+    let datePart = "全部时间";
+    if (dateFrom || dateTo) {
+      datePart = `${dateFrom || '不限'} ~ ${dateTo || '不限'}`;
+    }
+    const hideEmpty = filterHideEmptyUsers?.checked ? "隐藏空用户" : "显示空用户";
+    filterSummary.textContent = `当前筛选：状态(${states}) · 评论(${comments}) · 日期(${datePart}) · ${hideEmpty}`;
+  };
+
+  if (filterToggle && filterBar) {
+    filterToggle.addEventListener('click', () => {
+      const isOpen = filterBar.dataset.open === '1';
+      filterBar.style.display = isOpen ? 'none' : 'flex';
+      filterBar.dataset.open = isOpen ? '0' : '1';
+      filterToggle.textContent = isOpen ? '展开筛选' : '收起筛选';
+    });
+  }
+
+  // 更新 summary 时机
+  const wrappedApply = () => {
+    applyFilters();
+    updateSummary();
+  };
+
+  // 替换之前绑定
+  filterUnresolved.removeEventListener('change', applyFilters);
+  filterUnresolved.addEventListener('change', wrappedApply);
+  filterHideClean.removeEventListener('change', applyFilters);
+  filterHideClean.addEventListener('change', wrappedApply);
+  stateChecks.forEach((c) => {
+    c.removeEventListener('change', applyFilters);
+    c.addEventListener('change', wrappedApply);
+  });
+  commentChecks.forEach((c) => {
+    c.removeEventListener('change', applyFilters);
+    c.addEventListener('change', wrappedApply);
+  });
   if (filterHideEmptyUsers) {
-    filterHideEmptyUsers.addEventListener('change', applyFilters);
+    filterHideEmptyUsers.removeEventListener('change', applyFilters);
+    filterHideEmptyUsers.addEventListener('change', wrappedApply);
+  }
+  if (filterDateStart) {
+    filterDateStart.removeEventListener('change', applyFilters);
+    filterDateStart.addEventListener('change', wrappedApply);
+  }
+  if (filterDateEnd) {
+    filterDateEnd.removeEventListener('change', applyFilters);
+    filterDateEnd.addEventListener('change', wrappedApply);
   }
   if (userSelectAllBtn) {
+    userSelectAllBtn.removeEventListener('click', applyFilters);
     userSelectAllBtn.addEventListener('click', () => {
       userChecks.forEach((c) => (c.checked = true));
-      applyFilters();
+      wrappedApply();
     });
   }
   if (userSelectNoneBtn) {
+    userSelectNoneBtn.removeEventListener('click', applyFilters);
     userSelectNoneBtn.addEventListener('click', () => {
       userChecks.forEach((c) => (c.checked = false));
-      applyFilters();
+      wrappedApply();
     });
   }
-  userChecks.forEach((c) => c.addEventListener('change', applyFilters));
-
-  if (userToggle && userPanel && userDropdown) {
-    userToggle.addEventListener('click', () => {
-      userPanel.classList.toggle('open');
-    });
-    userToggle.addEventListener('click', (e) => e.stopPropagation());
-  }
-  if (groupToggle && groupPanel && groupDropdown) {
-    groupToggle.addEventListener('click', () => {
-      groupPanel.classList.toggle('open');
-    });
-    groupToggle.addEventListener('click', (e) => e.stopPropagation());
-  }
-  document.addEventListener('click', (e) => {
-    if (userDropdown && !userDropdown.contains(e.target)) {
-      userPanel?.classList.remove('open');
-    }
-    if (groupDropdown && !groupDropdown.contains(e.target)) {
-      groupPanel?.classList.remove('open');
-    }
+  userChecks.forEach((c) => {
+    c.removeEventListener('change', applyFilters);
+    c.addEventListener('change', wrappedApply);
   });
   if (groupSelectAllBtn) {
+    groupSelectAllBtn.removeEventListener('click', applyFilters);
     groupSelectAllBtn.addEventListener('click', () => {
       groupChecks.forEach((c) => (c.checked = true));
-      applyFilters();
+      wrappedApply();
     });
   }
   if (groupSelectNoneBtn) {
+    groupSelectNoneBtn.removeEventListener('click', applyFilters);
     groupSelectNoneBtn.addEventListener('click', () => {
       groupChecks.forEach((c) => (c.checked = false));
-      applyFilters();
+      wrappedApply();
     });
   }
-  groupChecks.forEach((c) => c.addEventListener('change', applyFilters));
-  applyFilters();
+  groupChecks.forEach((c) => {
+    c.removeEventListener('change', applyFilters);
+    c.addEventListener('change', wrappedApply);
+  });
+
+  // 初始执行：默认结束日期为当天
+  if (filterDateEnd && !filterDateEnd.value) {
+    const today = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const y = today.getFullYear();
+    const m = pad(today.getMonth() + 1);
+    const d = pad(today.getDate());
+    filterDateEnd.value = `${y}-${m}-${d}`;
+  }
+  // 日期按钮弹出日历
+  document.querySelectorAll('.date-picker-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const targetId =
+        btn.dataset.picker === 'start' ? 'filter-date-start' : 'filter-date-end';
+      const input = document.getElementById(targetId);
+      if (!input) return;
+      if (typeof input.showPicker === 'function') {
+        input.showPicker();
+      } else {
+        input.focus();
+        input.click();
+      }
+    });
+  });
+  wrappedApply();
 })();
 </script>
 """
