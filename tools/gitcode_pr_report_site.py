@@ -73,6 +73,9 @@ class ReviewComment:
     resolved: Optional[bool] = None
     path: Optional[str] = None
     position: Optional[int] = None
+    is_reply: bool = False
+    parent_user: Optional[str] = None
+    parent_id: Optional[int] = None
 
 
 @dataclass
@@ -414,33 +417,66 @@ def fetch_comments_for_pr(
         data = gitcode_get(
             f"/repos/{repo_cfg.owner}/{repo_cfg.repo}/pulls/{pr_number}/comments",
             access_token=access_token,
-            params={"page": page, "per_page": 100},
+            params={"page": page, "per_page": 100, "comment_type": "diff_comment"},
         )
 
         if not isinstance(data, list) or not data:
             break
 
-        for c in data:
-            user_obj = c.get("user") or {}
+        def _make_comment(
+            obj: Dict[str, Any],
+            *,
+            fallback_path=None,
+            fallback_pos=None,
+            is_reply: bool = False,
+            parent_user: Optional[str] = None,
+            parent_id: Optional[int] = None,
+        ) -> ReviewComment:
+            user_obj = obj.get("user") or {}
             login = (
                 user_obj.get("login")
                 or user_obj.get("username")
                 or user_obj.get("name")
                 or ""
             )
-
-            comments.append(
-                ReviewComment(
-                    id=int(c.get("id", 0)),
-                    user=login,
-                    body=c.get("body", ""),
-                    created_at=c.get("created_at", ""),
-                    updated_at=c.get("updated_at", ""),
-                    resolved=_infer_resolved(c),
-                    path=c.get("path"),
-                    position=c.get("position"),
-                )
+            pos = obj.get("position")
+            if pos is None:
+                diff_pos = obj.get("diff_position") or {}
+                pos = diff_pos.get("start_new_line") or diff_pos.get("end_new_line")
+            resolved_val = _infer_resolved(obj)
+            if resolved_val is None:
+                resolved_val = False
+            return ReviewComment(
+                id=int(obj.get("id", 0)),
+                user=login,
+                body=obj.get("body", ""),
+                created_at=obj.get("created_at", ""),
+                updated_at=obj.get("updated_at", ""),
+                resolved=resolved_val,
+                path=obj.get("path") or fallback_path,
+                position=pos if pos is not None else fallback_pos,
+                is_reply=is_reply,
+                parent_user=parent_user,
+                parent_id=parent_id,
             )
+
+        for c in data:
+            parent = _make_comment(c)
+            comments.append(parent)
+
+            replies = c.get("reply") or []
+            if isinstance(replies, list) and replies:
+                for r in replies:
+                    comments.append(
+                        _make_comment(
+                            r,
+                            fallback_path=parent.path,
+                            fallback_pos=parent.position,
+                            is_reply=True,
+                            parent_user=parent.user,
+                            parent_id=parent.id,
+                        )
+                    )
 
         if len(data) < 100:
             break
@@ -584,6 +620,8 @@ def build_html(
     issue_labels: List[str] = []
     seen_pr_types: set[str] = set()
     pr_types: List[str] = []
+    seen_targets: set[str] = set()
+    target_branches: List[str] = []
     for repo_prs in data.values():
         for prs in repo_prs.values():
             for pr in prs:
@@ -591,6 +629,10 @@ def build_html(
                 if pr_type and pr_type not in seen_pr_types:
                     pr_types.append(pr_type)
                     seen_pr_types.add(pr_type)
+                tgt = (pr.target_branch or "").strip()
+                if tgt and tgt not in seen_targets:
+                    target_branches.append(tgt)
+                    seen_targets.add(tgt)
                 for iss in pr.issues:
                     for lab in iss.labels:
                         if not lab:
@@ -1313,8 +1355,12 @@ def build_html(
 
     html_parts.append("<div class='filter-container'>")
     html_parts.append("<div class='filter-header'>")
-    html_parts.append("<button type='button' class='filter-toggle' id='filter-toggle'>收起筛选</button>")
-    html_parts.append("<div class='filter-summary' id='filter-summary'>当前筛选：全部</div>")
+    html_parts.append(
+        "<button type='button' class='filter-toggle' id='filter-toggle'>收起筛选</button>"
+    )
+    html_parts.append(
+        "<div class='filter-summary' id='filter-summary'>当前筛选：全部</div>"
+    )
     html_parts.append("</div>")
     html_parts.append("<div class='filter-actions'>")
     html_parts.append(
@@ -1369,23 +1415,11 @@ def build_html(
     )
     html_parts.append("</div>")
 
-    # 评论
+    # 评论（拆分：PR 过滤 vs 展示控制）
     html_parts.append("<div class='filter-group'>")
-    html_parts.append("<h3>检视意见 <span>(多选 / PR 过滤)</span></h3>")
+    html_parts.append("<h3>检视意见（PR 过滤） <span>(多选)</span></h3>")
     html_parts.append(
-        "<div class='filter-hint'>复选框决定哪些 PR 保留；下方开关仅影响评论显示/隐藏。</div>"
-    )
-    html_parts.append(
-        "<label class='filter-label'>"
-        f"<input type='checkbox' id='filter-unresolved' {'checked' if default_only_unresolved else ''} />"
-        " 只看未解决检视意见（仅影响评论展示）"
-        "</label>"
-    )
-    html_parts.append(
-        "<label class='filter-label'>"
-        f"<input type='checkbox' id='filter-hide-clean' {'checked' if default_hide_clean_prs else ''} />"
-        " 隐藏没有未解决检视意见的已关闭/已合并 PR"
-        "</label>"
+        "<div class='filter-hint'>下方选项决定哪些 PR 会保留在列表中。</div>"
     )
     html_parts.append(
         "<label class='filter-label'>"
@@ -1405,6 +1439,37 @@ def build_html(
         " 无检视意见"
         "</label>"
     )
+    html_parts.append(
+        "<label class='filter-label'>"
+        f"<input type='checkbox' id='filter-hide-clean' {'checked' if default_hide_clean_prs else ''} />"
+        " 隐藏没有未解决检视意见的已关闭/已合并 PR"
+        "</label>"
+    )
+    html_parts.append("</div>")
+
+    html_parts.append("<div class='filter-group'>")
+    html_parts.append("<h3>检视意见（评论显示）</h3>")
+    html_parts.append(
+        "<div class='filter-hint'>仅影响评论的显示/隐藏，不改变 PR 是否保留；是否保留 PR 由上方“检视意见（PR 过滤）”决定。</div>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
+        f"<input type='checkbox' id='filter-unresolved' {'checked' if default_only_unresolved else ''} />"
+        " 仅显示未解决检视意见"
+        "</label>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
+        "<span style='min-width:96px'>回复包含：</span>"
+        "<input type='text' id='filter-comment-keyword' class='filter-text' placeholder='输入关键字，模糊匹配' />"
+        "</label>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
+        "<input type='checkbox' id='filter-hide-replies' />"
+        " 不展示回复（仅显示主评论）"
+        "</label>"
+    )
     html_parts.append("</div>")
 
     # Issue 标签
@@ -1415,7 +1480,7 @@ def build_html(
         for lab in issue_labels:
             html_parts.append(
                 "<label class='filter-label'>"
-                f"<input type='checkbox' class='filter-issue-label-checkbox' value='{escape_html(lab)}' checked /> "
+                f"<input type='checkbox' class='filter-issue-label-checkbox' value='{escape_html(lab)}' /> "
                 f"{escape_html(lab)}"
                 "</label>"
             )
@@ -1430,7 +1495,21 @@ def build_html(
         for t in pr_types:
             html_parts.append(
                 "<label class='filter-label'>"
-                f"<input type='checkbox' class='filter-pr-type-checkbox' value='{escape_html(t)}' checked /> "
+                f"<input type='checkbox' class='filter-pr-type-checkbox' value='{escape_html(t)}' /> "
+                f"{escape_html(t)}"
+                "</label>"
+            )
+        html_parts.append("</div>")
+        html_parts.append("</div>")
+
+    if target_branches:
+        html_parts.append("<div class='filter-group'>")
+        html_parts.append("<h3>目标分支 <span>(多选)</span></h3>")
+        html_parts.append("<div class='filter-user-list'>")
+        for t in target_branches:
+            html_parts.append(
+                "<label class='filter-label'>"
+                f"<input type='checkbox' class='filter-target-checkbox' value='{escape_html(t)}' checked /> "
                 f"{escape_html(t)}"
                 "</label>"
             )
@@ -1540,10 +1619,18 @@ def build_html(
     html_parts.append("<div class='stats-block' id='stats-block'>")
     html_parts.append("<h3>当前筛选统计</h3>")
     html_parts.append("<div class='stats-grid'>")
-    html_parts.append("<div class='stats-item'>总计：<span id='stat-total'>0</span></div>")
-    html_parts.append("<div class='stats-item'>open：<span id='stat-open'>0</span></div>")
-    html_parts.append("<div class='stats-item'>merged：<span id='stat-merged'>0</span></div>")
-    html_parts.append("<div class='stats-item'>有未解决意见：<span id='stat-unresolved'>0</span></div>")
+    html_parts.append(
+        "<div class='stats-item'>总计：<span id='stat-total'>0</span></div>"
+    )
+    html_parts.append(
+        "<div class='stats-item'>open：<span id='stat-open'>0</span></div>"
+    )
+    html_parts.append(
+        "<div class='stats-item'>merged：<span id='stat-merged'>0</span></div>"
+    )
+    html_parts.append(
+        "<div class='stats-item'>有未解决意见：<span id='stat-unresolved'>0</span></div>"
+    )
     html_parts.append("</div>")
     html_parts.append("</div>")
 
@@ -1595,9 +1682,7 @@ def build_html(
                 else:
                     html_parts.append("<div class='pr-grid'>")
                     for pr in sorted_prs:
-                        all_comments = [
-                            cm for cm in pr.comments if cm.resolved is not None
-                        ]
+                        all_comments = pr.comments
                         unresolved_comments = [
                             cm for cm in all_comments if cm.resolved is False
                         ]
@@ -1722,7 +1807,9 @@ def build_html(
                             times_line = f"创建：{escape_html(pr.created_at)}"
                             if pr.updated_at:
                                 times_line += f" ｜ 更新：{escape_html(pr.updated_at)}"
-                            html_parts.append(f"<div class='pr-times'>{times_line}</div>")
+                            html_parts.append(
+                                f"<div class='pr-times'>{times_line}</div>"
+                            )
 
                         # Issues
                         html_parts.append(
@@ -1800,18 +1887,46 @@ def build_html(
 
                                 html_parts.append("<div class='reviewer-group-body'>")
 
+                                replies_by_parent: Dict[int, List[ReviewComment]] = {}
+                                orphan_replies: List[ReviewComment] = []
                                 for cm in comments:
+                                    if cm.is_reply and cm.parent_id is not None:
+                                        replies_by_parent.setdefault(
+                                            cm.parent_id, []
+                                        ).append(cm)
+                                    elif cm.is_reply:
+                                        orphan_replies.append(cm)
+
+                                parent_comments = [
+                                    cm for cm in comments if not cm.is_reply
+                                ]
+
+                                def render_comment(
+                                    cm: ReviewComment, *, is_reply: bool = False
+                                ):
+                                    is_resolved = cm.resolved is True
                                     status_cls = (
-                                        "unresolved"
-                                        if cm.resolved is False
-                                        else "resolved"
+                                        "reply"
+                                        if is_reply
+                                        else (
+                                            "resolved" if is_resolved else "unresolved"
+                                        )
                                     )
                                     status_text = (
-                                        "未解决" if cm.resolved is False else "已解决"
+                                        "回复"
+                                        if is_reply
+                                        else ("已解决" if is_resolved else "未解决")
                                     )
-                                    resolved_attr = (
-                                        "false" if cm.resolved is False else "true"
+                                    resolved_attr = "true" if is_resolved else "false"
+                                    is_reply_attr = "1" if is_reply else "0"
+                                    user_attr = escape_html(cm.user or "")
+                                    parent_user_attr = escape_html(cm.parent_user or "")
+                                    parent_id_attr = (
+                                        f" data-parent-id='{cm.parent_id}'"
+                                        if is_reply and cm.parent_id is not None
+                                        else ""
                                     )
+                                    comment_id_attr = f" data-comment-id='{cm.id}'"
 
                                     loc = ""
                                     if cm.path:
@@ -1824,7 +1939,7 @@ def build_html(
                                         header_left += f" · {loc}"
 
                                     html_parts.append(
-                                        f"<div class='review-item {status_cls}' data-resolved='{resolved_attr}'>"
+                                        f"<div class='review-item {status_cls}{' review-reply' if is_reply else ''}' data-resolved='{resolved_attr}' data-is-reply='{is_reply_attr}' data-user='{user_attr}' data-parent-user='{parent_user_attr}'{parent_id_attr}{comment_id_attr}>"
                                     )
 
                                     # header
@@ -1860,6 +1975,21 @@ def build_html(
                                             )
 
                                     html_parts.append("</div>")  # review-item
+
+                                for cm in parent_comments:
+                                    render_comment(cm, is_reply=False)
+                                    child_replies = replies_by_parent.get(cm.id, [])
+                                    if child_replies:
+                                        html_parts.append(
+                                            "<div class='review-replies'>"
+                                        )
+                                        for rp in child_replies:
+                                            render_comment(rp, is_reply=True)
+                                        html_parts.append("</div>")
+
+                                # 孤立回复也展示
+                                for rp in orphan_replies:
+                                    render_comment(rp, is_reply=True)
 
                                 html_parts.append("</div>")  # reviewer-group-body
                                 html_parts.append("</details>")  # reviewer-group
@@ -1897,6 +2027,8 @@ def build_html(
   const filterUnresolved = document.getElementById('filter-unresolved');
   const filterHideClean = document.getElementById('filter-hide-clean');
   const filterHideEmptyUsers = document.getElementById('filter-hide-empty-users');
+  const filterCommentKeyword = document.getElementById('filter-comment-keyword');
+  const filterHideReplies = document.getElementById('filter-hide-replies');
   const filterDateStart = document.getElementById('filter-date-start');
   const filterDateEnd = document.getElementById('filter-date-end');
   const filterBar = document.getElementById('filter-bar');
@@ -1921,6 +2053,7 @@ def build_html(
   const commentChecks = Array.from(document.querySelectorAll('.filter-comment-checkbox'));
   const issueLabelChecks = Array.from(document.querySelectorAll('.filter-issue-label-checkbox'));
   const prTypeChecks = Array.from(document.querySelectorAll('.filter-pr-type-checkbox'));
+  const targetChecks = Array.from(document.querySelectorAll('.filter-target-checkbox'));
   const userChecks = Array.from(document.querySelectorAll('.filter-user-checkbox'));
   const userSelectAllBtn = document.getElementById('filter-user-all');
   const userSelectNoneBtn = document.getElementById('filter-user-none');
@@ -1972,6 +2105,12 @@ def build_html(
   const getSelectedPrTypes = () => {
     if (!prTypeChecks.length) return new Set();
     const checked = prTypeChecks.filter((c) => c.checked).map((c) => c.value);
+    return new Set(checked);
+  };
+
+  const getSelectedTargets = () => {
+    if (!targetChecks.length) return new Set();
+    const checked = targetChecks.filter((c) => c.checked).map((c) => c.value);
     return new Set(checked);
   };
 
@@ -2090,11 +2229,14 @@ def build_html(
       comments: toList(commentChecks.filter((c) => c.checked)),
       labels: toList(issueLabelChecks.filter((c) => c.checked)),
       prTypes: toList(prTypeChecks.filter((c) => c.checked)),
+      targets: toList(targetChecks.filter((c) => c.checked)),
       users: userChecks.filter((c) => c.checked).map((c) => c.value),
       groups: groupChecks.filter((c) => c.checked).map((c) => c.value),
       hideEmpty: filterHideEmptyUsers?.checked ?? true,
       hideClean: filterHideClean?.checked ?? false,
       onlyUnresolved: filterUnresolved?.checked ?? false,
+      hideReplies: filterHideReplies?.checked ?? false,
+      commentKeyword: filterCommentKeyword?.value || '',
       dateStart: filterDateStart?.value || '',
       dateEnd: filterDateEnd?.value || '',
       sortKey: getSortKey(),
@@ -2106,11 +2248,14 @@ def build_html(
     commentChecks.forEach((c) => (c.checked = snap.comments.includes(c.value)));
     issueLabelChecks.forEach((c) => (c.checked = snap.labels.includes(c.value)));
     prTypeChecks.forEach((c) => (c.checked = snap.prTypes ? snap.prTypes.includes(c.value) : true));
+    targetChecks.forEach((c) => (c.checked = snap.targets ? snap.targets.includes(c.value) : true));
     userChecks.forEach((c) => (c.checked = snap.users.includes(c.value)));
     groupChecks.forEach((c) => (c.checked = snap.groups.includes(c.value)));
     if (filterHideEmptyUsers) filterHideEmptyUsers.checked = !!snap.hideEmpty;
     if (filterHideClean) filterHideClean.checked = !!snap.hideClean;
     if (filterUnresolved) filterUnresolved.checked = !!snap.onlyUnresolved;
+    if (filterHideReplies) filterHideReplies.checked = !!snap.hideReplies;
+    if (filterCommentKeyword) filterCommentKeyword.value = snap.commentKeyword || '';
     if (filterDateStart) filterDateStart.value = snap.dateStart || '';
     if (filterDateEnd) filterDateEnd.value = snap.dateEnd || '';
     if (sortSelect && snap.sortKey) sortSelect.value = snap.sortKey;
@@ -2189,6 +2334,9 @@ def build_html(
   };
 
   const applyFilters = () => {
+    const keyword = (filterCommentKeyword?.value || '').trim().toLowerCase();
+    const hasKeyword = keyword.length > 0;
+    const hideReplies = filterHideReplies?.checked;
     const onlyUnresolved = filterUnresolved.checked;
     const hideClean = filterHideClean.checked;
     const hideEmptyUsers = filterHideEmptyUsers?.checked;
@@ -2197,6 +2345,7 @@ def build_html(
     const selectedComments = getSelectedCommentKinds();
     const selectedIssueLabels = getSelectedIssueLabels();
     const selectedPrTypes = getSelectedPrTypes();
+    const selectedTargets = getSelectedTargets();
     const selectedUsers = getSelectedUsers();
     const selectedGroups = getSelectedGroups();
     const selectedGroupUsers = new Set();
@@ -2214,9 +2363,6 @@ def build_html(
       const reviewItems = reviewWrapper
         ? Array.from(reviewWrapper.querySelectorAll('.review-item'))
         : [];
-      const unresolvedItems = reviewItems.filter(
-        (it) => it.dataset.resolved === 'false'
-      );
 
       const unresolvedCount =
         parseInt(card.dataset.unresolvedCount || '0', 10) || 0;
@@ -2239,20 +2385,19 @@ def build_html(
         selectedComments.has(t)
       );
       const createdStr = card.dataset.created || '';
+      const createdTs = Date.parse(createdStr);
       let dateAllowed = true;
       if (filterDateStart && filterDateStart.value) {
-        const from = new Date(filterDateStart.value).getTime();
-        const created = new Date(createdStr).getTime();
-        if (!Number.isNaN(from) && !Number.isNaN(created)) {
-          dateAllowed = dateAllowed && created >= from;
+        const from = Date.parse(filterDateStart.value);
+        if (!Number.isNaN(from) && !Number.isNaN(createdTs)) {
+          dateAllowed = dateAllowed && createdTs >= from;
         }
       }
       if (filterDateEnd && filterDateEnd.value) {
-        const to = new Date(filterDateEnd.value).getTime();
-        const created = new Date(createdStr).getTime();
-        if (!Number.isNaN(to) && !Number.isNaN(created)) {
+        const to = Date.parse(filterDateEnd.value);
+        if (!Number.isNaN(to) && !Number.isNaN(createdTs)) {
           // inclusive of end date day
-          dateAllowed = dateAllowed && created <= to + 24 * 60 * 60 * 1000;
+          dateAllowed = dateAllowed && createdTs <= to + 24 * 60 * 60 * 1000;
         }
       }
       const issueLabelStr = card.dataset.issueLabels || '';
@@ -2265,6 +2410,76 @@ def build_html(
       const typeAllowed = selectedPrTypes.size
         ? selectedPrTypes.has(prType)
         : true;
+      const target = card.dataset.target || '';
+      const targetAllowed = selectedTargets.size
+        ? selectedTargets.has(target)
+        : true;
+      const matchWholeWord = (text, kw) => {
+        if (!kw) return true;
+        const lowerText = (text || '').toLowerCase();
+        const lowerKw = kw.toLowerCase();
+        return lowerText.includes(lowerKw);
+      };
+      const keywordMatchedReviews = [];
+      const replyKeywordParents = new Set();
+      const parentResolvedMap = new Map();
+      const visibleParents = new Set();
+      reviewItems.forEach((it) => {
+        const isReply = it.dataset.isReply === '1';
+        const user = (it.dataset.user || '').trim();
+        const parentUser = (it.dataset.parentUser || '').trim();
+        const authorReplyOnly = !isReply || !parentUser || parentUser === user;
+        const bodyNode =
+          it.querySelector('.review-body') || it.querySelector('.review-body-content');
+        const bodyText = (bodyNode ? bodyNode.textContent : it.textContent) || '';
+        const matchesKeyword = isReply
+          ? matchWholeWord(bodyText, keyword)
+          : !hasKeyword;
+        const isResolved = it.dataset.resolved === 'true';
+        const commentId = it.dataset.commentId;
+        if (!isReply && commentId) {
+          parentResolvedMap.set(commentId, isResolved);
+        }
+        const baseVisible =
+          matchesKeyword &&
+          (!onlyUnresolved || !isResolved) &&
+          authorReplyOnly;
+        const visible = baseVisible && !(hideReplies && isReply);
+        it.style.display = visible ? '' : 'none';
+        it.dataset._visible = visible ? '1' : '0';
+        if (!isReply && visible && commentId) {
+          visibleParents.add(commentId);
+        }
+        if (matchesKeyword) {
+          keywordMatchedReviews.push(it);
+        }
+        if (matchesKeyword && isReply && it.dataset.parentId) {
+          replyKeywordParents.add(it.dataset.parentId);
+        }
+      });
+      if (replyKeywordParents.size) {
+        reviewItems.forEach((it) => {
+          if (it.dataset.isReply === '1') return;
+          const cid = it.dataset.commentId;
+          if (cid && replyKeywordParents.has(cid)) {
+            if (onlyUnresolved && parentResolvedMap.get(cid) === true) return;
+            it.style.display = '';
+            it.dataset._visible = '1';
+            visibleParents.add(cid);
+          }
+        });
+      }
+      // hide replies whose parent is not visible
+      reviewItems.forEach((it) => {
+        if (it.dataset.isReply !== '1') return;
+        const pid = it.dataset.parentId;
+        if (hideReplies) return;
+        if (pid && !visibleParents.has(pid)) {
+          it.style.display = 'none';
+          it.dataset._visible = '0';
+        }
+      });
+      const keywordAllowed = !hasKeyword || keywordMatchedReviews.length > 0;
 
       const shouldHidePr =
         !stateAllowed ||
@@ -2272,13 +2487,10 @@ def build_html(
         !dateAllowed ||
         !issueAllowed ||
         !typeAllowed ||
+        !targetAllowed ||
+        !keywordAllowed ||
         (hideClean && state !== 'open' && !hasUnresolved);
       card.style.display = shouldHidePr ? 'none' : '';
-
-      reviewItems.forEach((it) => {
-        const isResolved = it.dataset.resolved === 'true';
-        it.style.display = onlyUnresolved && isResolved ? 'none' : '';
-      });
 
       const reviewerGroups = reviewWrapper
         ? Array.from(reviewWrapper.querySelectorAll('.reviewer-group'))
@@ -2295,9 +2507,10 @@ def build_html(
       const emptyAll = reviewWrapper
         ? reviewWrapper.querySelector('[data-empty-all]')
         : null;
-      const hasVisibleReviews = reviewItems.some(
+      const visibleReviews = reviewItems.filter(
         (it) => it.style.display !== 'none'
       );
+      const hasVisibleReviews = visibleReviews.length > 0;
 
       if (onlyUnresolved) {
         if (emptyUnresolved) {
@@ -2311,8 +2524,21 @@ def build_html(
           emptyUnresolved.style.display = 'none';
         }
         if (emptyAll) {
-          emptyAll.style.display =
-            reviewItems.length === 0 ? 'block' : 'none';
+          const defaultText =
+            emptyAll.dataset.defaultText || emptyAll.textContent || '';
+          if (!emptyAll.dataset.defaultText) {
+            emptyAll.dataset.defaultText = defaultText;
+          }
+          if (!hasVisibleReviews) {
+            emptyAll.textContent =
+              hasKeyword && reviewItems.length > 0
+                ? '无匹配该关键字的检视意见'
+                : defaultText || '无检视意见';
+            emptyAll.style.display = 'block';
+          } else {
+            emptyAll.textContent = defaultText;
+            emptyAll.style.display = 'none';
+          }
         }
       }
     });
@@ -2380,6 +2606,11 @@ def build_html(
     if (!filterSummary) return;
     const fmtDate = (val) => {
       if (!val) return '';
+      const dt = new Date(val);
+      if (!Number.isNaN(dt.getTime())) {
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${dt.getFullYear()}/${pad(dt.getMonth() + 1)}/${pad(dt.getDate())}`;
+      }
       return val.replace(/-/g, '/');
     };
     const stateLabels = { open: 'open', merged: 'merged' };
@@ -2392,6 +2623,9 @@ def build_html(
     const comments = Array.from(getSelectedCommentKinds());
     const labels = Array.from(getSelectedIssueLabels());
     const prTypes = Array.from(getSelectedPrTypes());
+    const targets = Array.from(getSelectedTargets());
+    const keyword = (filterCommentKeyword?.value || '').trim();
+    const hideRepliesText = filterHideReplies?.checked ? "不含回复" : "含回复";
     const sortTextMap = {
       created: '创建时间 新→旧',
       updated: '更新时间 新→旧',
@@ -2405,6 +2639,8 @@ def build_html(
       : "全部";
     const labelText = labels.length ? labels.join(", ") : "全部";
     const prTypeText = prTypes.length ? prTypes.join(", ") : "全部";
+    const targetText = targets.length ? targets.join(", ") : "全部";
+    const keywordText = keyword || "不限";
     const dateFrom = fmtDate(filterDateStart?.value || "");
     const dateTo = fmtDate(filterDateEnd?.value || "");
     let datePart = "全部时间";
@@ -2413,7 +2649,7 @@ def build_html(
     }
     const hideEmpty = filterHideEmptyUsers?.checked ? "隐藏空用户" : "显示空用户";
     const sortText = sortTextMap[getSortKey()] || '创建时间 新→旧';
-    filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 标签(${labelText}) · 类型(${prTypeText}) · 日期(${datePart}) · ${hideEmpty} · 排序(${sortText})`;
+    filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 回复(${hideRepliesText}) · 回复包含(${keywordText}) · 标签(${labelText}) · 类型(${prTypeText}) · 目标(${targetText}) · 日期(${datePart}) · ${hideEmpty} · 排序(${sortText})`;
   };
 
   if (filterToggle && filterBar) {
@@ -2545,6 +2781,17 @@ def build_html(
     refreshStats();
   };
 
+  // 评论关键字输入，轻量防抖
+  let keywordDebounce = null;
+  if (filterCommentKeyword) {
+    filterCommentKeyword.addEventListener('input', () => {
+      if (keywordDebounce) {
+        clearTimeout(keywordDebounce);
+      }
+      keywordDebounce = setTimeout(wrappedApply, 180);
+    });
+  }
+
   // 替换之前绑定
   filterUnresolved.removeEventListener('change', applyFilters);
   filterUnresolved.addEventListener('change', wrappedApply);
@@ -2574,6 +2821,10 @@ def build_html(
     c.removeEventListener('change', applyFilters);
     c.addEventListener('change', wrappedApply);
   });
+  targetChecks.forEach((c) => {
+    c.removeEventListener('change', applyFilters);
+    c.addEventListener('change', wrappedApply);
+  });
   issueLabelChecks.forEach((c) => {
     c.removeEventListener('change', applyFilters);
     c.addEventListener('change', wrappedApply);
@@ -2585,6 +2836,10 @@ def build_html(
   if (filterHideEmptyUsers) {
     filterHideEmptyUsers.removeEventListener('change', applyFilters);
     filterHideEmptyUsers.addEventListener('change', wrappedApply);
+  }
+  if (filterHideReplies) {
+    filterHideReplies.removeEventListener('change', applyFilters);
+    filterHideReplies.addEventListener('change', wrappedApply);
   }
   if (filterDateStart) {
     filterDateStart.removeEventListener('change', applyFilters);
