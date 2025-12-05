@@ -537,6 +537,25 @@ def build_html(
     """
     title = "GitCode PR Review Report"
 
+    def _parse_ts(ts: str) -> float:
+        if not ts:
+            return 0.0
+        t = ts.replace("Z", "+00:00")
+        try:
+            return datetime.fromisoformat(t).timestamp()
+        except Exception:
+            try:
+                return datetime.strptime(ts, "%Y-%m-%d %H:%M:%S").timestamp()
+            except Exception:
+                return 0.0
+
+    def _pr_sort_key(pr: PRInfo) -> tuple:
+        state_rank = {"open": 0, "merged": 1}
+        rank = state_rank.get((pr.state or "").lower(), 2)
+        # 越新的越靠前
+        created_ts = -_parse_ts(pr.created_at)
+        return (rank, created_ts, -pr.number)
+
     style = """
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -1059,6 +1078,24 @@ def build_html(
       overflow-y: auto;
       margin: 8px 0;
     }
+    .filter-user-list::-webkit-scrollbar {
+      width: 8px;
+    }
+    .filter-user-list::-webkit-scrollbar-track {
+      background: #0a101e;
+      border-radius: 8px;
+    }
+    .filter-user-list::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 8px;
+    }
+    .filter-user-list::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    .filter-user-list {
+      scrollbar-width: thin;
+      scrollbar-color: #334155 #0a101e;
+    }
     .filter-user-item {
       font-size: 12px;
       display: flex;
@@ -1119,15 +1156,13 @@ def build_html(
     )
     filter_desc: List[str] = []
     if default_only_unresolved:
-        filter_desc.append("只看未解决检视意见")
+        filter_desc.append("默认仅展示未解决检视意见（可切换）")
     if default_hide_clean_prs:
-        filter_desc.append("隐藏无未解决检视意见的 PR")
-    filter_desc.append("可多选状态（open/merged）")
-    filter_desc.append("可多选评论（未解决/已解决/无检视）")
-    filter_desc.append("可按创建日期过滤")
-    filter_desc.append("隐藏当前筛选下无 PR 的用户")
+        filter_desc.append("默认隐藏已关闭/已合并且无未解决检视意见的 PR（可切换）")
+    filter_desc.append("状态、检视意见均可多选，支持创建日期筛选")
+    filter_desc.append("当前筛选下无 PR 的用户默认隐藏，可切换显示")
     if cfg.groups:
-        filter_desc.append("支持用户组过滤")
+        filter_desc.append("支持按用户组/个人筛选")
     if not filter_desc:
         filter_desc.append("可直接在页面上切换过滤，无需重新生成报表")
     html_parts.append(
@@ -1284,8 +1319,6 @@ def build_html(
     html_parts.append("</div>")  # filter-group 用户/组
     html_parts.append("</div>")  # filter-bar
     html_parts.append("</div>")  # filter-container
-    html_parts.append("</div>")  # filter-group 用户/组
-    html_parts.append("</div>")  # filter-bar
 
     if not data:
         html_parts.append("<p class='empty-text'>没有任何符合条件的 PR。</p>")
@@ -1307,6 +1340,7 @@ def build_html(
             html_parts.append("<div class='repo-content'>")
 
             for username, prs in users_prs.items():
+                sorted_prs = sorted(prs, key=_pr_sort_key)
                 if len(prs) == 0:
                     continue
                 html_parts.append(
@@ -1332,7 +1366,7 @@ def build_html(
                     # )
                 else:
                     html_parts.append("<div class='pr-grid'>")
-                    for pr in prs:
+                    for pr in sorted_prs:
                         all_comments = [
                             cm for cm in pr.comments if cm.resolved is not None
                         ]
@@ -1646,7 +1680,7 @@ def build_html(
 
   const getSelectedCommentKinds = () => {
     const checked = commentChecks.filter((c) => c.checked).map((c) => c.value);
-    return new Set(checked.length ? checked : ['has', 'none']);
+    return new Set(checked.length ? checked : ['unresolved', 'resolved', 'none']);
   };
 
   const refreshUserToggleText = (selectedUsers) => {
@@ -1831,8 +1865,20 @@ def build_html(
       if (!val) return '';
       return val.replace(/-/g, '/');
     };
-    const states = Array.from(getSelectedStates()).join(", ") || "全部";
-    const comments = Array.from(getSelectedCommentKinds()).join(", ") || "全部";
+    const stateLabels = { open: 'open', merged: 'merged' };
+    const commentLabels = {
+      unresolved: '未解决',
+      resolved: '已解决',
+      none: '无检视',
+    };
+    const states = Array.from(getSelectedStates());
+    const comments = Array.from(getSelectedCommentKinds());
+    const statesText = states.length
+      ? states.map((s) => stateLabels[s] || s).join(", ")
+      : "全部";
+    const commentsText = comments.length
+      ? comments.map((s) => commentLabels[s] || s).join(", ")
+      : "全部";
     const dateFrom = fmtDate(filterDateStart?.value || "");
     const dateTo = fmtDate(filterDateEnd?.value || "");
     let datePart = "全部时间";
@@ -1840,7 +1886,7 @@ def build_html(
       datePart = `${dateFrom || '不限'} ~ ${dateTo || '不限'}`;
     }
     const hideEmpty = filterHideEmptyUsers?.checked ? "隐藏空用户" : "显示空用户";
-    filterSummary.textContent = `当前筛选：状态(${states}) · 评论(${comments}) · 日期(${datePart}) · ${hideEmpty}`;
+    filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 日期(${datePart}) · ${hideEmpty}`;
   };
 
   if (filterToggle && filterBar) {
@@ -1851,6 +1897,30 @@ def build_html(
       filterToggle.textContent = isOpen ? '展开筛选' : '收起筛选';
     });
   }
+
+  // 下拉面板开关
+  const closeAllDropdowns = () => {
+    document.querySelectorAll('.filter-user-panel').forEach((panel) => {
+      panel.classList.remove('open');
+    });
+  };
+  const bindDropdown = (toggleEl, panelEl, wrapper) => {
+    if (!toggleEl || !panelEl) return;
+    toggleEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = panelEl.classList.contains('open');
+      closeAllDropdowns();
+      if (!isOpen) {
+        panelEl.classList.add('open');
+      }
+    });
+    if (wrapper) {
+      wrapper.addEventListener('click', (e) => e.stopPropagation());
+    }
+  };
+  bindDropdown(userToggle, userPanel, userDropdown);
+  bindDropdown(groupToggle, groupPanel, groupDropdown);
+  document.addEventListener('click', () => closeAllDropdowns());
 
   // 更新 summary 时机
   const wrappedApply = () => {
