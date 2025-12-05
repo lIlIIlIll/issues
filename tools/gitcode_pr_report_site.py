@@ -536,21 +536,17 @@ def build_html(
       { "owner/repo": { "username": [PRInfo, ...], ... }, ... }
     """
     title = "GitCode PR Review Report"
-
-    # 汇总 Issue 标签，用于前端过滤
-    seen_issue_labels: set[str] = set()
-    issue_labels: List[str] = []
-    for repo_prs in data.values():
-        for prs in repo_prs.values():
-            for pr in prs:
-                for iss in pr.issues:
-                    for lab in iss.labels:
-                        if not lab:
-                            continue
-                        lab_str = str(lab)
-                        if lab_str not in seen_issue_labels:
-                            issue_labels.append(lab_str)
-                            seen_issue_labels.add(lab_str)
+    allowed_pr_types = {
+        "feat",
+        "fix",
+        "docs",
+        "chore",
+        "refactor",
+        "test",
+        "style",
+        "perf",
+        "ci",
+    }
 
     def _parse_ts(ts: str) -> float:
         if not ts:
@@ -570,6 +566,39 @@ def build_html(
         # 越新的越靠前
         created_ts = -_parse_ts(pr.created_at)
         return (rank, created_ts, -pr.number)
+
+    def _infer_pr_type(title: str) -> str:
+        if not title:
+            return ""
+        t = title.strip()
+        import re
+
+        m = re.match(r"^([A-Za-z0-9_-]+)\s*:", t)
+        if m:
+            prefix = m.group(1).lower()
+            return prefix if prefix in allowed_pr_types else ""
+        return ""
+
+    # 汇总 Issue 标签 / PR 类型，用于前端过滤
+    seen_issue_labels: set[str] = set()
+    issue_labels: List[str] = []
+    seen_pr_types: set[str] = set()
+    pr_types: List[str] = []
+    for repo_prs in data.values():
+        for prs in repo_prs.values():
+            for pr in prs:
+                pr_type = _infer_pr_type(pr.title or "")
+                if pr_type and pr_type not in seen_pr_types:
+                    pr_types.append(pr_type)
+                    seen_pr_types.add(pr_type)
+                for iss in pr.issues:
+                    for lab in iss.labels:
+                        if not lab:
+                            continue
+                        lab_str = str(lab)
+                        if lab_str not in seen_issue_labels:
+                            issue_labels.append(lab_str)
+                            seen_issue_labels.add(lab_str)
 
     style = """
     body {
@@ -1274,6 +1303,8 @@ def build_html(
         filter_desc.append("支持按用户组/个人筛选")
     if issue_labels:
         filter_desc.append("支持按 Issue 标签过滤")
+    if pr_types:
+        filter_desc.append("支持按 PR 类型前缀过滤（feat:/fix:/docs: 等）")
     if not filter_desc:
         filter_desc.append("可直接在页面上切换过滤，无需重新生成报表")
     html_parts.append(
@@ -1386,6 +1417,21 @@ def build_html(
                 "<label class='filter-label'>"
                 f"<input type='checkbox' class='filter-issue-label-checkbox' value='{escape_html(lab)}' checked /> "
                 f"{escape_html(lab)}"
+                "</label>"
+            )
+        html_parts.append("</div>")
+        html_parts.append("</div>")
+
+    # PR 类型（标题前缀）
+    if pr_types:
+        html_parts.append("<div class='filter-group'>")
+        html_parts.append("<h3>PR 类型 <span>(title 前缀，多选)</span></h3>")
+        html_parts.append("<div class='filter-user-list'>")
+        for t in pr_types:
+            html_parts.append(
+                "<label class='filter-label'>"
+                f"<input type='checkbox' class='filter-pr-type-checkbox' value='{escape_html(t)}' checked /> "
+                f"{escape_html(t)}"
                 "</label>"
             )
         html_parts.append("</div>")
@@ -1568,6 +1614,8 @@ def build_html(
                                 if lab not in issue_labels_flat:
                                     issue_labels_flat.append(lab)
 
+                        pr_type = _infer_pr_type(pr.title or "")
+
                         if unresolved_count > 0:
                             badge_cls = "badge-danger"
                             badge_text = f"{unresolved_count} 未解决"
@@ -1595,7 +1643,8 @@ def build_html(
                             f" data-repo='{escape_html(repo_name)}'"
                             f" data-username='{escape_html(username)}'"
                             f" data-source='{escape_html(pr.source_branch)}'"
-                            f" data-target='{escape_html(pr.target_branch)}'>"
+                            f" data-target='{escape_html(pr.target_branch)}'"
+                            f" data-pr-type='{escape_html(pr_type)}'>"
                         )
 
                         html_parts.append("<div class='pr-header'>")
@@ -1670,10 +1719,10 @@ def build_html(
                             html_parts.append(
                                 f"<div class='pr-branch'>分支：{branch_html}</div>"
                             )
-                        times_line = f"创建：{escape_html(pr.created_at)}"
-                        if pr.updated_at:
-                            times_line += f" ｜ 更新：{escape_html(pr.updated_at)}"
-                        html_parts.append(f"<div class='pr-times'>{times_line}</div>")
+                            times_line = f"创建：{escape_html(pr.created_at)}"
+                            if pr.updated_at:
+                                times_line += f" ｜ 更新：{escape_html(pr.updated_at)}"
+                            html_parts.append(f"<div class='pr-times'>{times_line}</div>")
 
                         # Issues
                         html_parts.append(
@@ -1835,7 +1884,7 @@ def build_html(
     html_parts.append(
         "<table class='list-table' id='list-table'>"
         "<thead><tr>"
-        "<th>仓库</th><th>用户</th><th>PR</th><th>状态</th><th>未解决</th><th>已解决</th><th>创建</th><th>更新时间</th><th>分支</th>"
+        "<th>仓库</th><th>用户</th><th>PR</th><th>状态</th><th>类型</th><th>未解决</th><th>已解决</th><th>创建</th><th>更新时间</th><th>分支</th>"
         "</tr></thead>"
         "<tbody></tbody>"
         "</table>"
@@ -1871,6 +1920,7 @@ def build_html(
   const stateChecks = Array.from(document.querySelectorAll('.filter-state-checkbox'));
   const commentChecks = Array.from(document.querySelectorAll('.filter-comment-checkbox'));
   const issueLabelChecks = Array.from(document.querySelectorAll('.filter-issue-label-checkbox'));
+  const prTypeChecks = Array.from(document.querySelectorAll('.filter-pr-type-checkbox'));
   const userChecks = Array.from(document.querySelectorAll('.filter-user-checkbox'));
   const userSelectAllBtn = document.getElementById('filter-user-all');
   const userSelectNoneBtn = document.getElementById('filter-user-none');
@@ -1919,6 +1969,12 @@ def build_html(
     return new Set(checked);
   };
 
+  const getSelectedPrTypes = () => {
+    if (!prTypeChecks.length) return new Set();
+    const checked = prTypeChecks.filter((c) => c.checked).map((c) => c.value);
+    return new Set(checked);
+  };
+
   const collectVisibleCards = () => {
     const rows = [];
     const cards = Array.from(document.querySelectorAll('.pr-card'));
@@ -1942,6 +1998,7 @@ def build_html(
           : '';
       const labelsRaw = card.dataset.issueLabels || '';
       const labels = labelsRaw ? labelsRaw.split('||').filter(Boolean) : [];
+      const type = card.dataset.prType || '';
       rows.push({
         repo,
         user,
@@ -1955,6 +2012,7 @@ def build_html(
         updated,
         branch,
         labels,
+        type,
       });
     });
     return rows;
@@ -1974,6 +2032,7 @@ def build_html(
         <td>${r.user}</td>
         <td>${prCell}</td>
         <td>${r.state}</td>
+        <td>${r.type || ''}</td>
         <td>${r.unresolved}</td>
         <td>${r.resolved}</td>
         <td>${r.created}</td>
@@ -2030,6 +2089,7 @@ def build_html(
       states: toList(stateChecks.filter((c) => c.checked)),
       comments: toList(commentChecks.filter((c) => c.checked)),
       labels: toList(issueLabelChecks.filter((c) => c.checked)),
+      prTypes: toList(prTypeChecks.filter((c) => c.checked)),
       users: userChecks.filter((c) => c.checked).map((c) => c.value),
       groups: groupChecks.filter((c) => c.checked).map((c) => c.value),
       hideEmpty: filterHideEmptyUsers?.checked ?? true,
@@ -2045,6 +2105,7 @@ def build_html(
     stateChecks.forEach((c) => (c.checked = snap.states.includes(c.value)));
     commentChecks.forEach((c) => (c.checked = snap.comments.includes(c.value)));
     issueLabelChecks.forEach((c) => (c.checked = snap.labels.includes(c.value)));
+    prTypeChecks.forEach((c) => (c.checked = snap.prTypes ? snap.prTypes.includes(c.value) : true));
     userChecks.forEach((c) => (c.checked = snap.users.includes(c.value)));
     groupChecks.forEach((c) => (c.checked = snap.groups.includes(c.value)));
     if (filterHideEmptyUsers) filterHideEmptyUsers.checked = !!snap.hideEmpty;
@@ -2135,6 +2196,7 @@ def build_html(
     const selectedStates = getSelectedStates();
     const selectedComments = getSelectedCommentKinds();
     const selectedIssueLabels = getSelectedIssueLabels();
+    const selectedPrTypes = getSelectedPrTypes();
     const selectedUsers = getSelectedUsers();
     const selectedGroups = getSelectedGroups();
     const selectedGroupUsers = new Set();
@@ -2199,12 +2261,17 @@ def build_html(
       if (selectedIssueLabels.size) {
         issueAllowed = issueLabels.some((lab) => selectedIssueLabels.has(lab));
       }
+      const prType = card.dataset.prType || '';
+      const typeAllowed = selectedPrTypes.size
+        ? selectedPrTypes.has(prType)
+        : true;
 
       const shouldHidePr =
         !stateAllowed ||
         !commentAllowed ||
         !dateAllowed ||
         !issueAllowed ||
+        !typeAllowed ||
         (hideClean && state !== 'open' && !hasUnresolved);
       card.style.display = shouldHidePr ? 'none' : '';
 
@@ -2324,6 +2391,7 @@ def build_html(
     const states = Array.from(getSelectedStates());
     const comments = Array.from(getSelectedCommentKinds());
     const labels = Array.from(getSelectedIssueLabels());
+    const prTypes = Array.from(getSelectedPrTypes());
     const sortTextMap = {
       created: '创建时间 新→旧',
       updated: '更新时间 新→旧',
@@ -2336,6 +2404,7 @@ def build_html(
       ? comments.map((s) => commentLabels[s] || s).join(", ")
       : "全部";
     const labelText = labels.length ? labels.join(", ") : "全部";
+    const prTypeText = prTypes.length ? prTypes.join(", ") : "全部";
     const dateFrom = fmtDate(filterDateStart?.value || "");
     const dateTo = fmtDate(filterDateEnd?.value || "");
     let datePart = "全部时间";
@@ -2344,7 +2413,7 @@ def build_html(
     }
     const hideEmpty = filterHideEmptyUsers?.checked ? "隐藏空用户" : "显示空用户";
     const sortText = sortTextMap[getSortKey()] || '创建时间 新→旧';
-    filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 标签(${labelText}) · 日期(${datePart}) · ${hideEmpty} · 排序(${sortText})`;
+    filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 标签(${labelText}) · 类型(${prTypeText}) · 日期(${datePart}) · ${hideEmpty} · 排序(${sortText})`;
   };
 
   if (filterToggle && filterBar) {
@@ -2377,6 +2446,7 @@ def build_html(
         'created',
         'updated',
         'branch',
+        'pr_type',
         'issue_labels',
       ];
       const csvRows = [header.join(',')];
@@ -2398,6 +2468,7 @@ def build_html(
           escape(r.created),
           escape(r.updated),
           escape(r.branch),
+          escape(r.type),
           escape(r.labels.join(';')),
         ];
         csvRows.push(line.join(','));
@@ -2504,6 +2575,10 @@ def build_html(
     c.addEventListener('change', wrappedApply);
   });
   issueLabelChecks.forEach((c) => {
+    c.removeEventListener('change', applyFilters);
+    c.addEventListener('change', wrappedApply);
+  });
+  prTypeChecks.forEach((c) => {
     c.removeEventListener('change', applyFilters);
     c.addEventListener('change', wrappedApply);
   });
