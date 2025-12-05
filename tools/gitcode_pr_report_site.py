@@ -971,6 +971,37 @@ def build_html(
       border-color: #60a5fa;
       color: #bfdbfe;
     }
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .filter-chip-btn.secondary {
+      background: #0b1220;
+    }
+    .filter-select {
+      background: #0b1220;
+      color: #e5e7eb;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+    .view-toggle-btn {
+      border: 1px solid #334155;
+      background: #0b1220;
+      color: #e5e7eb;
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .view-toggle-btn.active {
+      border-color: #60a5fa;
+      background: #1f2937;
+      color: #bfdbfe;
+    }
     .filter-summary {
       font-size: 12px;
       color: #9ca3af;
@@ -1046,6 +1077,19 @@ def build_html(
       font-size: 12px;
     }
     .date-picker-btn:hover {
+      border-color: #60a5fa;
+      color: #bfdbfe;
+    }
+    .date-quick-btn {
+      border: 1px solid #334155;
+      background: #0b1220;
+      color: #e5e7eb;
+      border-radius: 6px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .date-quick-btn:hover {
       border-color: #60a5fa;
       color: #bfdbfe;
     }
@@ -1134,6 +1178,56 @@ def build_html(
       border-color: #60a5fa;
       color: #bfdbfe;
     }
+    .list-view {
+      display: none;
+      margin-top: 12px;
+    }
+    .list-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .list-table th,
+    .list-table td {
+      border: 1px solid #1f2937;
+      padding: 8px;
+      text-align: left;
+    }
+    .list-table th {
+      background: #0b1220;
+      color: #cbd5e1;
+    }
+    .list-table tr:nth-child(even) {
+      background: #0a101e;
+    }
+    .list-table a {
+      color: #93c5fd;
+    }
+    .stats-block {
+      margin-top: 12px;
+      border: 1px solid #1f2937;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #0a101e;
+    }
+    .stats-block h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px;
+      font-size: 12px;
+      color: #e5e7eb;
+    }
+    .stats-item {
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      padding: 8px;
+    }
 
     .empty-text {
       font-size: 12px;
@@ -1190,6 +1284,41 @@ def build_html(
     html_parts.append("<div class='filter-header'>")
     html_parts.append("<button type='button' class='filter-toggle' id='filter-toggle'>收起筛选</button>")
     html_parts.append("<div class='filter-summary' id='filter-summary'>当前筛选：全部</div>")
+    html_parts.append("</div>")
+    html_parts.append("<div class='filter-actions'>")
+    html_parts.append(
+        "<select id='sort-select' class='filter-select'>"
+        "<option value='created' selected>排序：创建时间（新→旧）</option>"
+        "<option value='updated'>排序：更新时间（新→旧）</option>"
+        "<option value='unresolved'>排序：未解决意见数（多→少）</option>"
+        "</select>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn secondary' id='quick-open-unresolved'>仅看 open 且有未解决意见</button>"
+    )
+    html_parts.append(
+        "<div style='display:flex;gap:6px'>"
+        "<button type='button' class='view-toggle-btn active' id='view-card-btn'>卡片视图</button>"
+        "<button type='button' class='view-toggle-btn' id='view-list-btn'>列表视图</button>"
+        "</div>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn secondary' id='export-csv'>导出当前筛选 CSV</button>"
+    )
+    html_parts.append(
+        "<select id='preset-select' class='filter-select' style='min-width:160px'>"
+        "<option value=''>预设：选择</option>"
+        "</select>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn secondary' id='preset-apply'>应用预设</button>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn secondary' id='preset-save'>保存为预设</button>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn secondary' id='refresh-data'>刷新数据</button>"
+    )
     html_parts.append("</div>")
     html_parts.append("<div class='filter-bar' id='filter-bar' data-open='1'>")
     # 状态
@@ -1276,6 +1405,15 @@ def build_html(
         "</div>"
     )
     html_parts.append(
+        "<div class='filter-dates'>"
+        "快捷："
+        "<button type='button' class='date-quick-btn' data-range='7'>近 7 天</button>"
+        "<button type='button' class='date-quick-btn' data-range='30'>近 30 天</button>"
+        "<button type='button' class='date-quick-btn' data-range='90'>近 90 天</button>"
+        "<button type='button' class='date-quick-btn' data-range='0'>全部</button>"
+        "</div>"
+    )
+    html_parts.append(
         "<label class='filter-label'>"
         "<input type='checkbox' id='filter-hide-empty-users' checked />"
         " 隐藏当前筛选下没有 PR 的用户"
@@ -1352,6 +1490,18 @@ def build_html(
     html_parts.append("</div>")  # filter-bar
     html_parts.append("</div>")  # filter-container
 
+    # 统计概览
+    html_parts.append("<div class='stats-block' id='stats-block'>")
+    html_parts.append("<h3>当前筛选统计</h3>")
+    html_parts.append("<div class='stats-grid'>")
+    html_parts.append("<div class='stats-item'>总计：<span id='stat-total'>0</span></div>")
+    html_parts.append("<div class='stats-item'>open：<span id='stat-open'>0</span></div>")
+    html_parts.append("<div class='stats-item'>merged：<span id='stat-merged'>0</span></div>")
+    html_parts.append("<div class='stats-item'>有未解决意见：<span id='stat-unresolved'>0</span></div>")
+    html_parts.append("</div>")
+    html_parts.append("</div>")
+
+    html_parts.append("<div id='card-view'>")
     if not data:
         html_parts.append("<p class='empty-text'>没有任何符合条件的 PR。</p>")
     else:
@@ -1437,7 +1587,15 @@ def build_html(
                             f" data-unresolved-count='{unresolved_count}'"
                             f" data-resolved-count='{resolved_count}'"
                             f" data-created='{escape_html(pr.created_at)}'"
-                            f" data-issue-labels='{escape_html('||'.join(issue_labels_flat))}'>"
+                            f" data-updated='{escape_html(pr.updated_at)}'"
+                            f" data-issue-labels='{escape_html('||'.join(issue_labels_flat))}'"
+                            f" data-pr-number='{pr.number}'"
+                            f" data-title='{escape_html(pr.title or '')}'"
+                            f" data-url='{escape_html(pr.html_url or '')}'"
+                            f" data-repo='{escape_html(repo_name)}'"
+                            f" data-username='{escape_html(username)}'"
+                            f" data-source='{escape_html(pr.source_branch)}'"
+                            f" data-target='{escape_html(pr.target_branch)}'>"
                         )
 
                         html_parts.append("<div class='pr-header'>")
@@ -1670,6 +1828,19 @@ def build_html(
 
             html_parts.append("</div>")  # repo-content
             html_parts.append("</details>")  # repo-block
+    html_parts.append("</div>")  # card-view 容器
+
+    # 列表视图容器
+    html_parts.append("<div class='list-view' id='list-view'>")
+    html_parts.append(
+        "<table class='list-table' id='list-table'>"
+        "<thead><tr>"
+        "<th>仓库</th><th>用户</th><th>PR</th><th>状态</th><th>未解决</th><th>已解决</th><th>创建</th><th>更新时间</th><th>分支</th>"
+        "</tr></thead>"
+        "<tbody></tbody>"
+        "</table>"
+    )
+    html_parts.append("</div>")
 
     script = """
 <script>
@@ -1682,6 +1853,21 @@ def build_html(
   const filterBar = document.getElementById('filter-bar');
   const filterToggle = document.getElementById('filter-toggle');
   const filterSummary = document.getElementById('filter-summary');
+  const sortSelect = document.getElementById('sort-select');
+  const quickOpenUnresolvedBtn = document.getElementById('quick-open-unresolved');
+  const cardView = document.getElementById('card-view');
+  const listView = document.getElementById('list-view');
+  const listTableBody = document.querySelector('#list-table tbody');
+  const viewCardBtn = document.getElementById('view-card-btn');
+  const viewListBtn = document.getElementById('view-list-btn');
+  const presetSelect = document.getElementById('preset-select');
+  const presetApplyBtn = document.getElementById('preset-apply');
+  const presetSaveBtn = document.getElementById('preset-save');
+  const refreshBtn = document.getElementById('refresh-data');
+  const statTotal = document.getElementById('stat-total');
+  const statOpen = document.getElementById('stat-open');
+  const statMerged = document.getElementById('stat-merged');
+  const statUnresolved = document.getElementById('stat-unresolved');
   const stateChecks = Array.from(document.querySelectorAll('.filter-state-checkbox'));
   const commentChecks = Array.from(document.querySelectorAll('.filter-comment-checkbox'));
   const issueLabelChecks = Array.from(document.querySelectorAll('.filter-issue-label-checkbox'));
@@ -1725,11 +1911,195 @@ def build_html(
     return new Set(checked.length ? checked : ['unresolved', 'resolved', 'none']);
   };
 
+  const getSortKey = () => (sortSelect ? sortSelect.value : 'created');
+
   const getSelectedIssueLabels = () => {
     if (!issueLabelChecks.length) return new Set();
     const checked = issueLabelChecks.filter((c) => c.checked).map((c) => c.value);
     return new Set(checked);
   };
+
+  const collectVisibleCards = () => {
+    const rows = [];
+    const cards = Array.from(document.querySelectorAll('.pr-card'));
+    cards.forEach((card) => {
+      const userBlock = card.closest('[data-user-block]');
+      if (card.style.display === 'none') return;
+      if (userBlock && userBlock.style.display === 'none') return;
+      const repo = card.dataset.repo || '';
+      const user = card.dataset.username || '';
+      const num = card.dataset.prNumber || '';
+      const title = card.dataset.title || '';
+      const url = card.dataset.url || '';
+      const state = card.dataset.state || '';
+      const unresolved = parseInt(card.dataset.unresolvedCount || '0', 10) || 0;
+      const resolved = parseInt(card.dataset.resolvedCount || '0', 10) || 0;
+      const created = card.dataset.created || '';
+      const updated = card.dataset.updated || '';
+      const branch =
+        card.dataset.source || card.dataset.target
+          ? `${card.dataset.source || ''} → ${card.dataset.target || ''}`
+          : '';
+      const labelsRaw = card.dataset.issueLabels || '';
+      const labels = labelsRaw ? labelsRaw.split('||').filter(Boolean) : [];
+      rows.push({
+        repo,
+        user,
+        num,
+        title,
+        url,
+        state,
+        unresolved,
+        resolved,
+        created,
+        updated,
+        branch,
+        labels,
+      });
+    });
+    return rows;
+  };
+
+  const refreshListView = () => {
+    if (!listTableBody) return;
+    listTableBody.innerHTML = '';
+    const rows = collectVisibleCards();
+    rows.forEach((r) => {
+      const tr = document.createElement('tr');
+      const prCell = r.url
+        ? `<a href="${r.url}" target="_blank" rel="noopener noreferrer">#${r.num} ${r.title}</a>`
+        : `#${r.num} ${r.title}`;
+      tr.innerHTML = `
+        <td>${r.repo}</td>
+        <td>${r.user}</td>
+        <td>${prCell}</td>
+        <td>${r.state}</td>
+        <td>${r.unresolved}</td>
+        <td>${r.resolved}</td>
+        <td>${r.created}</td>
+        <td>${r.updated}</td>
+        <td>${r.branch}</td>
+      `;
+      listTableBody.appendChild(tr);
+    });
+  };
+
+  const refreshStats = () => {
+    if (!statTotal || !statOpen || !statMerged || !statUnresolved) return;
+    const rows = collectVisibleCards();
+    const total = rows.length;
+    const openCnt = rows.filter((r) => (r.state || '').toLowerCase() === 'open').length;
+    const mergedCnt = rows.filter((r) => (r.state || '').toLowerCase() === 'merged').length;
+    const unresolvedCnt = rows.filter((r) => r.unresolved > 0).length;
+    statTotal.textContent = total;
+    statOpen.textContent = openCnt;
+    statMerged.textContent = mergedCnt;
+    statUnresolved.textContent = unresolvedCnt;
+  };
+
+  // 预设
+  const PRESET_KEY = 'pr_report_presets_v1';
+  const loadPresets = () => {
+    try {
+      const raw = localStorage.getItem(PRESET_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  };
+  const savePresets = (list) => {
+    localStorage.setItem(PRESET_KEY, JSON.stringify(list || []));
+  };
+  const syncPresetOptions = () => {
+    if (!presetSelect) return;
+    const list = loadPresets();
+    presetSelect.innerHTML = "<option value=''>预设：选择</option>";
+    list.forEach((p, idx) => {
+      const opt = document.createElement('option');
+      opt.value = String(idx);
+      opt.textContent = p.name || `预设 ${idx + 1}`;
+      presetSelect.appendChild(opt);
+    });
+  };
+  const getSnapshot = () => {
+    const toList = (arr) => arr.map((c) => c.value).filter(Boolean);
+    return {
+      name: '',
+      states: toList(stateChecks.filter((c) => c.checked)),
+      comments: toList(commentChecks.filter((c) => c.checked)),
+      labels: toList(issueLabelChecks.filter((c) => c.checked)),
+      users: userChecks.filter((c) => c.checked).map((c) => c.value),
+      groups: groupChecks.filter((c) => c.checked).map((c) => c.value),
+      hideEmpty: filterHideEmptyUsers?.checked ?? true,
+      hideClean: filterHideClean?.checked ?? false,
+      onlyUnresolved: filterUnresolved?.checked ?? false,
+      dateStart: filterDateStart?.value || '',
+      dateEnd: filterDateEnd?.value || '',
+      sortKey: getSortKey(),
+    };
+  };
+  const applySnapshot = (snap) => {
+    if (!snap) return;
+    stateChecks.forEach((c) => (c.checked = snap.states.includes(c.value)));
+    commentChecks.forEach((c) => (c.checked = snap.comments.includes(c.value)));
+    issueLabelChecks.forEach((c) => (c.checked = snap.labels.includes(c.value)));
+    userChecks.forEach((c) => (c.checked = snap.users.includes(c.value)));
+    groupChecks.forEach((c) => (c.checked = snap.groups.includes(c.value)));
+    if (filterHideEmptyUsers) filterHideEmptyUsers.checked = !!snap.hideEmpty;
+    if (filterHideClean) filterHideClean.checked = !!snap.hideClean;
+    if (filterUnresolved) filterUnresolved.checked = !!snap.onlyUnresolved;
+    if (filterDateStart) filterDateStart.value = snap.dateStart || '';
+    if (filterDateEnd) filterDateEnd.value = snap.dateEnd || '';
+    if (sortSelect && snap.sortKey) sortSelect.value = snap.sortKey;
+    wrappedApply();
+  };
+  if (presetSaveBtn) {
+    presetSaveBtn.addEventListener('click', () => {
+      const name = prompt('请输入预设名称');
+      if (!name) return;
+      const list = loadPresets();
+      const snap = getSnapshot();
+      snap.name = name;
+      list.unshift(snap);
+      savePresets(list.slice(0, 10)); // 最多保存 10 个
+      syncPresetOptions();
+      alert('已保存预设');
+    });
+  }
+  if (presetApplyBtn && presetSelect) {
+    presetApplyBtn.addEventListener('click', () => {
+      const idx = parseInt(presetSelect.value || '-1', 10);
+      if (Number.isNaN(idx) || idx < 0) return;
+      const list = loadPresets();
+      const snap = list[idx];
+      applySnapshot(snap);
+    });
+  }
+  syncPresetOptions();
+
+  // 日期快捷
+  document.querySelectorAll('.date-quick-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const range = parseInt(btn.dataset.range || '0', 10);
+      if (!filterDateStart || !filterDateEnd) return;
+      if (range === 0) {
+        filterDateStart.value = '';
+        filterDateEnd.value = '';
+      } else {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - range + 1);
+        const pad = (n) => String(n).padStart(2, '0');
+        const fmt = (dt) =>
+          `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+        filterDateStart.value = fmt(start);
+        filterDateEnd.value = fmt(end);
+      }
+      wrappedApply();
+    });
+  });
 
   const refreshUserToggleText = (selectedUsers) => {
     if (!userToggle) return;
@@ -1761,6 +2131,7 @@ def build_html(
     const onlyUnresolved = filterUnresolved.checked;
     const hideClean = filterHideClean.checked;
     const hideEmptyUsers = filterHideEmptyUsers?.checked;
+    const sortKey = getSortKey();
     const selectedStates = getSelectedStates();
     const selectedComments = getSelectedCommentKinds();
     const selectedIssueLabels = getSelectedIssueLabels();
@@ -1891,6 +2262,28 @@ def build_html(
       const visibleCards = userAllowed
         ? cards.filter((c) => c.style.display !== 'none')
         : [];
+      // 排序：在当前用户块内重新排列
+      const sortedCards = [...visibleCards].sort((a, b) => {
+        const parseDate = (v) => {
+          const t = Date.parse(v);
+          return Number.isNaN(t) ? 0 : t;
+        };
+        if (sortKey === 'updated') {
+          return parseDate(b.dataset.updated) - parseDate(a.dataset.updated);
+        }
+        if (sortKey === 'unresolved') {
+          const ua = parseInt(a.dataset.unresolvedCount || '0', 10) || 0;
+          const ub = parseInt(b.dataset.unresolvedCount || '0', 10) || 0;
+          if (ub !== ua) return ub - ua;
+          return parseDate(b.dataset.created) - parseDate(a.dataset.created);
+        }
+        // 默认：创建时间
+        return parseDate(b.dataset.created) - parseDate(a.dataset.created);
+      });
+      const grid = userBlock.querySelector('.pr-grid');
+      if (grid && sortedCards.length) {
+        sortedCards.forEach((card) => grid.appendChild(card));
+      }
       const meta = userBlock.querySelector('[data-user-count]');
       if (meta) {
         meta.textContent = `共 ${visibleCards.length} 个 PR（当前筛选）`;
@@ -1931,6 +2324,11 @@ def build_html(
     const states = Array.from(getSelectedStates());
     const comments = Array.from(getSelectedCommentKinds());
     const labels = Array.from(getSelectedIssueLabels());
+    const sortTextMap = {
+      created: '创建时间 新→旧',
+      updated: '更新时间 新→旧',
+      unresolved: '未解决数 多→少',
+    };
     const statesText = states.length
       ? states.map((s) => stateLabels[s] || s).join(", ")
       : "全部";
@@ -1945,7 +2343,8 @@ def build_html(
       datePart = `${dateFrom || '不限'} ~ ${dateTo || '不限'}`;
     }
     const hideEmpty = filterHideEmptyUsers?.checked ? "隐藏空用户" : "显示空用户";
-    filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 标签(${labelText}) · 日期(${datePart}) · ${hideEmpty}`;
+    const sortText = sortTextMap[getSortKey()] || '创建时间 新→旧';
+    filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 标签(${labelText}) · 日期(${datePart}) · ${hideEmpty} · 排序(${sortText})`;
   };
 
   if (filterToggle && filterBar) {
@@ -1955,6 +2354,90 @@ def build_html(
       filterBar.dataset.open = isOpen ? '0' : '1';
       filterToggle.textContent = isOpen ? '展开筛选' : '收起筛选';
     });
+  }
+
+  // 导出 CSV
+  const exportBtn = document.getElementById('export-csv');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
+      const rows = collectVisibleCards();
+      if (!rows.length) {
+        alert('当前筛选没有 PR 可导出');
+        return;
+      }
+      const header = [
+        'repo',
+        'user',
+        'pr_number',
+        'title',
+        'url',
+        'state',
+        'unresolved',
+        'resolved',
+        'created',
+        'updated',
+        'branch',
+        'issue_labels',
+      ];
+      const csvRows = [header.join(',')];
+      const escape = (v) => {
+        const str = (v ?? '').toString().replace(/"/g, '""');
+        if (str.includes(',') || str.includes('"')) return `"${str}"`;
+        return str;
+      };
+      rows.forEach((r) => {
+        const line = [
+          escape(r.repo),
+          escape(r.user),
+          escape(r.num),
+          escape(r.title),
+          escape(r.url),
+          escape(r.state),
+          escape(r.unresolved),
+          escape(r.resolved),
+          escape(r.created),
+          escape(r.updated),
+          escape(r.branch),
+          escape(r.labels.join(';')),
+        ];
+        csvRows.push(line.join(','));
+      });
+      const blob = new Blob([csvRows.join('\\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      a.download = `pr-report-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  // 视图切换
+  const setView = (mode) => {
+    if (!cardView || !listView) return;
+    if (mode === 'list') {
+      cardView.style.display = 'none';
+      listView.style.display = 'block';
+      if (viewListBtn) viewListBtn.classList.add('active');
+      if (viewCardBtn) viewCardBtn.classList.remove('active');
+      refreshListView();
+    } else {
+      cardView.style.display = 'block';
+      listView.style.display = 'none';
+      if (viewCardBtn) viewCardBtn.classList.add('active');
+      if (viewListBtn) viewListBtn.classList.remove('active');
+    }
+  };
+  if (viewCardBtn) {
+    viewCardBtn.addEventListener('click', () => setView('card'));
+  }
+  if (viewListBtn) {
+    viewListBtn.addEventListener('click', () => setView('list'));
+  }
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => window.location.reload());
   }
 
   // 下拉面板开关
@@ -1985,6 +2468,10 @@ def build_html(
   const wrappedApply = () => {
     applyFilters();
     updateSummary();
+    if (listView && listView.style.display !== 'none') {
+      refreshListView();
+    }
+    refreshStats();
   };
 
   // 替换之前绑定
@@ -1992,6 +2479,22 @@ def build_html(
   filterUnresolved.addEventListener('change', wrappedApply);
   filterHideClean.removeEventListener('change', applyFilters);
   filterHideClean.addEventListener('change', wrappedApply);
+  if (sortSelect) {
+    sortSelect.addEventListener('change', wrappedApply);
+  }
+  if (quickOpenUnresolvedBtn) {
+    quickOpenUnresolvedBtn.addEventListener('click', () => {
+      stateChecks.forEach((c) => {
+        c.checked = c.value === 'open';
+      });
+      commentChecks.forEach((c) => {
+        c.checked = c.value === 'unresolved';
+      });
+      if (filterUnresolved) filterUnresolved.checked = true;
+      if (filterHideClean) filterHideClean.checked = true;
+      wrappedApply();
+    });
+  }
   stateChecks.forEach((c) => {
     c.removeEventListener('change', applyFilters);
     c.addEventListener('change', wrappedApply);
