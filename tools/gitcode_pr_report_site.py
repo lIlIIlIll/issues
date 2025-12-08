@@ -1460,6 +1460,17 @@ def build_html(
     )
     html_parts.append(
         "<label class='filter-label'>"
+        "<input type='checkbox' id='filter-resolved-only' /> 仅显示已解决检视意见"
+        "</label>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
+        "<input type='checkbox' id='filter-hide-replies' />"
+        " 不展示回复（仅显示主评论）"
+        "</label>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
         "<span style='min-width:96px'>回复包含：</span>"
         "<input type='text' id='filter-comment-keyword' class='filter-text' placeholder='输入关键字，模糊匹配' />"
         "</label>"
@@ -1468,12 +1479,6 @@ def build_html(
         "<label class='filter-label'>"
         "<span style='min-width:96px'>回复不包含：</span>"
         "<input type='text' id='filter-comment-exclude' class='filter-text' placeholder='输入关键字，排除匹配' />"
-        "</label>"
-    )
-    html_parts.append(
-        "<label class='filter-label'>"
-        "<input type='checkbox' id='filter-hide-replies' />"
-        " 不展示回复（仅显示主评论）"
         "</label>"
     )
     html_parts.append("</div>")
@@ -2042,6 +2047,7 @@ def build_html(
   const filterCommentKeyword = document.getElementById('filter-comment-keyword');
   const filterCommentExclude = document.getElementById('filter-comment-exclude');
   const filterHideReplies = document.getElementById('filter-hide-replies');
+  const filterResolvedOnly = document.getElementById('filter-resolved-only');
   const filterDateStart = document.getElementById('filter-date-start');
   const filterDateEnd = document.getElementById('filter-date-end');
   const filterBar = document.getElementById('filter-bar');
@@ -2249,6 +2255,7 @@ def build_html(
       hideClean: filterHideClean?.checked ?? false,
       onlyUnresolved: filterUnresolved?.checked ?? false,
       hideReplies: filterHideReplies?.checked ?? false,
+      onlyResolved: filterResolvedOnly?.checked ?? false,
       commentKeyword: filterCommentKeyword?.value || '',
       commentExclude: filterCommentExclude?.value || '',
       dateStart: filterDateStart?.value || '',
@@ -2269,6 +2276,7 @@ def build_html(
     if (filterHideClean) filterHideClean.checked = !!snap.hideClean;
     if (filterUnresolved) filterUnresolved.checked = !!snap.onlyUnresolved;
     if (filterHideReplies) filterHideReplies.checked = !!snap.hideReplies;
+    if (filterResolvedOnly) filterResolvedOnly.checked = !!snap.onlyResolved;
     if (filterCommentKeyword) filterCommentKeyword.value = snap.commentKeyword || '';
     if (filterCommentExclude) filterCommentExclude.value = snap.commentExclude || '';
     if (filterDateStart) filterDateStart.value = snap.dateStart || '';
@@ -2442,7 +2450,7 @@ def build_html(
   const visibleParents = new Set();
   reviewItems.forEach((it) => {
     const isReply = it.dataset.isReply === '1';
-    const user = (it.dataset.user || '').trim();
+        const user = (it.dataset.user || '').trim();
     const parentUser = (it.dataset.parentUser || '').trim();
     const authorReplyOnly = !isReply || !parentUser || parentUser === user;
     const bodyNode =
@@ -2451,11 +2459,12 @@ def build_html(
     const excludeKw = (filterCommentExclude?.value || '').trim();
     const hasExclude = excludeKw.length > 0;
     const excludeHit = isReply && hasExclude && matchWholeWord(bodyText, excludeKw);
-        const matchesKeyword = isReply
-          ? matchWholeWord(bodyText, keyword)
-          : !hasKeyword;
-        const isResolved = it.dataset.resolved === 'true';
-        const commentId = it.dataset.commentId;
+    const onlyResolved = filterResolvedOnly?.checked;
+    const matchesKeyword = isReply
+      ? matchWholeWord(bodyText, keyword)
+      : !hasKeyword;
+    const isResolved = it.dataset.resolved === 'true';
+    const commentId = it.dataset.commentId;
     if (!isReply && commentId) {
       parentResolvedMap.set(commentId, isResolved);
     }
@@ -2463,6 +2472,7 @@ def build_html(
       matchesKeyword &&
       !excludeHit &&
       (!onlyUnresolved || !isResolved) &&
+      (!onlyResolved || isResolved) &&
       authorReplyOnly;
         const visible = baseVisible && !(hideReplies && isReply);
         it.style.display = visible ? '' : 'none';
@@ -2665,6 +2675,11 @@ def build_html(
     const keyword = (filterCommentKeyword?.value || '').trim();
     const excludeKeyword = (filterCommentExclude?.value || '').trim();
     const hideRepliesText = filterHideReplies?.checked ? "不含回复" : "含回复";
+    const displayResolvedText = filterResolvedOnly?.checked
+      ? "仅已解决"
+      : filterUnresolved?.checked
+      ? "仅未解决"
+      : "全部";
     const sortTextMap = {
       created: '创建时间 新→旧',
       updated: '更新时间 新→旧',
@@ -2689,7 +2704,7 @@ def build_html(
     }
     const hideEmpty = filterHideEmptyUsers?.checked ? "隐藏空用户" : "显示空用户";
     const sortText = sortTextMap[getSortKey()] || '创建时间 新→旧';
-    filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 回复(${hideRepliesText}) · 回复包含(${keywordText}) · 回复不包含(${excludeText}) · 标签(${labelText}) · 类型(${prTypeText}) · 目标(${targetText}) · 日期(${datePart}) · ${hideEmpty} · 排序(${sortText})`;
+    filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 评论显示(${displayResolvedText}) · 回复(${hideRepliesText}) · 回复包含(${keywordText}) · 回复不包含(${excludeText}) · 标签(${labelText}) · 类型(${prTypeText}) · 目标(${targetText}) · 日期(${datePart}) · ${hideEmpty} · 排序(${sortText})`;
   };
 
   if (filterToggle && filterBar) {
@@ -2888,6 +2903,10 @@ def build_html(
   if (filterHideReplies) {
     filterHideReplies.removeEventListener('change', applyFilters);
     filterHideReplies.addEventListener('change', wrappedApply);
+  }
+  if (filterResolvedOnly) {
+    filterResolvedOnly.removeEventListener('change', applyFilters);
+    filterResolvedOnly.addEventListener('change', wrappedApply);
   }
   if (filterDateStart) {
     filterDateStart.removeEventListener('change', applyFilters);
