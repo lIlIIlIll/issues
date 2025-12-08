@@ -1532,7 +1532,10 @@ def build_html(
     html_parts.append("<h3>时间 / 用户</h3>")
     html_parts.append(
         "<div class='filter-dates'>"
-        "<span>创建日期：</span>"
+        "<select id='filter-date-field' class='filter-select' style='margin-left:8px'>"
+        "<option value='created' selected>按创建时间</option>"
+        "<option value='updated'>按更新时间</option>"
+        "</select>"
         "<input type='date' id='filter-date-start' />"
         "<button type='button' class='date-picker-btn' data-picker='start'>选择</button>"
         "<span>至</span>"
@@ -2047,6 +2050,7 @@ def build_html(
   const filterCommentKeyword = document.getElementById('filter-comment-keyword');
   const filterCommentExclude = document.getElementById('filter-comment-exclude');
   const filterHideReplies = document.getElementById('filter-hide-replies');
+  const filterDateField = document.getElementById('filter-date-field');
   const filterResolvedOnly = document.getElementById('filter-resolved-only');
   const filterDateStart = document.getElementById('filter-date-start');
   const filterDateEnd = document.getElementById('filter-date-end');
@@ -2258,6 +2262,7 @@ def build_html(
       onlyResolved: filterResolvedOnly?.checked ?? false,
       commentKeyword: filterCommentKeyword?.value || '',
       commentExclude: filterCommentExclude?.value || '',
+      dateField: filterDateField?.value || 'created',
       dateStart: filterDateStart?.value || '',
       dateEnd: filterDateEnd?.value || '',
       sortKey: getSortKey(),
@@ -2279,6 +2284,7 @@ def build_html(
     if (filterResolvedOnly) filterResolvedOnly.checked = !!snap.onlyResolved;
     if (filterCommentKeyword) filterCommentKeyword.value = snap.commentKeyword || '';
     if (filterCommentExclude) filterCommentExclude.value = snap.commentExclude || '';
+    if (filterDateField && snap.dateField) filterDateField.value = snap.dateField;
     if (filterDateStart) filterDateStart.value = snap.dateStart || '';
     if (filterDateEnd) filterDateEnd.value = snap.dateEnd || '';
     if (sortSelect && snap.sortKey) sortSelect.value = snap.sortKey;
@@ -2371,6 +2377,7 @@ def build_html(
     const selectedTargets = getSelectedTargets();
     const selectedUsers = getSelectedUsers();
     const selectedGroups = getSelectedGroups();
+    const dateField = filterDateField?.value || 'created';
     const selectedGroupUsers = new Set();
     if (selectedGroups) {
       selectedGroups.forEach((name) => {
@@ -2407,8 +2414,9 @@ def build_html(
       const commentAllowed = commentTags.some((t) =>
         selectedComments.has(t)
       );
-      const createdStr = card.dataset.created || '';
-      const createdTs = Date.parse(createdStr);
+      const dateStr =
+        dateField === 'updated' ? card.dataset.updated || '' : card.dataset.created || '';
+      const createdTs = Date.parse(dateStr);
       let dateAllowed = true;
       if (filterDateStart && filterDateStart.value) {
         const from = Date.parse(filterDateStart.value);
@@ -2675,6 +2683,7 @@ def build_html(
     const keyword = (filterCommentKeyword?.value || '').trim();
     const excludeKeyword = (filterCommentExclude?.value || '').trim();
     const hideRepliesText = filterHideReplies?.checked ? "不含回复" : "含回复";
+    const dateFieldText = (filterDateField?.value || 'created') === 'updated' ? '更新时间' : '创建时间';
     const displayResolvedText = filterResolvedOnly?.checked
       ? "仅已解决"
       : filterUnresolved?.checked
@@ -2704,7 +2713,7 @@ def build_html(
     }
     const hideEmpty = filterHideEmptyUsers?.checked ? "隐藏空用户" : "显示空用户";
     const sortText = sortTextMap[getSortKey()] || '创建时间 新→旧';
-    filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 评论显示(${displayResolvedText}) · 回复(${hideRepliesText}) · 回复包含(${keywordText}) · 回复不包含(${excludeText}) · 标签(${labelText}) · 类型(${prTypeText}) · 目标(${targetText}) · 日期(${datePart}) · ${hideEmpty} · 排序(${sortText})`;
+    filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 评论显示(${displayResolvedText}) · 回复(${hideRepliesText}) · 回复包含(${keywordText}) · 回复不包含(${excludeText}) · 标签(${labelText}) · 类型(${prTypeText}) · 目标(${targetText}) · 日期(${datePart}, ${dateFieldText}) · ${hideEmpty} · 排序(${sortText})`;
   };
 
   if (filterToggle && filterBar) {
@@ -2915,6 +2924,9 @@ def build_html(
   if (filterDateEnd) {
     filterDateEnd.removeEventListener('change', applyFilters);
     filterDateEnd.addEventListener('change', wrappedApply);
+  }
+  if (filterDateField) {
+    filterDateField.addEventListener('change', wrappedApply);
   }
   if (userSelectAllBtn) {
     userSelectAllBtn.removeEventListener('click', applyFilters);
