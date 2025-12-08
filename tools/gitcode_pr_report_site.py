@@ -1466,6 +1466,12 @@ def build_html(
     )
     html_parts.append(
         "<label class='filter-label'>"
+        "<span style='min-width:96px'>回复不包含：</span>"
+        "<input type='text' id='filter-comment-exclude' class='filter-text' placeholder='输入关键字，排除匹配' />"
+        "</label>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
         "<input type='checkbox' id='filter-hide-replies' />"
         " 不展示回复（仅显示主评论）"
         "</label>"
@@ -1867,6 +1873,16 @@ def build_html(
 
                             # 2. 逐个 reviewer 输出
                             for reviewer, comments in grouped.items():
+                                parent_comments = [
+                                    cm for cm in comments if not cm.is_reply
+                                ]
+                                parent_count = len(parent_comments)
+                                parent_unresolved = sum(
+                                    1 for cm in parent_comments if cm.resolved is False
+                                )
+                                parent_resolved = sum(
+                                    1 for cm in parent_comments if cm.resolved is True
+                                )
                                 # 默认展开，想默认收起就把 open 去掉
                                 html_parts.append(
                                     "<details class='reviewer-group' open>"
@@ -1876,7 +1892,7 @@ def build_html(
                                 html_parts.append(
                                     "<div class='reviewer-group-title'>"
                                     f"{escape_html(reviewer)}"
-                                    f"<span>{len(comments)} 条评论</span>"
+                                    f"<span>{parent_count} 条检视意见（未解决 {parent_unresolved} · 已解决 {parent_resolved}）</span>"
                                     "</div>"
                                 )
                                 html_parts.append(
@@ -1896,10 +1912,6 @@ def build_html(
                                         ).append(cm)
                                     elif cm.is_reply:
                                         orphan_replies.append(cm)
-
-                                parent_comments = [
-                                    cm for cm in comments if not cm.is_reply
-                                ]
 
                                 def render_comment(
                                     cm: ReviewComment, *, is_reply: bool = False
@@ -2028,6 +2040,7 @@ def build_html(
   const filterHideClean = document.getElementById('filter-hide-clean');
   const filterHideEmptyUsers = document.getElementById('filter-hide-empty-users');
   const filterCommentKeyword = document.getElementById('filter-comment-keyword');
+  const filterCommentExclude = document.getElementById('filter-comment-exclude');
   const filterHideReplies = document.getElementById('filter-hide-replies');
   const filterDateStart = document.getElementById('filter-date-start');
   const filterDateEnd = document.getElementById('filter-date-end');
@@ -2237,6 +2250,7 @@ def build_html(
       onlyUnresolved: filterUnresolved?.checked ?? false,
       hideReplies: filterHideReplies?.checked ?? false,
       commentKeyword: filterCommentKeyword?.value || '',
+      commentExclude: filterCommentExclude?.value || '',
       dateStart: filterDateStart?.value || '',
       dateEnd: filterDateEnd?.value || '',
       sortKey: getSortKey(),
@@ -2256,6 +2270,7 @@ def build_html(
     if (filterUnresolved) filterUnresolved.checked = !!snap.onlyUnresolved;
     if (filterHideReplies) filterHideReplies.checked = !!snap.hideReplies;
     if (filterCommentKeyword) filterCommentKeyword.value = snap.commentKeyword || '';
+    if (filterCommentExclude) filterCommentExclude.value = snap.commentExclude || '';
     if (filterDateStart) filterDateStart.value = snap.dateStart || '';
     if (filterDateEnd) filterDateEnd.value = snap.dateEnd || '';
     if (sortSelect && snap.sortKey) sortSelect.value = snap.sortKey;
@@ -2414,36 +2429,41 @@ def build_html(
       const targetAllowed = selectedTargets.size
         ? selectedTargets.has(target)
         : true;
-      const matchWholeWord = (text, kw) => {
-        if (!kw) return true;
-        const lowerText = (text || '').toLowerCase();
-        const lowerKw = kw.toLowerCase();
-        return lowerText.includes(lowerKw);
-      };
-      const keywordMatchedReviews = [];
-      const replyKeywordParents = new Set();
-      const parentResolvedMap = new Map();
-      const visibleParents = new Set();
-      reviewItems.forEach((it) => {
-        const isReply = it.dataset.isReply === '1';
-        const user = (it.dataset.user || '').trim();
-        const parentUser = (it.dataset.parentUser || '').trim();
-        const authorReplyOnly = !isReply || !parentUser || parentUser === user;
-        const bodyNode =
-          it.querySelector('.review-body') || it.querySelector('.review-body-content');
-        const bodyText = (bodyNode ? bodyNode.textContent : it.textContent) || '';
+  const matchWholeWord = (text, kw) => {
+    if (!kw) return true;
+    const lowerText = (text || '').toLowerCase();
+    const lowerKw = kw.toLowerCase();
+    return lowerText.includes(lowerKw);
+  };
+  const keywordMatchedReviews = [];
+  const replyKeywordParents = new Set();
+  const replyExcludeParents = new Set();
+  const parentResolvedMap = new Map();
+  const visibleParents = new Set();
+  reviewItems.forEach((it) => {
+    const isReply = it.dataset.isReply === '1';
+    const user = (it.dataset.user || '').trim();
+    const parentUser = (it.dataset.parentUser || '').trim();
+    const authorReplyOnly = !isReply || !parentUser || parentUser === user;
+    const bodyNode =
+      it.querySelector('.review-body') || it.querySelector('.review-body-content');
+    const bodyText = (bodyNode ? bodyNode.textContent : it.textContent) || '';
+    const excludeKw = (filterCommentExclude?.value || '').trim();
+    const hasExclude = excludeKw.length > 0;
+    const excludeHit = isReply && hasExclude && matchWholeWord(bodyText, excludeKw);
         const matchesKeyword = isReply
           ? matchWholeWord(bodyText, keyword)
           : !hasKeyword;
         const isResolved = it.dataset.resolved === 'true';
         const commentId = it.dataset.commentId;
-        if (!isReply && commentId) {
-          parentResolvedMap.set(commentId, isResolved);
-        }
-        const baseVisible =
-          matchesKeyword &&
-          (!onlyUnresolved || !isResolved) &&
-          authorReplyOnly;
+    if (!isReply && commentId) {
+      parentResolvedMap.set(commentId, isResolved);
+    }
+    const baseVisible =
+      matchesKeyword &&
+      !excludeHit &&
+      (!onlyUnresolved || !isResolved) &&
+      authorReplyOnly;
         const visible = baseVisible && !(hideReplies && isReply);
         it.style.display = visible ? '' : 'none';
         it.dataset._visible = visible ? '1' : '0';
@@ -2456,6 +2476,9 @@ def build_html(
         if (matchesKeyword && isReply && it.dataset.parentId) {
           replyKeywordParents.add(it.dataset.parentId);
         }
+        if (excludeHit && isReply && it.dataset.parentId) {
+          replyExcludeParents.add(it.dataset.parentId);
+        }
       });
       if (replyKeywordParents.size) {
         reviewItems.forEach((it) => {
@@ -2466,6 +2489,21 @@ def build_html(
             it.style.display = '';
             it.dataset._visible = '1';
             visibleParents.add(cid);
+          }
+        });
+      }
+      if (replyExcludeParents.size) {
+        reviewItems.forEach((it) => {
+          const isReply = it.dataset.isReply === '1';
+          const cid = it.dataset.commentId;
+          const pid = it.dataset.parentId;
+          if (!isReply && cid && replyExcludeParents.has(cid)) {
+            it.style.display = 'none';
+            it.dataset._visible = '0';
+          }
+          if (isReply && pid && replyExcludeParents.has(pid)) {
+            it.style.display = 'none';
+            it.dataset._visible = '0';
           }
         });
       }
@@ -2625,6 +2663,7 @@ def build_html(
     const prTypes = Array.from(getSelectedPrTypes());
     const targets = Array.from(getSelectedTargets());
     const keyword = (filterCommentKeyword?.value || '').trim();
+    const excludeKeyword = (filterCommentExclude?.value || '').trim();
     const hideRepliesText = filterHideReplies?.checked ? "不含回复" : "含回复";
     const sortTextMap = {
       created: '创建时间 新→旧',
@@ -2641,6 +2680,7 @@ def build_html(
     const prTypeText = prTypes.length ? prTypes.join(", ") : "全部";
     const targetText = targets.length ? targets.join(", ") : "全部";
     const keywordText = keyword || "不限";
+    const excludeText = excludeKeyword || "不限";
     const dateFrom = fmtDate(filterDateStart?.value || "");
     const dateTo = fmtDate(filterDateEnd?.value || "");
     let datePart = "全部时间";
@@ -2649,7 +2689,7 @@ def build_html(
     }
     const hideEmpty = filterHideEmptyUsers?.checked ? "隐藏空用户" : "显示空用户";
     const sortText = sortTextMap[getSortKey()] || '创建时间 新→旧';
-    filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 回复(${hideRepliesText}) · 回复包含(${keywordText}) · 标签(${labelText}) · 类型(${prTypeText}) · 目标(${targetText}) · 日期(${datePart}) · ${hideEmpty} · 排序(${sortText})`;
+    filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 回复(${hideRepliesText}) · 回复包含(${keywordText}) · 回复不包含(${excludeText}) · 标签(${labelText}) · 类型(${prTypeText}) · 目标(${targetText}) · 日期(${datePart}) · ${hideEmpty} · 排序(${sortText})`;
   };
 
   if (filterToggle && filterBar) {
@@ -2785,6 +2825,14 @@ def build_html(
   let keywordDebounce = null;
   if (filterCommentKeyword) {
     filterCommentKeyword.addEventListener('input', () => {
+      if (keywordDebounce) {
+        clearTimeout(keywordDebounce);
+      }
+      keywordDebounce = setTimeout(wrappedApply, 180);
+    });
+  }
+  if (filterCommentExclude) {
+    filterCommentExclude.addEventListener('input', () => {
       if (keywordDebounce) {
         clearTimeout(keywordDebounce);
       }
