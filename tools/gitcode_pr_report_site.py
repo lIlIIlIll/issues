@@ -1689,12 +1689,12 @@ def build_html(
                     html_parts.append("<div class='pr-grid'>")
                     for pr in sorted_prs:
                         all_comments = pr.comments
-                        unresolved_comments = [
-                            cm for cm in all_comments if cm.resolved is False
-                        ]
-                        unresolved_count = len(unresolved_comments)
-                        resolved_count = len(
-                            [cm for cm in all_comments if cm.resolved is True]
+                        parent_comments = [cm for cm in all_comments if not cm.is_reply]
+                        unresolved_count = sum(
+                            1 for cm in parent_comments if cm.resolved is False
+                        )
+                        resolved_count = sum(
+                            1 for cm in parent_comments if cm.resolved is True
                         )
 
                         issue_labels_flat: List[str] = []
