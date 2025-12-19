@@ -643,12 +643,87 @@ def build_html(
                             seen_issue_labels.add(lab_str)
 
     style = """
+    :root {
+      --bg: #0f172a;
+      --fg: #e5e7eb;
+      --muted: #9ca3af;
+      --muted2: #6b7280;
+      --border: #1f2937;
+      --surface-0: #0b1220;
+      --surface-1: #0a101e;
+      --surface-2: #020617;
+      --card: #111827;
+      --chip-bg: #1f2937;
+      --chip-bg-2: #0b1220;
+      --link: #93c5fd;
+      --link-hover: #bfdbfe;
+      --accent: #60a5fa;
+      --shadow: rgba(0,0,0,0.35);
+      --table-hover: rgba(148, 163, 184, 0.08);
+    }
+    html[data-theme="light"] {
+      --bg: #f8fafc;
+      --fg: #0f172a;
+      --muted: #475569;
+      --muted2: #64748b;
+      --border: #e2e8f0;
+      --surface-0: #ffffff;
+      --surface-1: #f1f5f9;
+      --surface-2: #ffffff;
+      --card: #ffffff;
+      --chip-bg: #ffffff;
+      --chip-bg-2: #f1f5f9;
+      --link: #2563eb;
+      --link-hover: #1d4ed8;
+      --accent: #2563eb;
+      --shadow: rgba(15, 23, 42, 0.12);
+      --table-hover: rgba(15, 23, 42, 0.04);
+    }
+    html[data-theme="dim"] {
+      --bg: #0b1220;
+      --fg: #e5e7eb;
+      --muted: #9aa6b2;
+      --muted2: #7b8794;
+      --border: #223044;
+      --surface-0: #0f172a;
+      --surface-1: #0a101e;
+      --surface-2: #0a1222;
+      --card: #101a2b;
+      --chip-bg: #17233a;
+      --chip-bg-2: #0f172a;
+      --link: #7dd3fc;
+      --link-hover: #bae6fd;
+      --accent: #38bdf8;
+      --shadow: rgba(0,0,0,0.35);
+      --table-hover: rgba(148, 163, 184, 0.10);
+    }
+    html[data-theme="contrast"] {
+      --bg: #000000;
+      --fg: #ffffff;
+      --muted: #e5e7eb;
+      --muted2: #cbd5e1;
+      --border: #ffffff;
+      --surface-0: #000000;
+      --surface-1: #0b0b0b;
+      --surface-2: #000000;
+      --card: #000000;
+      --chip-bg: #0b0b0b;
+      --chip-bg-2: #000000;
+      --link: #fbbf24;
+      --link-hover: #fde68a;
+      --accent: #fbbf24;
+      --shadow: rgba(0,0,0,0);
+      --table-hover: rgba(255, 255, 255, 0.12);
+    }
+    * { box-sizing: border-box; }
+    a { color: var(--link); }
+    a:hover { color: var(--link-hover); }
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       margin: 0;
       padding: 0;
-      background: #0f172a;
-      color: #e5e7eb;
+      background: var(--bg);
+      color: var(--fg);
     }
     .container {
       max-width: 1200px;
@@ -661,7 +736,7 @@ def build_html(
     }
     .sub-title {
       font-size: 14px;
-      color: #9ca3af;
+      color: var(--muted);
       margin-bottom: 24px;
     }
     .badge {
@@ -690,8 +765,8 @@ def build_html(
       margin-top: 16px;
       margin-bottom: 16px;
       border-radius: 12px;
-      border: 1px solid #1f2937;
-      background: #020617;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
     }
     .repo-block > summary {
       list-style: none;
@@ -710,12 +785,12 @@ def build_html(
     }
     .repo-meta {
       font-size: 12px;
-      color: #9ca3af;
+      color: var(--muted);
       margin-left: 8px;
     }
     .repo-chevron {
       font-size: 12px;
-      color: #6b7280;
+      color: var(--muted2);
       transition: transform 0.15s ease-out;
     }
     .repo-block[open] .repo-chevron {
@@ -724,15 +799,15 @@ def build_html(
 
     .repo-content {
       padding: 0 12px 10px 12px;
-      border-top: 1px solid #1f2937;
+      border-top: 1px solid var(--border);
     }
 
     .user-block {
       margin-top: 8px;
       margin-bottom: 10px;
       border-radius: 10px;
-      border: 1px solid #1f2937;
-      background: #020617;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
     }
     .user-block > summary {
       list-style: none;
@@ -750,12 +825,12 @@ def build_html(
     }
     .user-meta {
       font-size: 11px;
-      color: #9ca3af;
+      color: var(--muted);
       margin-left: 8px;
     }
     .user-chevron {
       font-size: 11px;
-      color: #6b7280;
+      color: var(--muted2);
       transition: transform 0.15s ease-out;
     }
     .user-block[open] .user-chevron {
@@ -772,11 +847,11 @@ def build_html(
       gap: 12px;
     }
     .pr-card {
-      background: #111827;
+      background: var(--card);
       border-radius: 12px;
       padding: 12px 14px;
-      border: 1px solid #1f2937;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 25px var(--shadow);
     }
     .pr-header {
         display: flex;
@@ -799,7 +874,7 @@ def build_html(
 
     .pr-meta {
       font-size: 12px;
-      color: #9ca3af;
+      color: var(--muted);
       margin-bottom: 4px;
     }
     .state-label {
@@ -812,12 +887,12 @@ def build_html(
       color: #a855f7;  /* 紫色 */
     }
     .state-other {
-      color: #e5e7eb;  /* 默认浅灰白 */
+      color: var(--fg);  /* 默认 */
     }
 
     .pr-branch {
       font-size: 12px;
-      color: #cbd5f5;
+      color: var(--fg);
       margin-bottom: 4px;
     }
     .branch-target-pill {
@@ -828,8 +903,8 @@ def build_html(
       font-size: 11px;
       font-weight: 600;
       line-height: 1.6;
-      background: #111827;
-      border: 1px solid #1f2937;
+      background: var(--card);
+      border: 1px solid var(--border);
     }
     .branch-target-main {
       background: rgba(34, 197, 94, 0.15);     /* 绿色主线 */
@@ -864,11 +939,11 @@ def build_html(
     }
     .pr-link {
       font-size: 11px;
-      color: #60a5fa;
+      color: var(--link);
       text-decoration: none;
     }
     .pr-link-inline, .issue-link {
-      color: #60a5fa;
+      color: var(--link);
       text-decoration: none;
     }
     .pr-link-inline:hover, .issue-link:hover {
@@ -882,7 +957,7 @@ def build_html(
       font-weight: 600;
       margin-top: 6px;
       margin-bottom: 4px;
-      color: #e5e7eb;
+      color: var(--fg);
     }
     .issue-item, review-item {
       font-size: 11px;
@@ -934,7 +1009,7 @@ def build_html(
     .review-body-collapsible summary {
       list-style: none;
       font-size: 11px;
-      color: #60a5fa;
+      color: var(--accent);
       padding: 2px 0;
     }
     .review-body-collapsible summary::-webkit-details-marker {
@@ -945,7 +1020,7 @@ def build_html(
       font-size: 9px;
       display: inline-block;
       margin-right: 4px;
-      color: #6b7280;
+      color: var(--muted2);
       transition: transform 0.15s ease-out;
     }
     .review-body-collapsible details[open] summary::before {
@@ -958,16 +1033,16 @@ def build_html(
     /* 内联代码 & 代码块 */
     .review-code-inline {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      background: #0b1220;
+      background: var(--surface-0);
       padding: 0 3px;
       border-radius: 3px;
-      border: 1px solid #1f2937;
+      border: 1px solid var(--border);
     }
     .review-code-block {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      background: #020617;
+      background: var(--surface-2);
       border-radius: 6px;
-      border: 1px solid #1f2937;
+      border: 1px solid var(--border);
       padding: 8px 10px;
       margin: 6px 0;
       font-size: 11px;
@@ -980,7 +1055,7 @@ def build_html(
     .reviewer-group {
       margin-top: 6px;
       margin-bottom: 8px;
-      border-top: 1px dashed #1f2937;
+      border-top: 1px dashed var(--border);
     }
     .reviewer-group > summary {
       list-style: none;
@@ -996,18 +1071,18 @@ def build_html(
     }
     .reviewer-group-title {
       font-size: 12px;
-      color: #e5e7eb;
+      color: var(--fg);
       display: flex;
       align-items: baseline;
     }
     .reviewer-group-title span {
       font-size: 11px;
-      color: #9ca3af;
+      color: var(--muted);
       margin-left: 8px;
     }
     .reviewer-chevron {
       font-size: 10px;
-      color: #6b7280;
+      color: var(--muted2);
       margin-left: 8px;
       transition: transform 0.15s ease-out;
     }
@@ -1030,17 +1105,17 @@ def build_html(
       margin-bottom: 6px;
     }
     .filter-toggle {
-      border: 1px solid #334155;
-      background: #0b1220;
-      color: #e5e7eb;
+      border: 1px solid var(--border);
+      background: var(--chip-bg-2);
+      color: var(--fg);
       border-radius: 6px;
       padding: 6px 10px;
       cursor: pointer;
       font-size: 13px;
     }
     .filter-toggle:hover {
-      border-color: #60a5fa;
-      color: #bfdbfe;
+      border-color: var(--accent);
+      color: var(--link-hover);
     }
     .filter-actions {
       display: flex;
@@ -1049,16 +1124,16 @@ def build_html(
       flex-wrap: wrap;
       padding: 10px 12px;
       border-radius: 12px;
-      border: 1px solid #1f2937;
-      background: #0b1220;
+      border: 1px solid var(--border);
+      background: var(--surface-0);
     }
     .filter-chip-btn.secondary {
-      background: #0b1220;
+      background: var(--chip-bg-2);
     }
     .filter-select {
-      background: #0b1220;
-      color: #e5e7eb;
-      border: 1px solid #334155;
+      background: var(--chip-bg-2);
+      color: var(--fg);
+      border: 1px solid var(--border);
       border-radius: 8px;
       padding: 6px 10px;
       font-size: 13px;
@@ -1066,8 +1141,8 @@ def build_html(
     }
     .view-tabs {
       display: inline-flex;
-      border: 1px solid #334155;
-      background: #0a101e;
+      border: 1px solid var(--border);
+      background: var(--surface-1);
       border-radius: 10px;
       overflow: hidden;
     }
@@ -1081,9 +1156,9 @@ def build_html(
       display: inline-flex;
     }
     .filter-text {
-      background: #0b1220;
-      color: #e5e7eb;
-      border: 1px solid #334155;
+      background: var(--chip-bg-2);
+      color: var(--fg);
+      border: 1px solid var(--border);
       border-radius: 8px;
       padding: 6px 10px;
       font-size: 13px;
@@ -1092,9 +1167,9 @@ def build_html(
     }
     .view-toggle-btn {
       border: 0;
-      border-right: 1px solid #334155;
+      border-right: 1px solid var(--border);
       background: transparent;
-      color: #cbd5e1;
+      color: var(--fg);
       border-radius: 0;
       padding: 6px 10px;
       cursor: pointer;
@@ -1108,12 +1183,12 @@ def build_html(
       border-right: 0;
     }
     .view-toggle-btn.active {
-      background: #1f2937;
-      color: #bfdbfe;
+      background: var(--chip-bg);
+      color: var(--link-hover);
     }
     .filter-summary {
       font-size: 12px;
-      color: #9ca3af;
+      color: var(--muted);
       flex: 1;
     }
 
@@ -1124,27 +1199,27 @@ def build_html(
       padding: 14px;
       margin: 8px 0 22px;
       border-radius: 10px;
-      border: 1px solid #1f2937;
-      background: #0b1220;
+      border: 1px solid var(--border);
+      background: var(--surface-0);
     }
     .filter-group {
       flex: 1 1 260px;
-      border: 1px solid #1f2937;
+      border: 1px solid var(--border);
       border-radius: 8px;
       padding: 10px 12px;
-      background: #0a101e;
+      background: var(--surface-1);
     }
     .filter-group h3 {
       margin: 0 0 6px;
       font-size: 13px;
-      color: #cbd5e1;
+      color: var(--fg);
       display: flex;
       align-items: center;
       gap: 6px;
     }
     .filter-group h3 span {
       font-size: 11px;
-      color: #94a3b8;
+      color: var(--muted2);
       font-weight: 500;
     }
     .filter-label {
@@ -1155,13 +1230,13 @@ def build_html(
       margin: 4px 0;
     }
     .filter-bar input[type="checkbox"] {
-      accent-color: #60a5fa;
+      accent-color: var(--accent);
       width: 16px;
       height: 16px;
     }
     .filter-hint {
       font-size: 12px;
-      color: #9ca3af;
+      color: var(--muted);
     }
     .filter-dates {
       display: flex;
@@ -1170,46 +1245,46 @@ def build_html(
       font-size: 12px;
     }
     .filter-dates input[type="date"] {
-      background: #0b1220;
-      color: #e5e7eb;
-      border: 1px solid #334155;
+      background: var(--chip-bg-2);
+      color: var(--fg);
+      border: 1px solid var(--border);
       border-radius: 6px;
       padding: 4px 6px;
     }
     .date-picker-btn {
-      border: 1px solid #334155;
-      background: #0b1220;
-      color: #e5e7eb;
+      border: 1px solid var(--border);
+      background: var(--chip-bg-2);
+      color: var(--fg);
       border-radius: 6px;
       padding: 4px 8px;
       cursor: pointer;
       font-size: 12px;
     }
     .date-picker-btn:hover {
-      border-color: #60a5fa;
-      color: #bfdbfe;
+      border-color: var(--accent);
+      color: var(--link-hover);
     }
     .date-quick-btn {
-      border: 1px solid #334155;
-      background: #0b1220;
-      color: #e5e7eb;
+      border: 1px solid var(--border);
+      background: var(--chip-bg-2);
+      color: var(--fg);
       border-radius: 6px;
       padding: 4px 8px;
       cursor: pointer;
       font-size: 12px;
     }
     .date-quick-btn:hover {
-      border-color: #60a5fa;
-      color: #bfdbfe;
+      border-color: var(--accent);
+      color: var(--link-hover);
     }
     .filter-users {
       position: relative;
       display: inline-block;
     }
     .filter-user-toggle {
-      border: 1px solid #334155;
-      background: #0b1220;
-      color: #e5e7eb;
+      border: 1px solid var(--border);
+      background: var(--chip-bg-2);
+      color: var(--fg);
       border-radius: 8px;
       padding: 6px 10px;
       cursor: pointer;
@@ -1219,18 +1294,18 @@ def build_html(
       gap: 6px;
     }
     .filter-user-toggle:hover {
-      border-color: #60a5fa;
-      color: #bfdbfe;
+      border-color: var(--accent);
+      color: var(--link-hover);
     }
     .filter-user-panel {
       position: absolute;
       left: 0;
       top: calc(100% + 6px);
       min-width: 240px;
-      background: #0b1220;
-      border: 1px solid #1f2937;
+      background: var(--surface-0);
+      border: 1px solid var(--border);
       border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      box-shadow: 0 8px 24px var(--shadow);
       padding: 10px 12px;
       z-index: 50;
       display: none;
@@ -1250,7 +1325,7 @@ def build_html(
       width: 8px;
     }
     .filter-user-list::-webkit-scrollbar-track {
-      background: #0a101e;
+      background: var(--surface-1);
       border-radius: 8px;
     }
     .filter-user-list::-webkit-scrollbar-thumb {
@@ -1262,7 +1337,7 @@ def build_html(
     }
     .filter-user-list {
       scrollbar-width: thin;
-      scrollbar-color: #334155 #0a101e;
+      scrollbar-color: #334155 var(--surface-1);
     }
     .filter-user-item {
       font-size: 12px;
@@ -1275,9 +1350,9 @@ def build_html(
       gap: 8px;
     }
     .filter-chip-btn {
-      border: 1px solid #334155;
-      background: #1f2937;
-      color: #e5e7eb;
+      border: 1px solid var(--border);
+      background: var(--chip-bg);
+      color: var(--fg);
       border-radius: 6px;
       padding: 4px 8px;
       cursor: pointer;
@@ -1287,8 +1362,8 @@ def build_html(
       align-items: center;
     }
     .filter-chip-btn:hover {
-      border-color: #60a5fa;
-      color: #bfdbfe;
+      border-color: var(--accent);
+      color: var(--link-hover);
     }
     .list-view {
       display: none;
@@ -1307,7 +1382,7 @@ def build_html(
       border: none;
       padding: 0;
       font: inherit;
-      color: #93c5fd;
+      color: var(--link);
       cursor: pointer;
       text-align: left;
     }
@@ -1325,14 +1400,14 @@ def build_html(
       margin: 6px 0;
     }
     .issue-detail-link {
-      color: #93c5fd;
+      color: var(--link);
       text-decoration: none;
     }
     .issue-detail-link:hover {
       text-decoration: underline;
     }
     .issue-detail-meta {
-      color: #9ca3af;
+      color: var(--muted);
       font-size: 11px;
     }
     .issue-pill {
@@ -1340,7 +1415,7 @@ def build_html(
       padding: 1px 6px;
       border-radius: 999px;
       font-size: 11px;
-      border: 1px solid #334155;
+      border: 1px solid var(--border);
       white-space: nowrap;
     }
     .issue-pill-unresolved {
@@ -1360,22 +1435,19 @@ def build_html(
     }
     .list-table th,
     .list-table td {
-      border: 1px solid #1f2937;
+      border: 1px solid var(--border);
       padding: 8px;
       text-align: left;
     }
     .list-table th {
-      background: #0b1220;
-      color: #cbd5e1;
+      background: var(--surface-0);
+      color: var(--fg);
     }
     .list-table tr:nth-child(even) {
-      background: #0a101e;
+      background: var(--surface-1);
     }
     .list-table tr:hover {
-      background: rgba(148, 163, 184, 0.08);
-    }
-    .list-table a {
-      color: #93c5fd;
+      background: var(--table-hover);
     }
     .issue-detail-row td,
     .received-detail-row td {
@@ -1383,15 +1455,15 @@ def build_html(
     }
     .stats-block {
       margin-top: 12px;
-      border: 1px solid #1f2937;
+      border: 1px solid var(--border);
       border-radius: 10px;
       padding: 10px 12px;
-      background: #0a101e;
+      background: var(--surface-1);
     }
     .stats-block h3 {
       margin: 0 0 8px;
       font-size: 13px;
-      color: #cbd5e1;
+      color: var(--fg);
     }
     .stats-grid {
       display: grid;
@@ -1401,21 +1473,21 @@ def build_html(
       color: #e5e7eb;
     }
     .stats-item {
-      background: #0b1220;
-      border: 1px solid #1f2937;
+      background: var(--surface-0);
+      border: 1px solid var(--border);
       border-radius: 8px;
       padding: 8px;
     }
 
     .empty-text {
       font-size: 12px;
-      color: #6b7280;
+      color: var(--muted2);
       margin-top: 4px;
     }
     .footer {
       margin-top: 40px;
       font-size: 11px;
-      color: #6b7280;
+      color: var(--muted2);
       text-align: center;
     }
     """
@@ -1487,6 +1559,14 @@ def build_html(
         "<button type='button' class='view-toggle-btn' id='view-issue-btn' title='检视意见（提出）'>提出</button>"
         "<button type='button' class='view-toggle-btn' id='view-received-btn' title='被提检视意见（收到）'>被提</button>"
         "</div>"
+    )
+    html_parts.append(
+        "<select id='theme-select' class='filter-select' style='min-width:140px'>"
+        "<option value='dark'>主题：暗色</option>"
+        "<option value='dim'>主题：柔和</option>"
+        "<option value='light'>主题：亮色</option>"
+        "<option value='contrast'>主题：高对比</option>"
+        "</select>"
     )
     html_parts.append(
         "<div class='review-controls' id='review-controls' data-show='0'>"
@@ -2202,6 +2282,7 @@ def build_html(
   const filterBar = document.getElementById('filter-bar');
   const filterToggle = document.getElementById('filter-toggle');
   const filterSummary = document.getElementById('filter-summary');
+  const themeSelect = document.getElementById('theme-select');
   const sortSelect = document.getElementById('sort-select');
   const quickOpenUnresolvedBtn = document.getElementById('quick-open-unresolved');
   const cardView = document.getElementById('card-view');
@@ -2244,6 +2325,29 @@ def build_html(
   const groupToggle = document.getElementById('filter-group-toggle');
   const groupPanel = document.getElementById('filter-group-panel');
   const groupDropdown = document.getElementById('filter-group-dropdown');
+  const THEME_KEY = 'pr_report_theme_v1';
+  const normalizeTheme = (v) => {
+    const t = (v || '').toString();
+    return ['dark', 'dim', 'light', 'contrast'].includes(t) ? t : 'dark';
+  };
+  const applyTheme = (t) => {
+    document.documentElement.dataset.theme = normalizeTheme(t);
+  };
+  try {
+    const saved = normalizeTheme(localStorage.getItem(THEME_KEY) || '');
+    applyTheme(saved);
+    if (themeSelect) themeSelect.value = saved;
+  } catch (e) {
+    applyTheme('dark');
+  }
+  if (themeSelect) {
+    themeSelect.addEventListener('change', () => {
+      const t = normalizeTheme(themeSelect.value);
+      applyTheme(t);
+      try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+    });
+  }
+
   if (!filterUnresolved || !filterHideClean) return;
 
   const getSelectedUsers = () => {
