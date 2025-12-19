@@ -1257,6 +1257,10 @@ def build_html(
       display: none;
       margin-top: 12px;
     }
+    .received-view {
+      display: none;
+      margin-top: 12px;
+    }
     .issue-toggle {
       background: none;
       border: none;
@@ -1433,6 +1437,7 @@ def build_html(
         "<button type='button' class='view-toggle-btn active' id='view-card-btn'>卡片视图</button>"
         "<button type='button' class='view-toggle-btn' id='view-list-btn'>列表视图</button>"
         "<button type='button' class='view-toggle-btn' id='view-issue-btn'>检视意见视图</button>"
+        "<button type='button' class='view-toggle-btn' id='view-received-btn'>被提检视意见视图</button>"
         "</div>"
     )
     html_parts.append(
@@ -2109,6 +2114,18 @@ def build_html(
     )
     html_parts.append("</div>")
 
+    # 被提检视意见视图容器（按 PR 作者聚合，仅统计主评论）
+    html_parts.append("<div class='received-view' id='received-view'>")
+    html_parts.append(
+        "<table class='list-table' id='received-table'>"
+        "<thead><tr>"
+        "<th>被提人（PR 作者）</th><th>检视意见（主评论）</th><th>未解决</th><th>已解决</th>"
+        "</tr></thead>"
+        "<tbody></tbody>"
+        "</table>"
+    )
+    html_parts.append("</div>")
+
     script = """
 <script>
 (() => {
@@ -2132,9 +2149,12 @@ def build_html(
   const listTableBody = document.querySelector('#list-table tbody');
   const issueView = document.getElementById('issue-view');
   const issueTableBody = document.querySelector('#issue-table tbody');
+  const receivedView = document.getElementById('received-view');
+  const receivedTableBody = document.querySelector('#received-table tbody');
   const viewCardBtn = document.getElementById('view-card-btn');
   const viewListBtn = document.getElementById('view-list-btn');
   const viewIssueBtn = document.getElementById('view-issue-btn');
+  const viewReceivedBtn = document.getElementById('view-received-btn');
   const presetSelect = document.getElementById('preset-select');
   const presetApplyBtn = document.getElementById('preset-apply');
   const presetSaveBtn = document.getElementById('preset-save');
@@ -2438,6 +2458,197 @@ def build_html(
           meta.className = 'issue-detail-meta';
           const cid = it.commentId ? `评论 #${it.commentId}` : '评论';
           meta.textContent = it.excerpt ? `${cid} · ${it.excerpt}` : cid;
+
+          line.appendChild(pill);
+          line.appendChild(link);
+          line.appendChild(meta);
+          wrap.appendChild(line);
+        });
+      }
+
+      detailTd.appendChild(wrap);
+      detailTr.appendChild(detailTd);
+      row.after(detailTr);
+      btn.setAttribute('aria-expanded', 'true');
+    });
+  }
+
+  // 被提检视意见视图：按“PR 作者”聚合（仅主评论）
+  let receivedDetailMap = new Map();
+  const collectVisibleReceived = () => {
+    const rows = [];
+    const cards = Array.from(document.querySelectorAll('.pr-card'));
+    const toExcerpt = (text) => {
+      const compact = (text || '').replace(/\\s+/g, ' ').trim();
+      if (!compact) return '';
+      return compact.length > 120 ? compact.slice(0, 120) + '…' : compact;
+    };
+    cards.forEach((card) => {
+      const userBlock = card.closest('[data-user-block]');
+      if (card.style.display === 'none') return;
+      if (userBlock && userBlock.style.display === 'none') return;
+      const repo = card.dataset.repo || '';
+      const prNum = card.dataset.prNumber || '';
+      const prTitle = card.dataset.title || '';
+      const prUrl = card.dataset.url || '';
+      const prAuthor = (card.dataset.username || '').trim() || '(unknown)';
+
+      const items = Array.from(
+        card.querySelectorAll('.review-item[data-is-reply="0"]')
+      );
+      items.forEach((it) => {
+        if (it.style.display === 'none') return;
+        const reviewer = (it.dataset.user || '').trim() || '(unknown)';
+        const resolved = it.dataset.resolved === 'true';
+        const commentId = (it.dataset.commentId || '').trim();
+        const bodyNode =
+          it.querySelector('.review-body') || it.querySelector('.review-body-content');
+        const excerpt = toExcerpt(bodyNode ? bodyNode.textContent : '');
+        rows.push({
+          repo,
+          prNum,
+          prTitle,
+          prUrl,
+          prAuthor,
+          reviewer,
+          resolved,
+          commentId,
+          excerpt,
+        });
+      });
+    });
+    return rows;
+  };
+
+  const refreshReceivedView = () => {
+    if (!receivedTableBody) return;
+    receivedTableBody.innerHTML = '';
+    const rows = collectVisibleReceived();
+    const map = new Map();
+    receivedDetailMap = new Map();
+    rows.forEach((r) => {
+      const key = r.prAuthor || '(unknown)';
+      if (!map.has(key)) {
+        map.set(key, { user: key, total: 0, unresolved: 0, resolved: 0 });
+      }
+      if (!receivedDetailMap.has(key)) {
+        receivedDetailMap.set(key, []);
+      }
+      receivedDetailMap.get(key).push(r);
+      const acc = map.get(key);
+      acc.total += 1;
+      if (r.resolved) acc.resolved += 1;
+      else acc.unresolved += 1;
+    });
+    const list = Array.from(map.values()).sort((a, b) => {
+      if (b.total !== a.total) return b.total - a.total;
+      return (a.user || '').localeCompare(b.user || '');
+    });
+    if (!list.length) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 4;
+      td.textContent = '当前筛选下无被提检视意见（主评论）';
+      tr.appendChild(td);
+      receivedTableBody.appendChild(tr);
+      return;
+    }
+    list.forEach((r) => {
+      const tr = document.createElement('tr');
+      const tdUser = document.createElement('td');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'issue-toggle';
+      btn.dataset.receivedToggle = '1';
+      btn.dataset.user = r.user;
+      btn.setAttribute('aria-expanded', 'false');
+      btn.textContent = r.user;
+      tdUser.appendChild(btn);
+      const tdTotal = document.createElement('td');
+      tdTotal.textContent = String(r.total);
+      const tdUnresolved = document.createElement('td');
+      tdUnresolved.textContent = String(r.unresolved);
+      const tdResolved = document.createElement('td');
+      tdResolved.textContent = String(r.resolved);
+      tr.appendChild(tdUser);
+      tr.appendChild(tdTotal);
+      tr.appendChild(tdUnresolved);
+      tr.appendChild(tdResolved);
+      receivedTableBody.appendChild(tr);
+    });
+  };
+
+  if (receivedTableBody) {
+    receivedTableBody.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-received-toggle]');
+      if (!btn) return;
+      const userKey = btn.dataset.user || '(unknown)';
+      const row = btn.closest('tr');
+      if (!row) return;
+
+      const next = row.nextElementSibling;
+      const isOpen = btn.getAttribute('aria-expanded') === 'true';
+      if (isOpen) {
+        if (next && next.classList.contains('received-detail-row')) {
+          next.remove();
+        }
+        btn.setAttribute('aria-expanded', 'false');
+        return;
+      }
+      if (next && next.classList.contains('received-detail-row')) {
+        next.remove();
+      }
+
+      const details = receivedDetailMap.get(userKey) || [];
+      const sorted = [...details].sort((a, b) => {
+        if (a.resolved !== b.resolved) return a.resolved ? 1 : -1; // unresolved first
+        const ra = a.repo || '';
+        const rb = b.repo || '';
+        const cmpRepo = ra.localeCompare(rb);
+        if (cmpRepo) return cmpRepo;
+        const na = parseInt(a.prNum || '0', 10) || 0;
+        const nb = parseInt(b.prNum || '0', 10) || 0;
+        if (na !== nb) return na - nb;
+        return (a.commentId || '').localeCompare(b.commentId || '');
+      });
+
+      const detailTr = document.createElement('tr');
+      detailTr.className = 'received-detail-row';
+      const detailTd = document.createElement('td');
+      detailTd.colSpan = 4;
+      const wrap = document.createElement('div');
+      wrap.className = 'issue-detail';
+
+      if (!sorted.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-text';
+        empty.textContent = '无被提检视意见（主评论）';
+        wrap.appendChild(empty);
+      } else {
+        sorted.forEach((it) => {
+          const line = document.createElement('div');
+          line.className = 'issue-detail-item';
+
+          const pill = document.createElement('span');
+          pill.className = `issue-pill ${it.resolved ? 'issue-pill-resolved' : 'issue-pill-unresolved'}`;
+          pill.textContent = it.resolved ? '已解决' : '未解决';
+
+          const link = document.createElement(it.prUrl ? 'a' : 'span');
+          if (it.prUrl) {
+            link.href = it.prUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.className = 'issue-detail-link';
+          }
+          const prPrefix = it.repo ? `${it.repo} ` : '';
+          link.textContent = `${prPrefix}#${it.prNum || ''} ${it.prTitle || ''}`.trim();
+
+          const meta = document.createElement('span');
+          meta.className = 'issue-detail-meta';
+          const who = it.reviewer ? `提出人 ${it.reviewer}` : '';
+          const cid = it.commentId ? `评论 #${it.commentId}` : '评论';
+          const head = who ? `${who} · ${cid}` : cid;
+          meta.textContent = it.excerpt ? `${head} · ${it.excerpt}` : head;
 
           line.appendChild(pill);
           line.appendChild(link);
@@ -3040,26 +3251,42 @@ def build_html(
       cardView.style.display = 'none';
       listView.style.display = 'block';
       if (issueView) issueView.style.display = 'none';
+      if (receivedView) receivedView.style.display = 'none';
       if (viewListBtn) viewListBtn.classList.add('active');
       if (viewCardBtn) viewCardBtn.classList.remove('active');
       if (viewIssueBtn) viewIssueBtn.classList.remove('active');
+      if (viewReceivedBtn) viewReceivedBtn.classList.remove('active');
       refreshListView();
     } else if (mode === 'issue') {
       if (cardView) cardView.style.display = 'none';
       if (listView) listView.style.display = 'none';
       if (issueView) issueView.style.display = 'block';
+      if (receivedView) receivedView.style.display = 'none';
       if (viewIssueBtn) viewIssueBtn.classList.add('active');
       if (viewCardBtn) viewCardBtn.classList.remove('active');
       if (viewListBtn) viewListBtn.classList.remove('active');
+      if (viewReceivedBtn) viewReceivedBtn.classList.remove('active');
       refreshIssueView();
+    } else if (mode === 'received') {
+      if (cardView) cardView.style.display = 'none';
+      if (listView) listView.style.display = 'none';
+      if (issueView) issueView.style.display = 'none';
+      if (receivedView) receivedView.style.display = 'block';
+      if (viewReceivedBtn) viewReceivedBtn.classList.add('active');
+      if (viewCardBtn) viewCardBtn.classList.remove('active');
+      if (viewListBtn) viewListBtn.classList.remove('active');
+      if (viewIssueBtn) viewIssueBtn.classList.remove('active');
+      refreshReceivedView();
     } else {
       if (!cardView || !listView) return;
       cardView.style.display = 'block';
       listView.style.display = 'none';
       if (issueView) issueView.style.display = 'none';
+      if (receivedView) receivedView.style.display = 'none';
       if (viewCardBtn) viewCardBtn.classList.add('active');
       if (viewListBtn) viewListBtn.classList.remove('active');
       if (viewIssueBtn) viewIssueBtn.classList.remove('active');
+      if (viewReceivedBtn) viewReceivedBtn.classList.remove('active');
     }
   };
   if (viewCardBtn) {
@@ -3070,6 +3297,9 @@ def build_html(
   }
   if (viewIssueBtn) {
     viewIssueBtn.addEventListener('click', () => setView('issue'));
+  }
+  if (viewReceivedBtn) {
+    viewReceivedBtn.addEventListener('click', () => setView('received'));
   }
   if (refreshBtn) {
     refreshBtn.addEventListener('click', () => window.location.reload());
@@ -3108,6 +3338,9 @@ def build_html(
     }
     if (issueView && issueView.style.display !== 'none') {
       refreshIssueView();
+    }
+    if (receivedView && receivedView.style.display !== 'none') {
+      refreshReceivedView();
     }
     refreshStats();
   };
