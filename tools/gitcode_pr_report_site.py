@@ -1451,7 +1451,7 @@ def build_html(
     }
     .issue-detail-row td,
     .received-detail-row td {
-      background: #0a101e;
+      background: var(--surface-1);
     }
     .stats-block {
       margin-top: 12px;
@@ -1470,7 +1470,7 @@ def build_html(
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 8px;
       font-size: 12px;
-      color: #e5e7eb;
+      color: var(--fg);
     }
     .stats-item {
       background: var(--surface-0);
