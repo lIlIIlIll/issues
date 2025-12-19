@@ -660,6 +660,12 @@ def build_html(
       --accent: #60a5fa;
       --shadow: rgba(0,0,0,0.35);
       --table-hover: rgba(148, 163, 184, 0.08);
+      --pill-unresolved-bg: rgba(245, 158, 11, 0.12);
+      --pill-unresolved-border: #f59e0b;
+      --pill-unresolved-fg: #ffedd5;
+      --pill-resolved-bg: rgba(34, 197, 94, 0.12);
+      --pill-resolved-border: #22c55e;
+      --pill-resolved-fg: #bbf7d0;
     }
     html[data-theme="light"] {
       --bg: #f8fafc;
@@ -678,6 +684,12 @@ def build_html(
       --accent: #2563eb;
       --shadow: rgba(15, 23, 42, 0.12);
       --table-hover: rgba(15, 23, 42, 0.04);
+      --pill-unresolved-bg: rgba(245, 158, 11, 0.12);
+      --pill-unresolved-border: #d97706;
+      --pill-unresolved-fg: #92400e;
+      --pill-resolved-bg: rgba(34, 197, 94, 0.10);
+      --pill-resolved-border: #16a34a;
+      --pill-resolved-fg: #166534;
     }
     html[data-theme="dim"] {
       --bg: #0b1220;
@@ -696,6 +708,12 @@ def build_html(
       --accent: #38bdf8;
       --shadow: rgba(0,0,0,0.35);
       --table-hover: rgba(148, 163, 184, 0.10);
+      --pill-unresolved-bg: rgba(245, 158, 11, 0.14);
+      --pill-unresolved-border: #f59e0b;
+      --pill-unresolved-fg: #ffedd5;
+      --pill-resolved-bg: rgba(34, 197, 94, 0.14);
+      --pill-resolved-border: #22c55e;
+      --pill-resolved-fg: #bbf7d0;
     }
     html[data-theme="contrast"] {
       --bg: #000000;
@@ -714,6 +732,12 @@ def build_html(
       --accent: #fbbf24;
       --shadow: rgba(0,0,0,0);
       --table-hover: rgba(255, 255, 255, 0.12);
+      --pill-unresolved-bg: rgba(251, 191, 36, 0.12);
+      --pill-unresolved-border: #fbbf24;
+      --pill-unresolved-fg: #fbbf24;
+      --pill-resolved-bg: rgba(34, 197, 94, 0.12);
+      --pill-resolved-border: #22c55e;
+      --pill-resolved-fg: #22c55e;
     }
     * { box-sizing: border-box; }
     a { color: var(--link); }
@@ -1440,18 +1464,19 @@ def build_html(
       padding: 1px 6px;
       border-radius: 999px;
       font-size: 11px;
+      font-weight: 600;
       border: 1px solid var(--border);
       white-space: nowrap;
     }
     .issue-pill-unresolved {
-      background: rgba(245, 158, 11, 0.12);
-      border-color: #f59e0b;
-      color: #ffedd5;
+      background: var(--pill-unresolved-bg);
+      border-color: var(--pill-unresolved-border);
+      color: var(--pill-unresolved-fg);
     }
     .issue-pill-resolved {
-      background: rgba(34, 197, 94, 0.12);
-      border-color: #22c55e;
-      color: #bbf7d0;
+      background: var(--pill-resolved-bg);
+      border-color: var(--pill-resolved-border);
+      color: var(--pill-resolved-fg);
     }
     .list-table {
       width: 100%;
