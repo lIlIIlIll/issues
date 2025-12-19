@@ -1047,6 +1047,10 @@ def build_html(
       gap: 8px;
       align-items: center;
       flex-wrap: wrap;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      background: #0b1220;
     }
     .filter-chip-btn.secondary {
       background: #0b1220;
@@ -1058,18 +1062,33 @@ def build_html(
       border-radius: 8px;
       padding: 6px 10px;
       font-size: 13px;
+      height: 32px;
+    }
+    .view-tabs {
+      display: inline-flex;
+      border: 1px solid #334155;
+      background: #0a101e;
+      border-radius: 10px;
+      overflow: hidden;
     }
     .view-toggle-btn {
-      border: 1px solid #334155;
-      background: #0b1220;
-      color: #e5e7eb;
-      border-radius: 8px;
+      border: 0;
+      border-right: 1px solid #334155;
+      background: transparent;
+      color: #cbd5e1;
+      border-radius: 0;
       padding: 6px 10px;
       cursor: pointer;
       font-size: 13px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+    .view-toggle-btn:last-child {
+      border-right: 0;
     }
     .view-toggle-btn.active {
-      border-color: #60a5fa;
       background: #1f2937;
       color: #bfdbfe;
     }
@@ -1244,6 +1263,9 @@ def build_html(
       padding: 4px 8px;
       cursor: pointer;
       font-size: 12px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
     }
     .filter-chip-btn:hover {
       border-color: #60a5fa;
@@ -1330,8 +1352,15 @@ def build_html(
     .list-table tr:nth-child(even) {
       background: #0a101e;
     }
+    .list-table tr:hover {
+      background: rgba(148, 163, 184, 0.08);
+    }
     .list-table a {
       color: #93c5fd;
+    }
+    .issue-detail-row td,
+    .received-detail-row td {
+      background: #0a101e;
     }
     .stats-block {
       margin-top: 12px;
@@ -1433,11 +1462,11 @@ def build_html(
         "<button type='button' class='filter-chip-btn secondary' id='quick-open-unresolved'>仅看 open 且有未解决意见</button>"
     )
     html_parts.append(
-        "<div style='display:flex;gap:6px'>"
-        "<button type='button' class='view-toggle-btn active' id='view-card-btn'>卡片视图</button>"
-        "<button type='button' class='view-toggle-btn' id='view-list-btn'>列表视图</button>"
-        "<button type='button' class='view-toggle-btn' id='view-issue-btn'>检视意见视图</button>"
-        "<button type='button' class='view-toggle-btn' id='view-received-btn'>被提检视意见视图</button>"
+        "<div class='view-tabs'>"
+        "<button type='button' class='view-toggle-btn active' id='view-card-btn' title='卡片视图'>卡片</button>"
+        "<button type='button' class='view-toggle-btn' id='view-list-btn' title='列表视图'>列表</button>"
+        "<button type='button' class='view-toggle-btn' id='view-issue-btn' title='检视意见（提出）'>提出</button>"
+        "<button type='button' class='view-toggle-btn' id='view-received-btn' title='被提检视意见（收到）'>被提</button>"
         "</div>"
     )
     html_parts.append(
@@ -2372,8 +2401,9 @@ def build_html(
       btn.className = 'issue-toggle';
       btn.dataset.issueToggle = '1';
       btn.dataset.user = r.user;
+      btn.dataset.label = r.user;
       btn.setAttribute('aria-expanded', 'false');
-      btn.textContent = r.user;
+      btn.textContent = `▸ ${r.user}`;
       tdUser.appendChild(btn);
       const tdTotal = document.createElement('td');
       tdTotal.textContent = String(r.total);
@@ -2404,6 +2434,8 @@ def build_html(
           next.remove();
         }
         btn.setAttribute('aria-expanded', 'false');
+        const label = btn.dataset.label || userKey;
+        btn.textContent = `▸ ${label}`;
         return;
       }
       if (next && next.classList.contains('issue-detail-row')) {
@@ -2470,6 +2502,8 @@ def build_html(
       detailTr.appendChild(detailTd);
       row.after(detailTr);
       btn.setAttribute('aria-expanded', 'true');
+      const label = btn.dataset.label || userKey;
+      btn.textContent = `▾ ${label}`;
     });
   }
 
@@ -2561,8 +2595,9 @@ def build_html(
       btn.className = 'issue-toggle';
       btn.dataset.receivedToggle = '1';
       btn.dataset.user = r.user;
+      btn.dataset.label = r.user;
       btn.setAttribute('aria-expanded', 'false');
-      btn.textContent = r.user;
+      btn.textContent = `▸ ${r.user}`;
       tdUser.appendChild(btn);
       const tdTotal = document.createElement('td');
       tdTotal.textContent = String(r.total);
@@ -2593,6 +2628,8 @@ def build_html(
           next.remove();
         }
         btn.setAttribute('aria-expanded', 'false');
+        const label = btn.dataset.label || userKey;
+        btn.textContent = `▸ ${label}`;
         return;
       }
       if (next && next.classList.contains('received-detail-row')) {
@@ -2661,6 +2698,8 @@ def build_html(
       detailTr.appendChild(detailTd);
       row.after(detailTr);
       btn.setAttribute('aria-expanded', 'true');
+      const label = btn.dataset.label || userKey;
+      btn.textContent = `▾ ${label}`;
     });
   }
 
