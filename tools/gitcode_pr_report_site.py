@@ -931,10 +931,35 @@ def build_html(
       border-color: #64748b;
       color: #e5e7eb;
     }
+    html[data-theme="light"] .branch-target-main {
+      background: rgba(34, 197, 94, 0.10);
+      border-color: #16a34a;
+      color: #166534;
+    }
+    html[data-theme="light"] .branch-target-dev {
+      background: rgba(59, 130, 246, 0.10);
+      border-color: #2563eb;
+      color: #1d4ed8;
+    }
+    html[data-theme="light"] .branch-target-release {
+      background: rgba(168, 85, 247, 0.10);
+      border-color: #7c3aed;
+      color: #6d28d9;
+    }
+    html[data-theme="light"] .branch-target-hotfix {
+      background: rgba(239, 68, 68, 0.10);
+      border-color: #dc2626;
+      color: #b91c1c;
+    }
+    html[data-theme="light"] .branch-target-other {
+      background: rgba(100, 116, 139, 0.10);
+      border-color: #64748b;
+      color: #334155;
+    }
 
     .pr-times {
       font-size: 11px;
-      color: #9ca3af;
+      color: var(--muted);
       margin-bottom: 4px;
     }
     .pr-link {
