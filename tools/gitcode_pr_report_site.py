@@ -1071,6 +1071,25 @@ def build_html(
       border-radius: 10px;
       overflow: hidden;
     }
+    .review-controls {
+      display: none;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .review-controls[data-show="1"] {
+      display: inline-flex;
+    }
+    .filter-text {
+      background: #0b1220;
+      color: #e5e7eb;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 13px;
+      height: 32px;
+      min-width: 180px;
+    }
     .view-toggle-btn {
       border: 0;
       border-right: 1px solid #334155;
@@ -1467,6 +1486,18 @@ def build_html(
         "<button type='button' class='view-toggle-btn' id='view-list-btn' title='列表视图'>列表</button>"
         "<button type='button' class='view-toggle-btn' id='view-issue-btn' title='检视意见（提出）'>提出</button>"
         "<button type='button' class='view-toggle-btn' id='view-received-btn' title='被提检视意见（收到）'>被提</button>"
+        "</div>"
+    )
+    html_parts.append(
+        "<div class='review-controls' id='review-controls' data-show='0'>"
+        "<input type='text' id='review-user-keyword' class='filter-text' placeholder='筛选人名' />"
+        "<select id='review-sort-select' class='filter-select'>"
+        "<option value='total' selected>排序：总数</option>"
+        "<option value='unresolved'>排序：未解决</option>"
+        "<option value='resolved'>排序：已解决</option>"
+        "<option value='name'>排序：姓名</option>"
+        "</select>"
+        "<button type='button' class='filter-chip-btn secondary' id='export-review-csv'>导出检视意见 CSV</button>"
         "</div>"
     )
     html_parts.append(
@@ -2184,6 +2215,10 @@ def build_html(
   const viewListBtn = document.getElementById('view-list-btn');
   const viewIssueBtn = document.getElementById('view-issue-btn');
   const viewReceivedBtn = document.getElementById('view-received-btn');
+  const reviewControls = document.getElementById('review-controls');
+  const reviewUserKeyword = document.getElementById('review-user-keyword');
+  const reviewSortSelect = document.getElementById('review-sort-select');
+  const exportReviewBtn = document.getElementById('export-review-csv');
   const presetSelect = document.getElementById('preset-select');
   const presetApplyBtn = document.getElementById('preset-apply');
   const presetSaveBtn = document.getElementById('preset-save');
@@ -2343,6 +2378,7 @@ def build_html(
       const prNum = card.dataset.prNumber || '';
       const prTitle = card.dataset.title || '';
       const prUrl = card.dataset.url || '';
+      const prAuthor = (card.dataset.username || '').trim() || '(unknown)';
       const items = Array.from(
         card.querySelectorAll('.review-item[data-is-reply="0"]')
       );
@@ -2354,7 +2390,7 @@ def build_html(
         const bodyNode =
           it.querySelector('.review-body') || it.querySelector('.review-body-content');
         const excerpt = toExcerpt(bodyNode ? bodyNode.textContent : '');
-        rows.push({ repo, prNum, prTitle, prUrl, user, resolved, commentId, excerpt });
+        rows.push({ repo, prNum, prTitle, prUrl, prAuthor, user, resolved, commentId, excerpt });
       });
     });
     return rows;
@@ -2380,10 +2416,11 @@ def build_html(
       if (r.resolved) acc.resolved += 1;
       else acc.unresolved += 1;
     });
-    const list = Array.from(map.values()).sort((a, b) => {
-      if (b.total !== a.total) return b.total - a.total;
-      return (a.user || '').localeCompare(b.user || '');
-    });
+    const kw = getReviewKeyword();
+    const sortKey = getReviewSortKey();
+    const list = Array.from(map.values())
+      .filter((it) => (!kw ? true : (it.user || '').toLowerCase().includes(kw)))
+      .sort((a, b) => reviewSortCompare(a, b, sortKey));
     if (!list.length) {
       const tr = document.createElement('tr');
       const td = document.createElement('td');
@@ -2489,7 +2526,22 @@ def build_html(
           const meta = document.createElement('span');
           meta.className = 'issue-detail-meta';
           const cid = it.commentId ? `评论 #${it.commentId}` : '评论';
-          meta.textContent = it.excerpt ? `${cid} · ${it.excerpt}` : cid;
+          if (it.prUrl && it.commentId) {
+            const cLink = document.createElement('a');
+            cLink.href = getCommentUrl(it.prUrl, it.commentId);
+            cLink.target = '_blank';
+            cLink.rel = 'noopener noreferrer';
+            cLink.className = 'issue-detail-link';
+            cLink.textContent = cid;
+            meta.appendChild(cLink);
+          } else {
+            meta.textContent = cid;
+          }
+          if (it.excerpt) {
+            const txt = document.createElement('span');
+            txt.textContent = ` · ${it.excerpt}`;
+            meta.appendChild(txt);
+          }
 
           line.appendChild(pill);
           line.appendChild(link);
@@ -2574,10 +2626,11 @@ def build_html(
       if (r.resolved) acc.resolved += 1;
       else acc.unresolved += 1;
     });
-    const list = Array.from(map.values()).sort((a, b) => {
-      if (b.total !== a.total) return b.total - a.total;
-      return (a.user || '').localeCompare(b.user || '');
-    });
+    const kw = getReviewKeyword();
+    const sortKey = getReviewSortKey();
+    const list = Array.from(map.values())
+      .filter((it) => (!kw ? true : (it.user || '').toLowerCase().includes(kw)))
+      .sort((a, b) => reviewSortCompare(a, b, sortKey));
     if (!list.length) {
       const tr = document.createElement('tr');
       const td = document.createElement('td');
@@ -2685,7 +2738,22 @@ def build_html(
           const who = it.reviewer ? `提出人 ${it.reviewer}` : '';
           const cid = it.commentId ? `评论 #${it.commentId}` : '评论';
           const head = who ? `${who} · ${cid}` : cid;
-          meta.textContent = it.excerpt ? `${head} · ${it.excerpt}` : head;
+          if (it.prUrl && it.commentId) {
+            const cLink = document.createElement('a');
+            cLink.href = getCommentUrl(it.prUrl, it.commentId);
+            cLink.target = '_blank';
+            cLink.rel = 'noopener noreferrer';
+            cLink.className = 'issue-detail-link';
+            cLink.textContent = head;
+            meta.appendChild(cLink);
+          } else {
+            meta.textContent = head;
+          }
+          if (it.excerpt) {
+            const txt = document.createElement('span');
+            txt.textContent = ` · ${it.excerpt}`;
+            meta.appendChild(txt);
+          }
 
           line.appendChild(pill);
           line.appendChild(link);
@@ -3214,6 +3282,29 @@ def build_html(
     filterSummary.textContent = `当前筛选：状态(${statesText}) · 检视(${commentsText}) · 评论显示(${displayResolvedText}) · 回复(${hideRepliesText}) · 回复包含(${keywordText}) · 回复不包含(${excludeText}) · 标签(${labelText}) · 类型(${prTypeText}) · 目标(${targetText}) · 日期(${datePart}, ${dateFieldText}) · ${hideEmpty} · 排序(${sortText})`;
   };
 
+  const getReviewKeyword = () => ((reviewUserKeyword?.value || '').trim().toLowerCase());
+  const getReviewSortKey = () => (reviewSortSelect ? (reviewSortSelect.value || 'total') : 'total');
+
+  const reviewSortCompare = (a, b, sortKey) => {
+    if (sortKey === 'name') {
+      return (a.user || '').localeCompare(b.user || '');
+    }
+    if (sortKey === 'resolved') {
+      if ((b.resolved || 0) !== (a.resolved || 0)) return (b.resolved || 0) - (a.resolved || 0);
+      if ((b.unresolved || 0) !== (a.unresolved || 0)) return (b.unresolved || 0) - (a.unresolved || 0);
+      return (a.user || '').localeCompare(b.user || '');
+    }
+    if (sortKey === 'unresolved') {
+      if ((b.unresolved || 0) !== (a.unresolved || 0)) return (b.unresolved || 0) - (a.unresolved || 0);
+      if ((b.resolved || 0) !== (a.resolved || 0)) return (b.resolved || 0) - (a.resolved || 0);
+      return (a.user || '').localeCompare(b.user || '');
+    }
+    // default: total
+    if ((b.total || 0) !== (a.total || 0)) return (b.total || 0) - (a.total || 0);
+    if ((b.unresolved || 0) !== (a.unresolved || 0)) return (b.unresolved || 0) - (a.unresolved || 0);
+    return (a.user || '').localeCompare(b.user || '');
+  };
+
   if (filterToggle && filterBar) {
     filterToggle.addEventListener('click', () => {
       const isOpen = filterBar.dataset.open === '1';
@@ -3283,9 +3374,121 @@ def build_html(
     });
   }
 
+  const exportCsv = (filename, header, dataRows) => {
+    const escape = (v) => {
+      const str = (v ?? '').toString().replace(/"/g, '""');
+      if (str.includes(',') || str.includes('"') || str.includes('\\n')) return `"${str}"`;
+      return str;
+    };
+    const csvRows = [header.map(escape).join(',')];
+    (dataRows || []).forEach((r) => {
+      csvRows.push(header.map((k) => escape(r[k])).join(','));
+    });
+    const blob = new Blob([csvRows.join('\\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const getCommentUrl = (prUrl, commentId) => {
+    if (!prUrl) return '';
+    if (!commentId) return prUrl;
+    // GitCode 通常兼容 GitLab 的 note anchor；即使不命中也会打开 PR 页面
+    return `${prUrl}#note_${commentId}`;
+  };
+
+  if (exportReviewBtn) {
+    exportReviewBtn.addEventListener('click', () => {
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const ymd = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
+
+      if (currentViewMode !== 'issue' && currentViewMode !== 'received') {
+        alert('请先切换到“提出”或“被提”视图再导出检视意见 CSV');
+        return;
+      }
+      const header = [
+        'mode',
+        'group_user',
+        'repo',
+        'pr_number',
+        'pr_title',
+        'pr_url',
+        'comment_id',
+        'comment_url',
+        'resolved',
+        'review_author',
+        'pr_author',
+        'excerpt',
+      ];
+
+      if (currentViewMode === 'issue') {
+        const details = collectVisibleIssues();
+        if (!details.length) {
+          alert('当前筛选下无检视意见（主评论）可导出');
+          return;
+        }
+        const rows = details.map((d) => ({
+          mode: 'issue',
+          group_user: d.user || '',
+          repo: d.repo || '',
+          pr_number: d.prNum || '',
+          pr_title: d.prTitle || '',
+          pr_url: d.prUrl || '',
+          comment_id: d.commentId || '',
+          comment_url: getCommentUrl(d.prUrl || '', d.commentId || ''),
+          resolved: d.resolved ? 'true' : 'false',
+          review_author: d.user || '',
+          pr_author: d.prAuthor || '',
+          excerpt: d.excerpt || '',
+        }));
+        exportCsv(`review-comments-issued-${ymd}.csv`, header, rows);
+        return;
+      }
+
+      const details = collectVisibleReceived();
+      if (!details.length) {
+        alert('当前筛选下无被提检视意见（主评论）可导出');
+        return;
+      }
+      const rows = details.map((d) => ({
+        mode: 'received',
+        group_user: d.prAuthor || '',
+        repo: d.repo || '',
+        pr_number: d.prNum || '',
+        pr_title: d.prTitle || '',
+        pr_url: d.prUrl || '',
+        comment_id: d.commentId || '',
+        comment_url: getCommentUrl(d.prUrl || '', d.commentId || ''),
+        resolved: d.resolved ? 'true' : 'false',
+        review_author: d.reviewer || '',
+        pr_author: d.prAuthor || '',
+        excerpt: d.excerpt || '',
+      }));
+      exportCsv(`review-comments-received-${ymd}.csv`, header, rows);
+    });
+  }
+
   // 视图切换
-  const setView = (mode) => {
-    if (mode === 'list') {
+  const VIEW_KEY = 'pr_report_view_mode_v1';
+  let currentViewMode = 'card';
+  const setView = (mode, opts = {}) => {
+    const nextMode = (mode === 'list' || mode === 'issue' || mode === 'received') ? mode : 'card';
+    currentViewMode = nextMode;
+    if (!opts.skipPersist) {
+      try { localStorage.setItem(VIEW_KEY, nextMode); } catch (e) {}
+    }
+    const showReviewControls = nextMode === 'issue' || nextMode === 'received';
+    if (reviewControls) {
+      reviewControls.dataset.show = showReviewControls ? '1' : '0';
+    }
+    if (reviewUserKeyword) {
+      reviewUserKeyword.placeholder = nextMode === 'received' ? '筛选被提人（PR 作者）' : '筛选提出人';
+    }
+    if (nextMode === 'list') {
       if (!cardView || !listView) return;
       cardView.style.display = 'none';
       listView.style.display = 'block';
@@ -3296,7 +3499,7 @@ def build_html(
       if (viewIssueBtn) viewIssueBtn.classList.remove('active');
       if (viewReceivedBtn) viewReceivedBtn.classList.remove('active');
       refreshListView();
-    } else if (mode === 'issue') {
+    } else if (nextMode === 'issue') {
       if (cardView) cardView.style.display = 'none';
       if (listView) listView.style.display = 'none';
       if (issueView) issueView.style.display = 'block';
@@ -3306,7 +3509,7 @@ def build_html(
       if (viewListBtn) viewListBtn.classList.remove('active');
       if (viewReceivedBtn) viewReceivedBtn.classList.remove('active');
       refreshIssueView();
-    } else if (mode === 'received') {
+    } else if (nextMode === 'received') {
       if (cardView) cardView.style.display = 'none';
       if (listView) listView.style.display = 'none';
       if (issueView) issueView.style.display = 'none';
@@ -3339,6 +3542,20 @@ def build_html(
   }
   if (viewReceivedBtn) {
     viewReceivedBtn.addEventListener('click', () => setView('received'));
+  }
+  const refreshActiveReviewView = () => {
+    if (currentViewMode === 'issue') refreshIssueView();
+    if (currentViewMode === 'received') refreshReceivedView();
+  };
+  let reviewDebounce = null;
+  if (reviewUserKeyword) {
+    reviewUserKeyword.addEventListener('input', () => {
+      if (reviewDebounce) clearTimeout(reviewDebounce);
+      reviewDebounce = setTimeout(refreshActiveReviewView, 160);
+    });
+  }
+  if (reviewSortSelect) {
+    reviewSortSelect.addEventListener('change', refreshActiveReviewView);
   }
   if (refreshBtn) {
     refreshBtn.addEventListener('click', () => window.location.reload());
@@ -3529,6 +3746,12 @@ def build_html(
     });
   });
   wrappedApply();
+  try {
+    const savedView = localStorage.getItem(VIEW_KEY) || '';
+    if (savedView) {
+      setView(savedView, { skipPersist: true });
+    }
+  } catch (e) {}
 })();
 </script>
 """
