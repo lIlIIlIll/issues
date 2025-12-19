@@ -1253,6 +1253,61 @@ def build_html(
       display: none;
       margin-top: 12px;
     }
+    .issue-view {
+      display: none;
+      margin-top: 12px;
+    }
+    .issue-toggle {
+      background: none;
+      border: none;
+      padding: 0;
+      font: inherit;
+      color: #93c5fd;
+      cursor: pointer;
+      text-align: left;
+    }
+    .issue-toggle:hover {
+      text-decoration: underline;
+    }
+    .issue-detail {
+      padding: 8px 10px;
+    }
+    .issue-detail-item {
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin: 6px 0;
+    }
+    .issue-detail-link {
+      color: #93c5fd;
+      text-decoration: none;
+    }
+    .issue-detail-link:hover {
+      text-decoration: underline;
+    }
+    .issue-detail-meta {
+      color: #9ca3af;
+      font-size: 11px;
+    }
+    .issue-pill {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid #334155;
+      white-space: nowrap;
+    }
+    .issue-pill-unresolved {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: #f59e0b;
+      color: #ffedd5;
+    }
+    .issue-pill-resolved {
+      background: rgba(34, 197, 94, 0.12);
+      border-color: #22c55e;
+      color: #bbf7d0;
+    }
     .list-table {
       width: 100%;
       border-collapse: collapse;
@@ -1377,6 +1432,7 @@ def build_html(
         "<div style='display:flex;gap:6px'>"
         "<button type='button' class='view-toggle-btn active' id='view-card-btn'>卡片视图</button>"
         "<button type='button' class='view-toggle-btn' id='view-list-btn'>列表视图</button>"
+        "<button type='button' class='view-toggle-btn' id='view-issue-btn'>检视意见视图</button>"
         "</div>"
     )
     html_parts.append(
@@ -2041,6 +2097,18 @@ def build_html(
     )
     html_parts.append("</div>")
 
+    # 检视意见视图容器（按提出人聚合，仅统计主评论）
+    html_parts.append("<div class='issue-view' id='issue-view'>")
+    html_parts.append(
+        "<table class='list-table' id='issue-table'>"
+        "<thead><tr>"
+        "<th>提出人</th><th>检视意见（主评论）</th><th>未解决</th><th>已解决</th>"
+        "</tr></thead>"
+        "<tbody></tbody>"
+        "</table>"
+    )
+    html_parts.append("</div>")
+
     script = """
 <script>
 (() => {
@@ -2062,8 +2130,11 @@ def build_html(
   const cardView = document.getElementById('card-view');
   const listView = document.getElementById('list-view');
   const listTableBody = document.querySelector('#list-table tbody');
+  const issueView = document.getElementById('issue-view');
+  const issueTableBody = document.querySelector('#issue-table tbody');
   const viewCardBtn = document.getElementById('view-card-btn');
   const viewListBtn = document.getElementById('view-list-btn');
+  const viewIssueBtn = document.getElementById('view-issue-btn');
   const presetSelect = document.getElementById('preset-select');
   const presetApplyBtn = document.getElementById('preset-apply');
   const presetSaveBtn = document.getElementById('preset-save');
@@ -2204,6 +2275,183 @@ def build_html(
       listTableBody.appendChild(tr);
     });
   };
+
+  // 检视意见视图：按“提出检视意见的人（主评论作者）”聚合
+  let issueDetailMap = new Map();
+  const collectVisibleIssues = () => {
+    const rows = [];
+    const cards = Array.from(document.querySelectorAll('.pr-card'));
+    const toExcerpt = (text) => {
+      const compact = (text || '').replace(/\\s+/g, ' ').trim();
+      if (!compact) return '';
+      return compact.length > 120 ? compact.slice(0, 120) + '…' : compact;
+    };
+    cards.forEach((card) => {
+      const userBlock = card.closest('[data-user-block]');
+      if (card.style.display === 'none') return;
+      if (userBlock && userBlock.style.display === 'none') return;
+      const repo = card.dataset.repo || '';
+      const prNum = card.dataset.prNumber || '';
+      const prTitle = card.dataset.title || '';
+      const prUrl = card.dataset.url || '';
+      const items = Array.from(
+        card.querySelectorAll('.review-item[data-is-reply="0"]')
+      );
+      items.forEach((it) => {
+        if (it.style.display === 'none') return;
+        const user = (it.dataset.user || '').trim();
+        const resolved = it.dataset.resolved === 'true';
+        const commentId = (it.dataset.commentId || '').trim();
+        const bodyNode =
+          it.querySelector('.review-body') || it.querySelector('.review-body-content');
+        const excerpt = toExcerpt(bodyNode ? bodyNode.textContent : '');
+        rows.push({ repo, prNum, prTitle, prUrl, user, resolved, commentId, excerpt });
+      });
+    });
+    return rows;
+  };
+
+  const refreshIssueView = () => {
+    if (!issueTableBody) return;
+    issueTableBody.innerHTML = '';
+    const rows = collectVisibleIssues();
+    const map = new Map();
+    issueDetailMap = new Map();
+    rows.forEach((r) => {
+      const key = r.user || '(unknown)';
+      if (!map.has(key)) {
+        map.set(key, { user: key, total: 0, unresolved: 0, resolved: 0 });
+      }
+      if (!issueDetailMap.has(key)) {
+        issueDetailMap.set(key, []);
+      }
+      issueDetailMap.get(key).push(r);
+      const acc = map.get(key);
+      acc.total += 1;
+      if (r.resolved) acc.resolved += 1;
+      else acc.unresolved += 1;
+    });
+    const list = Array.from(map.values()).sort((a, b) => {
+      if (b.total !== a.total) return b.total - a.total;
+      return (a.user || '').localeCompare(b.user || '');
+    });
+    if (!list.length) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 4;
+      td.textContent = '当前筛选下无检视意见（主评论）';
+      tr.appendChild(td);
+      issueTableBody.appendChild(tr);
+      return;
+    }
+    list.forEach((r) => {
+      const tr = document.createElement('tr');
+      const tdUser = document.createElement('td');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'issue-toggle';
+      btn.dataset.issueToggle = '1';
+      btn.dataset.user = r.user;
+      btn.setAttribute('aria-expanded', 'false');
+      btn.textContent = r.user;
+      tdUser.appendChild(btn);
+      const tdTotal = document.createElement('td');
+      tdTotal.textContent = String(r.total);
+      const tdUnresolved = document.createElement('td');
+      tdUnresolved.textContent = String(r.unresolved);
+      const tdResolved = document.createElement('td');
+      tdResolved.textContent = String(r.resolved);
+      tr.appendChild(tdUser);
+      tr.appendChild(tdTotal);
+      tr.appendChild(tdUnresolved);
+      tr.appendChild(tdResolved);
+      issueTableBody.appendChild(tr);
+    });
+  };
+
+  if (issueTableBody) {
+    issueTableBody.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-issue-toggle]');
+      if (!btn) return;
+      const userKey = btn.dataset.user || '(unknown)';
+      const row = btn.closest('tr');
+      if (!row) return;
+
+      const next = row.nextElementSibling;
+      const isOpen = btn.getAttribute('aria-expanded') === 'true';
+      if (isOpen) {
+        if (next && next.classList.contains('issue-detail-row')) {
+          next.remove();
+        }
+        btn.setAttribute('aria-expanded', 'false');
+        return;
+      }
+      if (next && next.classList.contains('issue-detail-row')) {
+        next.remove();
+      }
+
+      const details = issueDetailMap.get(userKey) || [];
+      const sorted = [...details].sort((a, b) => {
+        if (a.resolved !== b.resolved) return a.resolved ? 1 : -1; // unresolved first
+        const ra = a.repo || '';
+        const rb = b.repo || '';
+        const cmpRepo = ra.localeCompare(rb);
+        if (cmpRepo) return cmpRepo;
+        const na = parseInt(a.prNum || '0', 10) || 0;
+        const nb = parseInt(b.prNum || '0', 10) || 0;
+        if (na !== nb) return na - nb;
+        return (a.commentId || '').localeCompare(b.commentId || '');
+      });
+
+      const detailTr = document.createElement('tr');
+      detailTr.className = 'issue-detail-row';
+      const detailTd = document.createElement('td');
+      detailTd.colSpan = 4;
+      const wrap = document.createElement('div');
+      wrap.className = 'issue-detail';
+
+      if (!sorted.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-text';
+        empty.textContent = '无检视意见（主评论）';
+        wrap.appendChild(empty);
+      } else {
+        sorted.forEach((it) => {
+          const line = document.createElement('div');
+          line.className = 'issue-detail-item';
+
+          const pill = document.createElement('span');
+          pill.className = `issue-pill ${it.resolved ? 'issue-pill-resolved' : 'issue-pill-unresolved'}`;
+          pill.textContent = it.resolved ? '已解决' : '未解决';
+
+          const link = document.createElement(it.prUrl ? 'a' : 'span');
+          if (it.prUrl) {
+            link.href = it.prUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.className = 'issue-detail-link';
+          }
+          const prPrefix = it.repo ? `${it.repo} ` : '';
+          link.textContent = `${prPrefix}#${it.prNum || ''} ${it.prTitle || ''}`.trim();
+
+          const meta = document.createElement('span');
+          meta.className = 'issue-detail-meta';
+          const cid = it.commentId ? `评论 #${it.commentId}` : '评论';
+          meta.textContent = it.excerpt ? `${cid} · ${it.excerpt}` : cid;
+
+          line.appendChild(pill);
+          line.appendChild(link);
+          line.appendChild(meta);
+          wrap.appendChild(line);
+        });
+      }
+
+      detailTd.appendChild(wrap);
+      detailTr.appendChild(detailTd);
+      row.after(detailTr);
+      btn.setAttribute('aria-expanded', 'true');
+    });
+  }
 
   const refreshStats = () => {
     if (!statTotal || !statOpen || !statMerged || !statUnresolved) return;
@@ -2787,18 +3035,31 @@ def build_html(
 
   // 视图切换
   const setView = (mode) => {
-    if (!cardView || !listView) return;
     if (mode === 'list') {
+      if (!cardView || !listView) return;
       cardView.style.display = 'none';
       listView.style.display = 'block';
+      if (issueView) issueView.style.display = 'none';
       if (viewListBtn) viewListBtn.classList.add('active');
       if (viewCardBtn) viewCardBtn.classList.remove('active');
+      if (viewIssueBtn) viewIssueBtn.classList.remove('active');
       refreshListView();
+    } else if (mode === 'issue') {
+      if (cardView) cardView.style.display = 'none';
+      if (listView) listView.style.display = 'none';
+      if (issueView) issueView.style.display = 'block';
+      if (viewIssueBtn) viewIssueBtn.classList.add('active');
+      if (viewCardBtn) viewCardBtn.classList.remove('active');
+      if (viewListBtn) viewListBtn.classList.remove('active');
+      refreshIssueView();
     } else {
+      if (!cardView || !listView) return;
       cardView.style.display = 'block';
       listView.style.display = 'none';
+      if (issueView) issueView.style.display = 'none';
       if (viewCardBtn) viewCardBtn.classList.add('active');
       if (viewListBtn) viewListBtn.classList.remove('active');
+      if (viewIssueBtn) viewIssueBtn.classList.remove('active');
     }
   };
   if (viewCardBtn) {
@@ -2806,6 +3067,9 @@ def build_html(
   }
   if (viewListBtn) {
     viewListBtn.addEventListener('click', () => setView('list'));
+  }
+  if (viewIssueBtn) {
+    viewIssueBtn.addEventListener('click', () => setView('issue'));
   }
   if (refreshBtn) {
     refreshBtn.addEventListener('click', () => window.location.reload());
@@ -2841,6 +3105,9 @@ def build_html(
     updateSummary();
     if (listView && listView.style.display !== 'none') {
       refreshListView();
+    }
+    if (issueView && issueView.style.display !== 'none') {
+      refreshIssueView();
     }
     refreshStats();
   };
