@@ -1017,9 +1017,9 @@ def build_html(
       border-radius: 8px;
       padding: 8px 10px;
       margin-bottom: 8px;
-      background: #1b2535;
-      border: 1px solid #2a3548;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 6px var(--shadow);
     }
     .review-item.unresolved {
       border-left: 4px solid #ef4444; /* 未解决：红色边 */
@@ -1028,6 +1028,21 @@ def build_html(
     .review-item.resolved {
       border-left: 4px solid #22c55e; /* 已解决：绿边 */
       background: rgba(34, 197, 94, 0.08);
+    }
+    .review-replies {
+      margin-left: 14px;
+      padding-left: 10px;
+      border-left: 2px dashed var(--border);
+    }
+    .review-item.review-reply {
+      background: var(--surface-0);
+      border-style: dashed;
+      border-color: var(--border);
+      box-shadow: none;
+    }
+    .review-item.review-reply .review-header {
+      font-size: 11px;
+      color: var(--muted);
     }
 
     .review-header {
@@ -1041,7 +1056,7 @@ def build_html(
     }
     .review-meta {
       font-size: 10px;
-      color: #9ca3af;
+      color: var(--muted);
       margin-bottom: 4px;
     }
 
