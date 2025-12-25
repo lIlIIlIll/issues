@@ -480,16 +480,27 @@ def fetch_repo_user_data(
     拉取一个仓库 + 一个用户的所有 PR，并填充 issues/comments，
     不在拉取阶段做过滤，交给前端页面自行过滤。
     """
+    repo_name = f"{repo_cfg.owner}/{repo_cfg.repo}"
+    t0 = time.perf_counter()
+    print(f"[info] fetch start: {repo_name} {username}")
     prs = fetch_prs_for_user(access_token, repo_cfg, username)
+    print(f"[info] fetch prs: {repo_name} {username} count={len(prs)}")
 
     result: List[PRInfo] = []
+    total_comments = 0
+    total_issues = 0
+    total_files = 0
+    total_add = 0
+    total_del = 0
     for pr in prs:
         # 先拉评论
         comments = fetch_comments_for_pr(access_token, repo_cfg, pr.number)
         pr.comments = comments
+        total_comments += len(comments)
 
         # 再拉 issues
         pr.issues = fetch_issues_for_pr(access_token, repo_cfg, pr.number)
+        total_issues += len(pr.issues)
 
         # 再拉文件变更统计
         if code_stats_enabled:
@@ -500,9 +511,34 @@ def fetch_repo_user_data(
             pr.deletions = dele
             pr.changed_files = files
             pr.file_stats = stats or {}
+            if add is not None:
+                total_add += add
+            if dele is not None:
+                total_del += dele
+            if files is not None:
+                total_files += files
+            print(
+                f"[info] pr detail: {repo_name} {username} "
+                f"#{pr.number} comments={len(comments)} issues={len(pr.issues)} "
+                f"files={files if files is not None else 'n/a'} "
+                f"add={add if add is not None else 'n/a'} "
+                f"del={dele if dele is not None else 'n/a'}"
+            )
+        else:
+            print(
+                f"[info] pr detail: {repo_name} {username} "
+                f"#{pr.number} comments={len(comments)} issues={len(pr.issues)} "
+                "files=skip"
+            )
 
         result.append(pr)
 
+    elapsed = time.perf_counter() - t0
+    print(
+        f"[info] fetch done: {repo_name} {username} prs={len(prs)} "
+        f"comments={total_comments} issues={total_issues} files={total_files} "
+        f"add={total_add} del={total_del} elapsed={elapsed:.1f}s"
+    )
     return result
 
 
@@ -2731,6 +2767,11 @@ def build_html(
   const CODE_STAT_SUFFIXES = new Set(
     (CLIENT_CONFIG.codeStatSuffixes || []).map((s) => (s || '').toLowerCase())
   );
+  const logInfo = (...args) => {
+    if (typeof console !== 'undefined' && console.info) {
+      console.info('[pr-report]', ...args);
+    }
+  };
 
   const getSelectedStates = () => {
     const checked = stateChecks.filter((c) => c.checked).map((c) => c.value);
@@ -4507,6 +4548,7 @@ def build_html(
     const resp = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
     if (!resp.ok) {
       const text = await resp.text();
+      logInfo('API 失败', path, resp.status, text.slice(0, 120));
       throw new Error(`GitCode API 请求失败: ${resp.status} ${text.slice(0, 200)}`);
     }
     return resp.json();
@@ -4565,6 +4607,7 @@ def build_html(
         await new Promise((r) => setTimeout(r, 50));
       }
     }
+    logInfo('PR 列表完成', `${repoCfg.owner}/${repoCfg.repo}`, username, allPrs.length);
     return allPrs;
   };
 
@@ -4689,6 +4732,9 @@ def build_html(
   };
 
   const fetchRepoUserData = async (repoCfg, username, token, detailLimiter, onProgress) => {
+    const repoName = `${repoCfg.owner}/${repoCfg.repo}`;
+    const t0 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    logInfo('用户开始', repoName, username);
     const prs = await fetchPrsForUser(repoCfg, username, token);
     const tasks = prs.map((pr) =>
       detailLimiter(async () => {
@@ -4712,16 +4758,31 @@ def build_html(
         pr.deletions = fileStats.deletions;
         pr.changed_files = fileStats.changed_files;
         pr.file_stats = fileStats.file_stats || {};
+        logInfo('PR 详情完成', repoName, `#${pr.number}`, {
+          comments: pr.comments.length,
+          issues: pr.issues.length,
+          files: pr.changed_files,
+          additions: pr.additions,
+          deletions: pr.deletions,
+        });
         return pr;
       })
     );
-    return Promise.all(tasks);
+    const list = await Promise.all(tasks);
+    const t1 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    logInfo('用户完成', repoName, username, { prs: list.length, ms: Math.round(t1 - t0) });
+    return list;
   };
 
   const fetchAllData = async (token, onProgress) => {
     const data = {};
     const repos = Array.isArray(CLIENT_CONFIG.repos) ? CLIENT_CONFIG.repos : [];
     const users = Array.isArray(CLIENT_CONFIG.users) ? CLIENT_CONFIG.users : [];
+    logInfo('开始拉取', {
+      repos: repos.length,
+      users: users.length,
+      codeStats: CODE_STATS_ENABLED,
+    });
     const repoLimiter = createLimiter(4);
     const detailLimiter = createLimiter(6);
     const tasks = [];
@@ -4739,6 +4800,10 @@ def build_html(
       });
     });
     await Promise.all(tasks);
+    const totalPrs = Object.values(data).reduce((accRepo, repoUsers) => {
+      return accRepo + Object.values(repoUsers || {}).reduce((acc, prs) => acc + (prs ? prs.length : 0), 0);
+    }, 0);
+    logInfo('拉取完成', { totalPrs });
     return data;
   };
 
@@ -4759,20 +4824,28 @@ def build_html(
       refreshBtn.textContent = '刷新中...';
     }
     setRefreshStatus('正在拉取数据...', 'ok');
+    logInfo('刷新开始');
     try {
       const data = await fetchAllData(token, (msg) => setRefreshStatus(msg, 'ok'));
       const meta = collectMetaFromData(data);
       renderDynamicFilters(meta);
       buildCardView(data);
       wrappedApply();
+      logInfo('筛选项数量', {
+        issueLabels: (meta.issueLabels || []).length,
+        prTypes: (meta.prTypes || []).length,
+        targets: (meta.targets || []).length,
+      });
       const now = new Date();
       const pad = (n) => String(n).padStart(2, '0');
       const stamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
       setRefreshStatus(`已刷新 ${stamp}`, 'ok');
+      logInfo('刷新完成', { stamp });
     } catch (e) {
       console.error(e);
       setRefreshStatus('刷新失败，请检查 Token 或网络', 'error');
       alert(`刷新失败：${e?.message || e}`);
+      logInfo('刷新失败', e?.message || e);
     } finally {
       if (refreshBtn) {
         refreshBtn.disabled = false;
@@ -5335,6 +5408,13 @@ def main() -> None:
 
     client_only = args.client_only or os.getenv("GITCODE_CLIENT_ONLY") == "1"
     code_stats_enabled = cfg.code_stats and not args.no_code_stats
+    print(
+        "[info] options:",
+        f"client_only={client_only}",
+        f"code_stats_enabled={code_stats_enabled}",
+        f"repos={len(cfg.repos)}",
+        f"users={len(cfg.users)}",
+    )
 
     if not cfg.access_token and not client_only:
         print(
@@ -5364,6 +5444,7 @@ def main() -> None:
     if tasks:
         # 并发执行，max_workers 可以按你仓库/用户规模调，8–16 一般够
         max_workers = min(len(tasks), 16) or 1
+        print(f"[info] server fetch tasks: {len(tasks)}")
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_key = {}
             for repo_name, repo_cfg, username in tasks:
