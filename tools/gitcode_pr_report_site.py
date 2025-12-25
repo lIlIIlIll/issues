@@ -2133,23 +2133,35 @@ def build_html(
                                 "<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>"
                             )
                         else:
-                            # 1. 按 reviewer 分组（保留原有顺序）
+                            # 1. 按 reviewer 分组（仅主评论，保留原有顺序）
                             from collections import OrderedDict
 
+                            parent_comments_all = [
+                                cm for cm in all_comments if not cm.is_reply
+                            ]
                             grouped: "OrderedDict[str, List[ReviewComment]]" = (
                                 OrderedDict()
                             )
-                            for cm in all_comments:
+                            for cm in parent_comments_all:
                                 key = cm.user or "(unknown)"
                                 if key not in grouped:
                                     grouped[key] = []
                                 grouped[key].append(cm)
 
-                            # 2. 逐个 reviewer 输出
-                            for reviewer, comments in grouped.items():
-                                parent_comments = [
-                                    cm for cm in comments if not cm.is_reply
-                                ]
+                            # 2. 回复索引（跨作者，挂到对应主评论）
+                            replies_by_parent: Dict[int, List[ReviewComment]] = {}
+                            orphan_replies: List[ReviewComment] = []
+                            parent_ids = {cm.id for cm in parent_comments_all}
+                            for cm in all_comments:
+                                if not cm.is_reply:
+                                    continue
+                                if cm.parent_id is not None and cm.parent_id in parent_ids:
+                                    replies_by_parent.setdefault(cm.parent_id, []).append(cm)
+                                else:
+                                    orphan_replies.append(cm)
+
+                            # 3. 逐个 reviewer 输出
+                            for reviewer, parent_comments in grouped.items():
                                 parent_count = len(parent_comments)
                                 parent_unresolved = sum(
                                     1 for cm in parent_comments if cm.resolved is False
@@ -2176,16 +2188,6 @@ def build_html(
                                 html_parts.append("</summary>")
 
                                 html_parts.append("<div class='reviewer-group-body'>")
-
-                                replies_by_parent: Dict[int, List[ReviewComment]] = {}
-                                orphan_replies: List[ReviewComment] = []
-                                for cm in comments:
-                                    if cm.is_reply and cm.parent_id is not None:
-                                        replies_by_parent.setdefault(
-                                            cm.parent_id, []
-                                        ).append(cm)
-                                    elif cm.is_reply:
-                                        orphan_replies.append(cm)
 
                                 def render_comment(
                                     cm: ReviewComment, *, is_reply: bool = False
@@ -2273,12 +2275,28 @@ def build_html(
                                             render_comment(rp, is_reply=True)
                                         html_parts.append("</div>")
 
-                                # 孤立回复也展示
-                                for rp in orphan_replies:
-                                    render_comment(rp, is_reply=True)
-
                                 html_parts.append("</div>")  # reviewer-group-body
                                 html_parts.append("</details>")  # reviewer-group
+
+                            # 4. 孤立回复：没有匹配主评论的回复，单独展示
+                            if orphan_replies:
+                                html_parts.append("<details class='reviewer-group' open>")
+                                html_parts.append("<summary>")
+                                html_parts.append(
+                                    "<div class='reviewer-group-title'>"
+                                    "回复（无主）"
+                                    f"<span>{len(orphan_replies)} 条回复</span>"
+                                    "</div>"
+                                )
+                                html_parts.append("<div class='reviewer-chevron'>▶</div>")
+                                html_parts.append("</summary>")
+                                html_parts.append("<div class='reviewer-group-body'>")
+                                html_parts.append("<div class='review-replies'>")
+                                for rp in orphan_replies:
+                                    render_comment(rp, is_reply=True)
+                                html_parts.append("</div>")
+                                html_parts.append("</div>")
+                                html_parts.append("</details>")
 
                         html_parts.append(
                             "<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>"
