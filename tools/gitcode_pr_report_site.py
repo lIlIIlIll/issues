@@ -1042,7 +1042,7 @@ def build_html(
     }
     .review-item.review-reply .review-header {
       font-size: 11px;
-      color: var(--muted);
+      color: var(--fg);
     }
 
     .review-header {
@@ -3194,8 +3194,6 @@ def build_html(
   reviewItems.forEach((it) => {
     const isReply = it.dataset.isReply === '1';
         const user = (it.dataset.user || '').trim();
-    const parentUser = (it.dataset.parentUser || '').trim();
-    const authorReplyOnly = !isReply || !parentUser || parentUser === user;
     const bodyNode =
       it.querySelector('.review-body') || it.querySelector('.review-body-content');
     const bodyText = (bodyNode ? bodyNode.textContent : it.textContent) || '';
@@ -3215,8 +3213,7 @@ def build_html(
       matchesKeyword &&
       !excludeHit &&
       (!onlyUnresolved || !isResolved) &&
-      (!onlyResolved || isResolved) &&
-      authorReplyOnly;
+      (!onlyResolved || isResolved);
         const visible = baseVisible && !(hideReplies && isReply);
         it.style.display = visible ? '' : 'none';
         it.dataset._visible = visible ? '1' : '0';
