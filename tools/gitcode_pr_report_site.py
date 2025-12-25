@@ -94,6 +94,7 @@ class PRInfo:
     additions: Optional[int] = None
     deletions: Optional[int] = None
     changed_files: Optional[int] = None
+    file_stats: Dict[str, Dict[str, int]] = field(default_factory=dict)
 
 
 # ----------------- 配置读取 -----------------
@@ -361,7 +362,7 @@ def fetch_files_for_pr(
     access_token: Optional[str],
     repo_cfg: RepoConfig,
     pr_number: int,
-) -> tuple[Optional[int], Optional[int], Optional[int]]:
+) -> tuple[Optional[int], Optional[int], Optional[int], Dict[str, Dict[str, int]]]:
     """
     GET /repos/:owner/:repo/pulls/:number/files
     返回 (additions, deletions, changed_files)，若失败返回 (None, None, None)
@@ -369,6 +370,7 @@ def fetch_files_for_pr(
     total_add = 0
     total_del = 0
     total_files = 0
+    stats: Dict[str, Dict[str, int]] = {}
     page = 1
     per_page = 100
 
@@ -405,6 +407,12 @@ def fetch_files_for_pr(
             total_add += add
             total_del += dele
             total_files += 1
+            name = it.get("filename") or it.get("new_path") or it.get("old_path") or ""
+            ext = _ext_from_filename(name)
+            bucket = stats.setdefault(ext, {"additions": 0, "deletions": 0, "files": 0})
+            bucket["additions"] += add
+            bucket["deletions"] += dele
+            bucket["files"] += 1
 
         if not isinstance(data, list) or len(items) < per_page:
             break
@@ -412,7 +420,19 @@ def fetch_files_for_pr(
         page += 1
         time.sleep(0.05)
 
-    return total_add, total_del, total_files
+    return total_add, total_del, total_files, stats
+
+
+def _ext_from_filename(name: str) -> str:
+    base = os.path.basename(name or "")
+    if not base:
+        return "(no_ext)"
+    root, ext = os.path.splitext(base)
+    if ext:
+        return ext.lower()
+    if base.startswith(".") and len(base) > 1 and root:
+        return base.lower()
+    return "(no_ext)"
 
 
 def _infer_resolved(comment: Dict[str, Any]) -> Optional[bool]:
@@ -459,10 +479,13 @@ def fetch_repo_user_data(
         pr.issues = fetch_issues_for_pr(access_token, repo_cfg, pr.number)
 
         # 再拉文件变更统计
-        add, dele, files = fetch_files_for_pr(access_token, repo_cfg, pr.number)
+        add, dele, files, stats = fetch_files_for_pr(
+            access_token, repo_cfg, pr.number
+        )
         pr.additions = add
         pr.deletions = dele
         pr.changed_files = files
+        pr.file_stats = stats or {}
 
         result.append(pr)
 
@@ -2064,9 +2087,28 @@ def build_html(
                             and pr.deletions is not None
                             and pr.changed_files is not None
                         )
+                        ext_summary = ""
+                        if pr.file_stats:
+                            ext_list = sorted(
+                                pr.file_stats.items(),
+                                key=lambda kv: (
+                                    kv[1].get("additions", 0)
+                                    + kv[1].get("deletions", 0)
+                                ),
+                                reverse=True,
+                            )
+                            top = []
+                            for ext, stat in ext_list[:3]:
+                                top.append(
+                                    f"{ext} +{stat.get('additions', 0)}/-{stat.get('deletions', 0)}"
+                                )
+                            if top:
+                                ext_summary = " · 后缀：" + " · ".join(top)
+                                if len(ext_list) > 3:
+                                    ext_summary += " 等"
                         if code_known:
                             code_text = (
-                                f"代码变更：+{pr.additions} / -{pr.deletions} · 文件 {pr.changed_files}"
+                                f"代码变更：+{pr.additions} / -{pr.deletions} · 文件 {pr.changed_files}{ext_summary}"
                             )
                         else:
                             code_text = "代码变更：未知"
@@ -2093,6 +2135,7 @@ def build_html(
                             f" data-additions='{'' if pr.additions is None else pr.additions}'"
                             f" data-deletions='{'' if pr.deletions is None else pr.deletions}'"
                             f" data-changed-files='{'' if pr.changed_files is None else pr.changed_files}'"
+                            f" data-code-stats='{escape_html(json.dumps(pr.file_stats, ensure_ascii=False))}'"
                             f" data-created='{escape_html(pr.created_at)}'"
                             f" data-updated='{escape_html(pr.updated_at)}'"
                             f" data-issue-labels='{escape_html('||'.join(issue_labels_flat))}'"
@@ -2415,7 +2458,7 @@ def build_html(
     html_parts.append(
         "<table class='list-table' id='list-table'>"
         "<thead><tr>"
-        "<th>仓库</th><th>用户</th><th>PR</th><th>状态</th><th>类型</th><th>未解决</th><th>已解决</th><th>新增</th><th>删除</th><th>文件</th><th>创建</th><th>更新时间</th><th>分支</th>"
+        "<th>仓库</th><th>用户</th><th>PR</th><th>状态</th><th>类型</th><th>未解决</th><th>已解决</th><th>新增</th><th>删除</th><th>文件</th><th>后缀</th><th>创建</th><th>更新时间</th><th>分支</th>"
         "</tr></thead>"
         "<tbody></tbody>"
         "</table>"
@@ -2451,7 +2494,7 @@ def build_html(
     html_parts.append(
         "<table class='list-table' id='code-table'>"
         "<thead><tr>"
-        "<th>用户</th><th>PR 数</th><th>新增</th><th>删除</th><th>文件</th>"
+        "<th>用户</th><th>PR 数</th><th>新增</th><th>删除</th><th>文件</th><th>后缀</th>"
         "</tr></thead>"
         "<tbody></tbody>"
         "</table>"
@@ -2613,6 +2656,8 @@ def build_html(
       const additions = parseInt(additionsRaw || '0', 10) || 0;
       const deletions = parseInt(deletionsRaw || '0', 10) || 0;
       const files = parseInt(filesRaw || '0', 10) || 0;
+      const codeStats = parseCodeStats(card.dataset.codeStats || '');
+      const extSummary = summarizeExtStats(codeStats);
       const created = card.dataset.created || '';
       const updated = card.dataset.updated || '';
       const branch =
@@ -2635,6 +2680,8 @@ def build_html(
         deletions,
         files,
         codeKnown,
+        extSummary,
+        codeStats,
         created,
         updated,
         branch,
@@ -2657,6 +2704,7 @@ def build_html(
       const addDisplay = r.codeKnown ? r.additions : '-';
       const delDisplay = r.codeKnown ? r.deletions : '-';
       const filesDisplay = r.codeKnown ? r.files : '-';
+      const extDisplay = r.codeKnown ? (r.extSummary || '-') : '-';
       tr.innerHTML = `
         <td>${r.repo}</td>
         <td>${r.user}</td>
@@ -2668,6 +2716,7 @@ def build_html(
         <td>${addDisplay}</td>
         <td>${delDisplay}</td>
         <td>${filesDisplay}</td>
+        <td>${extDisplay}</td>
         <td>${r.created}</td>
         <td>${r.updated}</td>
         <td>${r.branch}</td>
@@ -3106,21 +3155,29 @@ def build_html(
       const additions = parseInt(card.dataset.additions || '0', 10) || 0;
       const deletions = parseInt(card.dataset.deletions || '0', 10) || 0;
       const files = parseInt(card.dataset.changedFiles || '0', 10) || 0;
-      rows.push({ repo, user, num, title, url, additions, deletions, files });
+      const codeStats = parseCodeStats(card.dataset.codeStats || '');
+      rows.push({ repo, user, num, title, url, additions, deletions, files, codeStats });
     });
     return rows;
   };
 
-  const refreshCodeView = () => {
-    if (!codeTableBody) return;
-    codeTableBody.innerHTML = '';
-    const rows = collectVisibleCodeRows();
+    const refreshCodeView = () => {
+      if (!codeTableBody) return;
+      codeTableBody.innerHTML = '';
+      const rows = collectVisibleCodeRows();
     const map = new Map();
     codeDetailMap = new Map();
     rows.forEach((r) => {
       const key = r.user || '(unknown)';
       if (!map.has(key)) {
-        map.set(key, { user: key, prs: 0, additions: 0, deletions: 0, files: 0 });
+        map.set(key, {
+          user: key,
+          prs: 0,
+          additions: 0,
+          deletions: 0,
+          files: 0,
+          extStats: {},
+        });
       }
       if (!codeDetailMap.has(key)) {
         codeDetailMap.set(key, []);
@@ -3131,6 +3188,15 @@ def build_html(
       acc.additions += r.additions;
       acc.deletions += r.deletions;
       acc.files += r.files;
+      if (r.codeStats) {
+        Object.entries(r.codeStats).forEach(([ext, stat]) => {
+          const bucket = acc.extStats[ext] || { additions: 0, deletions: 0, files: 0 };
+          bucket.additions += parseInt(stat.additions || 0, 10) || 0;
+          bucket.deletions += parseInt(stat.deletions || 0, 10) || 0;
+          bucket.files += parseInt(stat.files || 0, 10) || 0;
+          acc.extStats[ext] = bucket;
+        });
+      }
     });
     const list = Array.from(map.values()).sort((a, b) => {
       const ta = (a.additions || 0) + (a.deletions || 0);
@@ -3141,7 +3207,7 @@ def build_html(
     if (!list.length) {
       const tr = document.createElement('tr');
       const td = document.createElement('td');
-      td.colSpan = 5;
+      td.colSpan = 6;
       td.textContent = '当前筛选下无代码统计数据';
       tr.appendChild(td);
       codeTableBody.appendChild(tr);
@@ -3167,11 +3233,14 @@ def build_html(
       tdDel.textContent = String(r.deletions);
       const tdFiles = document.createElement('td');
       tdFiles.textContent = String(r.files);
+      const tdExt = document.createElement('td');
+      tdExt.textContent = summarizeExtStats(r.extStats) || '-';
       tr.appendChild(tdUser);
       tr.appendChild(tdPrs);
       tr.appendChild(tdAdd);
       tr.appendChild(tdDel);
       tr.appendChild(tdFiles);
+      tr.appendChild(tdExt);
       codeTableBody.appendChild(tr);
     });
   };
@@ -3210,7 +3279,7 @@ def build_html(
       const detailTr = document.createElement('tr');
       detailTr.className = 'code-detail-row';
       const detailTd = document.createElement('td');
-      detailTd.colSpan = 5;
+      detailTd.colSpan = 6;
       const wrap = document.createElement('div');
       wrap.className = 'issue-detail';
 
@@ -3236,7 +3305,8 @@ def build_html(
 
           const meta = document.createElement('span');
           meta.className = 'issue-detail-meta';
-          meta.textContent = `+${it.additions} / -${it.deletions} · 文件 ${it.files}`;
+          const extSummary = summarizeExtStats(it.codeStats) || '';
+          meta.textContent = `+${it.additions} / -${it.deletions} · 文件 ${it.files}${extSummary ? ` · ${extSummary}` : ''}`;
 
           line.appendChild(link);
           line.appendChild(meta);
@@ -3784,6 +3854,28 @@ def build_html(
     return (a.user || '').localeCompare(b.user || '');
   };
 
+  const parseCodeStats = (raw) => {
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const summarizeExtStats = (stats, max = 3) => {
+    if (!stats) return '';
+    const list = Object.entries(stats).map(([ext, val]) => ({
+      ext,
+      add: parseInt(val.additions || 0, 10) || 0,
+      del: parseInt(val.deletions || 0, 10) || 0,
+    }));
+    list.sort((a, b) => (b.add + b.del) - (a.add + a.del));
+    const parts = list.slice(0, max).map((it) => `${it.ext} +${it.add}/-${it.del}`);
+    if (!parts.length) return '';
+    return parts.join(' · ') + (list.length > max ? ' 等' : '');
+  };
+
   if (filterToggle && filterBar) {
     filterToggle.addEventListener('click', () => {
       const isOpen = filterBar.dataset.open === '1';
@@ -3814,6 +3906,7 @@ def build_html(
         'additions',
         'deletions',
         'files',
+        'ext_summary',
         'created',
         'updated',
         'branch',
@@ -3839,6 +3932,7 @@ def build_html(
           escape(r.codeKnown ? r.additions : ''),
           escape(r.codeKnown ? r.deletions : ''),
           escape(r.codeKnown ? r.files : ''),
+          escape(r.codeKnown ? (r.extSummary || '') : ''),
           escape(r.created),
           escape(r.updated),
           escape(r.branch),
