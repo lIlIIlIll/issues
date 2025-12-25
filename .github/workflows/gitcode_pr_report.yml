@@ -1,5 +1,4 @@
 name: GitCode PR Review Site
-
 on:
   workflow_dispatch:
   schedule:
@@ -10,16 +9,13 @@ on:
   push:
     branches:
       - main
-
 permissions:
   contents: read
   pages: write
   id-token: write
-
 concurrency:
   group: "gitcode-pr-pages"
   cancel-in-progress: false
-
 jobs:
   script:
     runs-on: ubuntu-latest
@@ -31,7 +27,6 @@ jobs:
           date -u
           echo "Local System Time:"
           date
-
   build:
     needs: script
     runs-on: ubuntu-latest
@@ -54,12 +49,12 @@ jobs:
             -c .github/gitcode_pr_config.toml \
             --only-unresolved \
             --hide-clean-prs \
+            --no-code-stats \
             -o site/index.html
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: site
-
   deploy:
     needs: build
     runs-on: ubuntu-latest

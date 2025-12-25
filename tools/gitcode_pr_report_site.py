@@ -53,6 +53,7 @@ class Config:
     users: List[str]
     groups: Dict[str, List[str]]
     repos: List[RepoConfig]
+    code_stats: bool = True
 
 
 @dataclass
@@ -170,6 +171,9 @@ def load_config(path: str) -> Config:
     if global_per_page < 1 or global_per_page > 100:
         global_per_page = 30
 
+    code_stats_raw = data.get("code_stats", True)
+    code_stats = bool(code_stats_raw) if isinstance(code_stats_raw, bool) else True
+
     repos_raw = data.get("repos")
     if not repos_raw or not isinstance(repos_raw, list):
         raise ValueError(
@@ -207,7 +211,11 @@ def load_config(path: str) -> Config:
                 seen_users.add(name)
 
     return Config(
-        access_token=access_token, users=merged_users, groups=groups, repos=repos
+        access_token=access_token,
+        users=merged_users,
+        groups=groups,
+        repos=repos,
+        code_stats=code_stats,
     )
 
 
@@ -465,6 +473,8 @@ def fetch_repo_user_data(
     access_token: Optional[str],
     repo_cfg: RepoConfig,
     username: str,
+    *,
+    code_stats_enabled: bool = True,
 ) -> List[PRInfo]:
     """
     拉取一个仓库 + 一个用户的所有 PR，并填充 issues/comments，
@@ -482,13 +492,14 @@ def fetch_repo_user_data(
         pr.issues = fetch_issues_for_pr(access_token, repo_cfg, pr.number)
 
         # 再拉文件变更统计
-        add, dele, files, stats = fetch_files_for_pr(
-            access_token, repo_cfg, pr.number
-        )
-        pr.additions = add
-        pr.deletions = dele
-        pr.changed_files = files
-        pr.file_stats = stats or {}
+        if code_stats_enabled:
+            add, dele, files, stats = fetch_files_for_pr(
+                access_token, repo_cfg, pr.number
+            )
+            pr.additions = add
+            pr.deletions = dele
+            pr.changed_files = files
+            pr.file_stats = stats or {}
 
         result.append(pr)
 
@@ -1289,6 +1300,25 @@ def build_html(
       border: 1px solid var(--border);
       background: var(--surface-0);
     }
+    .token-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .token-input {
+      min-width: 220px;
+    }
+    .token-status {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .token-status[data-state="error"] {
+      color: #f59e0b;
+    }
+    .token-status[data-state="ok"] {
+      color: #10b981;
+    }
     .filter-chip-btn.secondary {
       background: var(--chip-bg-2);
     }
@@ -1661,6 +1691,25 @@ def build_html(
     """
 
     group_json = json.dumps(cfg.groups, ensure_ascii=False)
+    client_repos = [
+        {
+            "owner": r.owner,
+            "repo": r.repo,
+            "states": list(r.states),
+            "per_page": r.per_page,
+        }
+        for r in cfg.repos
+    ]
+    client_config = {
+        "baseUrl": BASE_URL,
+        "repos": client_repos,
+        "users": list(cfg.users),
+        "groups": cfg.groups,
+        "allowedPrTypes": sorted(allowed_pr_types),
+        "codeStatSuffixes": sorted(CODE_STAT_SUFFIXES),
+        "codeStatsEnabled": cfg.code_stats,
+    }
+    client_config_json = json.dumps(client_config, ensure_ascii=False)
 
     html_parts: List[str] = [
         "<!DOCTYPE html>",
@@ -1736,6 +1785,15 @@ def build_html(
         "<option value='light'>主题：亮色</option>"
         "<option value='contrast'>主题：高对比</option>"
         "</select>"
+    )
+    html_parts.append(
+        "<div class='token-box'>"
+        "<input type='password' id='api-token' class='filter-text token-input' "
+        "placeholder='API Token（仅保存在本地浏览器）' />"
+        "<button type='button' class='filter-chip-btn secondary' id='token-clear'>清除 Token</button>"
+        "<span class='token-status' id='token-status'>未设置</span>"
+        "<span class='token-status' id='refresh-status'></span>"
+        "</div>"
     )
     html_parts.append(
         "<div class='review-controls' id='review-controls' data-show='0'>"
@@ -1854,48 +1912,54 @@ def build_html(
     html_parts.append("</div>")
 
     # Issue 标签
-    if issue_labels:
-        html_parts.append("<div class='filter-group'>")
-        html_parts.append("<h3>Issue 标签 <span>(多选)</span></h3>")
-        html_parts.append("<div class='filter-user-list'>")
-        for lab in issue_labels:
-            html_parts.append(
-                "<label class='filter-label'>"
-                f"<input type='checkbox' class='filter-issue-label-checkbox' value='{escape_html(lab)}' /> "
-                f"{escape_html(lab)}"
-                "</label>"
-            )
-        html_parts.append("</div>")
-        html_parts.append("</div>")
+    issue_group_style = "" if issue_labels else " style='display:none'"
+    html_parts.append(
+        f"<div class='filter-group' id='filter-issue-group'{issue_group_style}>"
+    )
+    html_parts.append("<h3>Issue 标签 <span>(多选)</span></h3>")
+    html_parts.append("<div class='filter-user-list' id='filter-issue-list'>")
+    for lab in issue_labels:
+        html_parts.append(
+            "<label class='filter-label'>"
+            f"<input type='checkbox' class='filter-issue-label-checkbox' value='{escape_html(lab)}' /> "
+            f"{escape_html(lab)}"
+            "</label>"
+        )
+    html_parts.append("</div>")
+    html_parts.append("</div>")
 
     # PR 类型（标题前缀）
-    if pr_types:
-        html_parts.append("<div class='filter-group'>")
-        html_parts.append("<h3>PR 类型 <span>(title 前缀，多选)</span></h3>")
-        html_parts.append("<div class='filter-user-list'>")
-        for t in pr_types:
-            html_parts.append(
-                "<label class='filter-label'>"
-                f"<input type='checkbox' class='filter-pr-type-checkbox' value='{escape_html(t)}' /> "
-                f"{escape_html(t)}"
-                "</label>"
-            )
-        html_parts.append("</div>")
-        html_parts.append("</div>")
+    pr_type_group_style = "" if pr_types else " style='display:none'"
+    html_parts.append(
+        f"<div class='filter-group' id='filter-pr-type-group'{pr_type_group_style}>"
+    )
+    html_parts.append("<h3>PR 类型 <span>(title 前缀，多选)</span></h3>")
+    html_parts.append("<div class='filter-user-list' id='filter-pr-type-list'>")
+    for t in pr_types:
+        html_parts.append(
+            "<label class='filter-label'>"
+            f"<input type='checkbox' class='filter-pr-type-checkbox' value='{escape_html(t)}' /> "
+            f"{escape_html(t)}"
+            "</label>"
+        )
+    html_parts.append("</div>")
+    html_parts.append("</div>")
 
-    if target_branches:
-        html_parts.append("<div class='filter-group'>")
-        html_parts.append("<h3>目标分支 <span>(多选)</span></h3>")
-        html_parts.append("<div class='filter-user-list'>")
-        for t in target_branches:
-            html_parts.append(
-                "<label class='filter-label'>"
-                f"<input type='checkbox' class='filter-target-checkbox' value='{escape_html(t)}' checked /> "
-                f"{escape_html(t)}"
-                "</label>"
-            )
-        html_parts.append("</div>")
-        html_parts.append("</div>")
+    target_group_style = "" if target_branches else " style='display:none'"
+    html_parts.append(
+        f"<div class='filter-group' id='filter-target-group'{target_group_style}>"
+    )
+    html_parts.append("<h3>目标分支 <span>(多选)</span></h3>")
+    html_parts.append("<div class='filter-user-list' id='filter-target-list'>")
+    for t in target_branches:
+        html_parts.append(
+            "<label class='filter-label'>"
+            f"<input type='checkbox' class='filter-target-checkbox' value='{escape_html(t)}' checked /> "
+            f"{escape_html(t)}"
+            "</label>"
+        )
+    html_parts.append("</div>")
+    html_parts.append("</div>")
 
     # 时间 / 用户开关
     html_parts.append("<div class='filter-group'>")
@@ -2544,6 +2608,10 @@ def build_html(
   const presetSelect = document.getElementById('preset-select');
   const presetApplyBtn = document.getElementById('preset-apply');
   const presetSaveBtn = document.getElementById('preset-save');
+  const tokenInput = document.getElementById('api-token');
+  const tokenClearBtn = document.getElementById('token-clear');
+  const tokenStatus = document.getElementById('token-status');
+  const refreshStatus = document.getElementById('refresh-status');
   const refreshBtn = document.getElementById('refresh-data');
   const statTotal = document.getElementById('stat-total');
   const statOpen = document.getElementById('stat-open');
@@ -2551,15 +2619,21 @@ def build_html(
   const statUnresolved = document.getElementById('stat-unresolved');
   const stateChecks = Array.from(document.querySelectorAll('.filter-state-checkbox'));
   const commentChecks = Array.from(document.querySelectorAll('.filter-comment-checkbox'));
-  const issueLabelChecks = Array.from(document.querySelectorAll('.filter-issue-label-checkbox'));
-  const prTypeChecks = Array.from(document.querySelectorAll('.filter-pr-type-checkbox'));
-  const targetChecks = Array.from(document.querySelectorAll('.filter-target-checkbox'));
+  let issueLabelChecks = Array.from(document.querySelectorAll('.filter-issue-label-checkbox'));
+  let prTypeChecks = Array.from(document.querySelectorAll('.filter-pr-type-checkbox'));
+  let targetChecks = Array.from(document.querySelectorAll('.filter-target-checkbox'));
   const userChecks = Array.from(document.querySelectorAll('.filter-user-checkbox'));
   const userSelectAllBtn = document.getElementById('filter-user-all');
   const userSelectNoneBtn = document.getElementById('filter-user-none');
   const userToggle = document.getElementById('filter-user-toggle');
   const userPanel = document.getElementById('filter-user-panel');
   const userDropdown = document.getElementById('filter-user-dropdown');
+  const issueGroup = document.getElementById('filter-issue-group');
+  const issueList = document.getElementById('filter-issue-list');
+  const prTypeGroup = document.getElementById('filter-pr-type-group');
+  const prTypeList = document.getElementById('filter-pr-type-list');
+  const targetGroup = document.getElementById('filter-target-group');
+  const targetList = document.getElementById('filter-target-list');
   const groupChecks = Array.from(document.querySelectorAll('.filter-group-checkbox'));
   const groupSelectAllBtn = document.getElementById('filter-group-all');
   const groupSelectNoneBtn = document.getElementById('filter-group-none');
@@ -2589,6 +2663,49 @@ def build_html(
     });
   }
 
+  const readToken = () => {
+    try {
+      return localStorage.getItem(TOKEN_KEY) || '';
+    } catch (e) {
+      return '';
+    }
+  };
+  const saveToken = (token) => {
+    try {
+      if (token) {
+        localStorage.setItem(TOKEN_KEY, token);
+      } else {
+        localStorage.removeItem(TOKEN_KEY);
+      }
+    } catch (e) {}
+  };
+  const setTokenStatus = (token, state = '') => {
+    if (!tokenStatus) return;
+    tokenStatus.textContent = token ? 'Token 已保存' : '未设置';
+    tokenStatus.dataset.state = state || (token ? 'ok' : '');
+  };
+  const setRefreshStatus = (text, state = '') => {
+    if (!refreshStatus) return;
+    refreshStatus.textContent = text || '';
+    refreshStatus.dataset.state = state || '';
+  };
+  const initTokenUi = () => {
+    const saved = readToken();
+    if (tokenInput && saved) {
+      tokenInput.value = saved;
+    }
+    setTokenStatus(saved);
+  };
+  initTokenUi();
+  if (tokenClearBtn) {
+    tokenClearBtn.addEventListener('click', () => {
+      if (tokenInput) tokenInput.value = '';
+      saveToken('');
+      setTokenStatus('');
+      setRefreshStatus('');
+    });
+  }
+
   if (!filterUnresolved || !filterHideClean) return;
 
   const getSelectedUsers = () => {
@@ -2606,6 +2723,14 @@ def build_html(
   };
 
   const GROUP_MEMBERS = __GROUP_MEMBERS__;
+  const CLIENT_CONFIG = __CLIENT_CONFIG__;
+  const TOKEN_KEY = 'gitcode_api_token_v1';
+  const API_BASE_URL = CLIENT_CONFIG.baseUrl || 'https://api.gitcode.com/api/v5';
+  const ALLOWED_PR_TYPES = new Set(CLIENT_CONFIG.allowedPrTypes || []);
+  const CODE_STATS_ENABLED = CLIENT_CONFIG.codeStatsEnabled !== false;
+  const CODE_STAT_SUFFIXES = new Set(
+    (CLIENT_CONFIG.codeStatSuffixes || []).map((s) => (s || '').toLowerCase())
+  );
 
   const getSelectedStates = () => {
     const checked = stateChecks.filter((c) => c.checked).map((c) => c.value);
@@ -3879,6 +4004,783 @@ def build_html(
     return parts.join(' · ') + (list.length > max ? ' 等' : '');
   };
 
+  const escapeHtml = (s) => {
+    return (s ?? '')
+      .toString()
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  };
+
+  const renderCommentBody = (body) => {
+    if (!body) return '';
+    const lines = body.split(/\\r?\\n/);
+    let inCode = false;
+    let codeLines = [];
+    const parts = [];
+    const renderTextLine = (line) => {
+      const segments = line.split('`');
+      const out = [];
+      segments.forEach((seg, idx) => {
+        if (idx % 2 === 0) {
+          out.push(escapeHtml(seg));
+        } else {
+          out.push(`<code class='review-code-inline'>${escapeHtml(seg)}</code>`);
+        }
+      });
+      return out.join('');
+    };
+    lines.forEach((line) => {
+      if (line.startsWith('```')) {
+        if (!inCode) {
+          inCode = true;
+          codeLines = [];
+        } else {
+          const codeHtml =
+            "<pre class='review-code-block'><code>" +
+            escapeHtml(codeLines.join('\\n')) +
+            "</code></pre>";
+          parts.push(codeHtml);
+          inCode = false;
+          codeLines = [];
+        }
+        return;
+      }
+      if (inCode) {
+        codeLines.push(line);
+      } else {
+        parts.push(renderTextLine(line) + "<br/>");
+      }
+    });
+    if (inCode && codeLines.length) {
+      codeLines.forEach((line) => {
+        parts.push(renderTextLine(line) + "<br/>");
+      });
+    }
+    return parts.join('');
+  };
+
+  const isWipTitle = (title) => {
+    if (!title) return false;
+    const t = title.trim().toLowerCase();
+    return t.startsWith('wip') || t.startsWith('[wip]') || t.startsWith('wip:');
+  };
+
+  const inferPrType = (title) => {
+    if (!title) return '';
+    const m = title.trim().match(/^([A-Za-z0-9_-]+)\\s*:/);
+    if (m) {
+      const prefix = m[1].toLowerCase();
+      return ALLOWED_PR_TYPES.has(prefix) ? prefix : '';
+    }
+    return '';
+  };
+
+  const extFromFilename = (name) => {
+    const parts = (name || '').split('/');
+    const base = parts.pop() || '';
+    if (!base) return '(no_ext)';
+    const dot = base.lastIndexOf('.');
+    if (dot > 0) return base.slice(dot).toLowerCase();
+    if (base.startsWith('.') && base.length > 1) return base.toLowerCase();
+    return '(no_ext)';
+  };
+
+  const normalizeIssueUrl = (url) => {
+    if (!url) return '';
+    return url.replace('api.gitcode', 'gitcode').replace('api/v5/repos/', '');
+  };
+
+  const inferResolved = (comment) => {
+    if (comment && Object.prototype.hasOwnProperty.call(comment, 'resolved')) {
+      const val = comment.resolved;
+      if (typeof val === 'boolean') return val;
+      if (typeof val === 'string') {
+        const v = val.toLowerCase();
+        if (['true', '1', 'yes', 'resolved'].includes(v)) return true;
+        if (['false', '0', 'no', 'unresolved'].includes(v)) return false;
+      }
+    }
+    const status = comment?.status;
+    if (typeof status === 'string') {
+      const v = status.toLowerCase();
+      if (['resolved', 'done'].includes(v)) return true;
+      if (['unresolved', 'open', 'todo'].includes(v)) return false;
+    }
+    return null;
+  };
+
+  const collectMetaFromData = (data) => {
+    const issueLabels = new Set();
+    const prTypes = new Set();
+    const targets = new Set();
+    Object.values(data || {}).forEach((users) => {
+      Object.values(users || {}).forEach((prs) => {
+        (prs || []).forEach((pr) => {
+          const prType = inferPrType(pr.title || '');
+          if (prType) prTypes.add(prType);
+          const tgt = (pr.target_branch || '').trim();
+          if (tgt) targets.add(tgt);
+          (pr.issues || []).forEach((iss) => {
+            (iss.labels || []).forEach((lab) => {
+              if (!lab) return;
+              issueLabels.add(String(lab));
+            });
+          });
+        });
+      });
+    });
+    return {
+      issueLabels: Array.from(issueLabels),
+      prTypes: Array.from(prTypes),
+      targets: Array.from(targets),
+    };
+  };
+
+  const renderDynamicFilters = (meta) => {
+    const labels = meta?.issueLabels || [];
+    const prTypes = meta?.prTypes || [];
+    const targets = meta?.targets || [];
+    const prevLabels = new Set(issueLabelChecks.filter((c) => c.checked).map((c) => c.value));
+    const prevTypes = new Set(prTypeChecks.filter((c) => c.checked).map((c) => c.value));
+    const prevTargets = new Set(targetChecks.filter((c) => c.checked).map((c) => c.value));
+
+    const buildList = (listEl, values, cls, prev, defaultChecked = false) => {
+      if (!listEl) return [];
+      listEl.innerHTML = '';
+      const nodes = [];
+      values.forEach((val) => {
+        const label = document.createElement('label');
+        label.className = 'filter-label';
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.className = cls;
+        input.value = val;
+        const shouldCheck = prev.size ? prev.has(val) : defaultChecked;
+        input.checked = shouldCheck;
+        label.appendChild(input);
+        label.append(` ${val}`);
+        listEl.appendChild(label);
+        nodes.push(input);
+      });
+      return nodes;
+    };
+
+    issueLabelChecks = buildList(issueList, labels, 'filter-issue-label-checkbox', prevLabels, false);
+    prTypeChecks = buildList(prTypeList, prTypes, 'filter-pr-type-checkbox', prevTypes, false);
+    targetChecks = buildList(targetList, targets, 'filter-target-checkbox', prevTargets, true);
+
+    if (issueGroup) issueGroup.style.display = labels.length ? '' : 'none';
+    if (prTypeGroup) prTypeGroup.style.display = prTypes.length ? '' : 'none';
+    if (targetGroup) targetGroup.style.display = targets.length ? '' : 'none';
+
+    issueLabelChecks.forEach((c) => c.addEventListener('change', wrappedApply));
+    prTypeChecks.forEach((c) => c.addEventListener('change', wrappedApply));
+    targetChecks.forEach((c) => c.addEventListener('change', wrappedApply));
+  };
+
+  const buildCardView = (data) => {
+    if (!cardView) return;
+    const repoNames = Object.keys(data || {});
+    if (!repoNames.length) {
+      cardView.innerHTML = "<p class='empty-text'>没有任何符合条件的 PR。</p>";
+      return;
+    }
+    const parts = [];
+    const parseTs = (ts) => {
+      if (!ts) return 0;
+      const t = ts.replace('Z', '+00:00');
+      const ms = Date.parse(t);
+      return Number.isNaN(ms) ? 0 : ms;
+    };
+    const prSortKey = (pr) => {
+      const rankMap = { open: 0, merged: 1 };
+      const rank = rankMap[(pr.state || '').toLowerCase()] ?? 2;
+      return [rank, -parseTs(pr.created_at || ''), -(parseInt(pr.number || 0, 10) || 0)];
+    };
+    const prSortCompare = (a, b) => {
+      const ka = prSortKey(a);
+      const kb = prSortKey(b);
+      for (let i = 0; i < ka.length; i += 1) {
+        if (ka[i] !== kb[i]) return ka[i] - kb[i];
+      }
+      return 0;
+    };
+
+    repoNames.forEach((repoName) => {
+      const users = data[repoName] || {};
+      const totalPrs = Object.values(users).reduce((acc, prs) => acc + (prs ? prs.length : 0), 0);
+      parts.push("<details class='repo-block' open data-repo-block>");
+      parts.push("<summary>");
+      parts.push(`<div class='repo-title'>仓库：${escapeHtml(repoName)}<span class='repo-meta' data-repo-count>共 ${totalPrs} 个 PR（页面可再筛选）</span></div>`);
+      parts.push("<div class='repo-chevron'>▶</div>");
+      parts.push("</summary>");
+      parts.push("<div class='repo-content'>");
+
+      Object.entries(users).forEach(([username, prs]) => {
+        const list = Array.isArray(prs) ? prs : [];
+        if (!list.length) return;
+        const sorted = [...list].sort(prSortCompare);
+        parts.push(`<details class='user-block' open data-user-block data-username='${escapeHtml(username)}'>`);
+        parts.push("<summary>");
+        parts.push(`<div class='user-title'>用户：${escapeHtml(username)}<span class='user-meta' data-user-count>共 ${list.length} 个 PR</span></div>`);
+        parts.push("<div class='user-chevron'>▶</div>");
+        parts.push("</summary>");
+        parts.push("<div class='user-content'>");
+        parts.push("<div class='pr-grid'>");
+
+        sorted.forEach((pr) => {
+          const allComments = pr.comments || [];
+          const parentComments = allComments.filter((cm) => !cm.is_reply);
+          const unresolvedCount = parentComments.filter((cm) => cm.resolved === false).length;
+          const resolvedCount = parentComments.filter((cm) => cm.resolved === true).length;
+          const issueLabels = [];
+          (pr.issues || []).forEach((iss) => {
+            (iss.labels || []).forEach((lab) => {
+              if (!lab) return;
+              if (!issueLabels.includes(lab)) issueLabels.push(lab);
+            });
+          });
+          const prType = inferPrType(pr.title || '');
+          const codeKnown =
+            pr.additions !== null &&
+            pr.additions !== undefined &&
+            pr.deletions !== null &&
+            pr.deletions !== undefined &&
+            pr.changed_files !== null &&
+            pr.changed_files !== undefined;
+          const extSummary = pr.file_stats ? summarizeExtStats(pr.file_stats) : '';
+          const codeText = codeKnown
+            ? `代码变更：+${pr.additions} / -${pr.deletions} · 文件 ${pr.changed_files}${extSummary ? ` · 后缀：${extSummary}` : ''}`
+            : '代码变更：未知';
+
+          let badgeCls = 'badge-warn';
+          let badgeText = '无检视意见';
+          if (unresolvedCount > 0) {
+            badgeCls = 'badge-danger';
+            badgeText = `${unresolvedCount} 未解决`;
+          } else if (allComments.length) {
+            badgeCls = 'badge-ok';
+            badgeText = '无未解决检视意见';
+          }
+
+          const stateLower = (pr.state || '').toLowerCase();
+          parts.push(
+            "<div class='pr-card'" +
+            ` data-state='${escapeHtml(stateLower)}'` +
+            ` data-has-unresolved='${unresolvedCount > 0 ? 1 : 0}'` +
+            ` data-total-comments='${allComments.length}'` +
+            ` data-unresolved-count='${unresolvedCount}'` +
+            ` data-resolved-count='${resolvedCount}'` +
+            ` data-code-known='${codeKnown ? '1' : '0'}'` +
+            ` data-additions='${codeKnown ? pr.additions : ''}'` +
+            ` data-deletions='${codeKnown ? pr.deletions : ''}'` +
+            ` data-changed-files='${codeKnown ? pr.changed_files : ''}'` +
+            ` data-code-stats='${escapeHtml(JSON.stringify(pr.file_stats || {}))}'` +
+            ` data-created='${escapeHtml(pr.created_at || '')}'` +
+            ` data-updated='${escapeHtml(pr.updated_at || '')}'` +
+            ` data-issue-labels='${escapeHtml(issueLabels.join('||'))}'` +
+            ` data-pr-number='${pr.number}'` +
+            ` data-title='${escapeHtml(pr.title || '')}'` +
+            ` data-url='${escapeHtml(pr.html_url || '')}'` +
+            ` data-repo='${escapeHtml(repoName)}'` +
+            ` data-username='${escapeHtml(username)}'` +
+            ` data-source='${escapeHtml(pr.source_branch || '')}'` +
+            ` data-target='${escapeHtml(pr.target_branch || '')}'` +
+            ` data-pr-type='${escapeHtml(prType)}'>`
+          );
+
+          parts.push("<div class='pr-header'>");
+          const titleText = `#${pr.number} ${pr.title || ''}`;
+          const titleHtml = pr.html_url
+            ? `<a class='pr-link-inline' href='${escapeHtml(pr.html_url)}' target='_blank' rel='noopener noreferrer'>${escapeHtml(titleText)}</a>`
+            : escapeHtml(titleText);
+          parts.push(`<div class='pr-title'>${titleHtml}</div>`);
+          parts.push(`<span class='badge ${badgeCls}'>${escapeHtml(badgeText)}</span>`);
+          parts.push("</div>");
+
+          const stateCls =
+            stateLower === 'open' ? 'state-open' : stateLower === 'merged' ? 'state-merged' : 'state-other';
+          parts.push(`<div class='pr-meta'>状态：<span class='state-label ${stateCls}'>${escapeHtml(pr.state || '')}</span></div>`);
+
+          let branchHtml = '';
+          if (pr.target_branch) {
+            const tb = pr.target_branch || '';
+            const tbLower = tb.toLowerCase();
+            let tgtCls = 'branch-target-other';
+            if (['main', 'master', 'trunk'].includes(tbLower)) {
+              tgtCls = 'branch-target-main';
+            } else if (tbLower === 'dev' || tbLower === 'develop' || tbLower.includes('dev')) {
+              tgtCls = 'branch-target-dev';
+            } else if (tbLower.startsWith('release/') || tbLower.startsWith('release-')) {
+              tgtCls = 'branch-target-release';
+            } else if (tbLower.startsWith('hotfix/') || tbLower.startsWith('hotfix-')) {
+              tgtCls = 'branch-target-hotfix';
+            }
+            const src = pr.source_branch || '';
+            branchHtml =
+              `${escapeHtml(src)} → ` +
+              `<span class='branch-target-pill ${tgtCls}'>${escapeHtml(tb)}</span>`;
+          } else if (pr.source_branch) {
+            branchHtml = escapeHtml(pr.source_branch);
+          }
+
+          if (branchHtml) {
+            parts.push(`<div class='pr-branch'>分支：${branchHtml}</div>`);
+            let timesLine = `创建：${escapeHtml(pr.created_at || '')}`;
+            if (pr.updated_at) timesLine += ` ｜ 更新：${escapeHtml(pr.updated_at)}`;
+            parts.push(`<div class='pr-times'>${timesLine}</div>`);
+            parts.push(`<div class='pr-code'>${escapeHtml(codeText)}</div>`);
+          }
+
+          parts.push("<div class='section-title'>关联 Issues</div>");
+          if (!pr.issues || !pr.issues.length) {
+            parts.push("<div class='empty-text'>无关联 Issue</div>");
+          } else {
+            pr.issues.forEach((iss) => {
+              const labelsStr = iss.labels && iss.labels.length ? `（labels: ${iss.labels.join(', ')}）` : '';
+              const issueText = `#${iss.number} [${iss.state}] ${iss.title}${labelsStr}`;
+              const issueUrl = iss.url || iss.html_url || '';
+              const issueHtml = issueUrl
+                ? `<a class='issue-link' href='${escapeHtml(issueUrl)}' target='_blank' rel='noopener noreferrer'>${escapeHtml(issueText)}</a>`
+                : escapeHtml(issueText);
+              parts.push(`<div class='issue-item'>${issueHtml}</div>`);
+            });
+          }
+
+          parts.push("<div class='section-title'>检视意见</div>");
+          parts.push("<div class='reviews' data-review-wrapper>");
+          if (!allComments.length) {
+            parts.push("<div class='empty-text' data-empty-all>无需要 resolved 状态的检视意见</div>");
+          } else {
+            const parentCommentsAll = allComments.filter((cm) => !cm.is_reply);
+            const grouped = new Map();
+            parentCommentsAll.forEach((cm) => {
+              const key = cm.user || '(unknown)';
+              if (!grouped.has(key)) grouped.set(key, []);
+              grouped.get(key).push(cm);
+            });
+            const parentIds = new Set(parentCommentsAll.map((cm) => cm.id));
+            const repliesByParent = new Map();
+            const orphanReplies = [];
+            allComments.forEach((cm) => {
+              if (!cm.is_reply) return;
+              if (cm.parent_id != null && parentIds.has(cm.parent_id)) {
+                if (!repliesByParent.has(cm.parent_id)) repliesByParent.set(cm.parent_id, []);
+                repliesByParent.get(cm.parent_id).push(cm);
+              } else {
+                orphanReplies.push(cm);
+              }
+            });
+
+            const renderComment = (cm, isReply = false) => {
+              const isResolved = cm.resolved === true;
+              const statusCls = isReply ? 'reply' : (isResolved ? 'resolved' : 'unresolved');
+              const statusText = isReply ? '回复' : (isResolved ? '已解决' : '未解决');
+              const resolvedAttr = isResolved ? 'true' : 'false';
+              const isReplyAttr = isReply ? '1' : '0';
+              const userAttr = escapeHtml(cm.user || '');
+              const parentUserAttr = escapeHtml(cm.parent_user || '');
+              const parentIdAttr = isReply && cm.parent_id != null ? ` data-parent-id='${cm.parent_id}'` : '';
+              const commentIdAttr = ` data-comment-id='${cm.id}'`;
+              let loc = '';
+              if (cm.path) {
+                loc = cm.path;
+                if (cm.position != null) loc += `:${cm.position}`;
+              }
+              let headerLeft = statusText;
+              if (loc) headerLeft += ` · ${loc}`;
+              let html =
+                `<div class='review-item ${statusCls}${isReply ? ' review-reply' : ''}'` +
+                ` data-resolved='${resolvedAttr}' data-is-reply='${isReplyAttr}'` +
+                ` data-user='${userAttr}' data-parent-user='${parentUserAttr}'${parentIdAttr}${commentIdAttr}>`;
+              html += `<div class='review-header'><span>${escapeHtml(headerLeft)}</span></div>`;
+              html += `<div class='review-meta'>创建：${escapeHtml(cm.created_at || '')} ｜ 更新：${escapeHtml(cm.updated_at || '')}</div>`;
+              if (cm.body) {
+                const bodyHtml = renderCommentBody(cm.body);
+                const lineCount = (cm.body.match(/\\n/g) || []).length + 1;
+                const isLong = lineCount >= 8 || cm.body.length >= 400;
+                if (isLong) {
+                  html += "<div class='review-body review-body-collapsible'><details>";
+                  html += `<summary>展开完整评论（约 ${lineCount} 行）</summary>`;
+                  html += `<div class='review-body-content'>${bodyHtml}</div>`;
+                  html += "</details></div>";
+                } else {
+                  html += `<div class='review-body'>${bodyHtml}</div>`;
+                }
+              }
+              html += "</div>";
+              return html;
+            };
+
+            grouped.forEach((parentList, reviewer) => {
+              const parentCount = parentList.length;
+              const parentUnresolved = parentList.filter((cm) => cm.resolved === false).length;
+              const parentResolved = parentList.filter((cm) => cm.resolved === true).length;
+              parts.push("<details class='reviewer-group' open>");
+              parts.push("<summary>");
+              parts.push(
+                `<div class='reviewer-group-title'>${escapeHtml(reviewer)}` +
+                `<span>${parentCount} 条检视意见（未解决 ${parentUnresolved} · 已解决 ${parentResolved}）</span></div>`
+              );
+              parts.push("<div class='reviewer-chevron'>▶</div>");
+              parts.push("</summary>");
+              parts.push("<div class='reviewer-group-body'>");
+              parentList.forEach((cm) => {
+                parts.push(renderComment(cm, false));
+                const child = repliesByParent.get(cm.id) || [];
+                if (child.length) {
+                  parts.push("<div class='review-replies'>");
+                  child.forEach((rp) => parts.push(renderComment(rp, true)));
+                  parts.push("</div>");
+                }
+              });
+              parts.push("</div>");
+              parts.push("</details>");
+            });
+
+            if (orphanReplies.length) {
+              parts.push("<details class='reviewer-group' open>");
+              parts.push("<summary>");
+              parts.push("<div class='reviewer-group-title'>回复（无主）" +
+                `<span>${orphanReplies.length} 条回复</span></div>`);
+              parts.push("<div class='reviewer-chevron'>▶</div>");
+              parts.push("</summary>");
+              parts.push("<div class='reviewer-group-body'><div class='review-replies'>");
+              orphanReplies.forEach((rp) => parts.push(renderComment(rp, true)));
+              parts.push("</div></div></details>");
+            }
+          }
+          parts.push("<div class='empty-text' data-empty-unresolved style='display:none'>无未解决的检视意见</div>");
+          parts.push("</div>");
+
+          parts.push("</div>");
+        });
+
+        parts.push("</div>");
+        parts.push("</div>");
+        parts.push("</details>");
+      });
+
+      parts.push("</div>");
+      parts.push("</details>");
+    });
+
+    cardView.innerHTML = parts.join('');
+  };
+
+  const createLimiter = (limit) => {
+    let active = 0;
+    const queue = [];
+    const runNext = () => {
+      if (active >= limit || queue.length === 0) return;
+      const item = queue.shift();
+      active += 1;
+      Promise.resolve()
+        .then(item.fn)
+        .then((res) => {
+          active -= 1;
+          item.resolve(res);
+          runNext();
+        })
+        .catch((err) => {
+          active -= 1;
+          item.reject(err);
+          runNext();
+        });
+    };
+    return (fn) =>
+      new Promise((resolve, reject) => {
+        queue.push({ fn, resolve, reject });
+        runNext();
+      });
+  };
+
+  const fetchJson = async (path, token, params = {}) => {
+    const url = new URL(API_BASE_URL + path);
+    Object.entries(params || {}).forEach(([k, v]) => {
+      if (v === undefined || v === null || v === '') return;
+      url.searchParams.set(k, String(v));
+    });
+    if (token) url.searchParams.set('access_token', token);
+    const resp = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+    if (!resp.ok) {
+      const text = await resp.text();
+      throw new Error(`GitCode API 请求失败: ${resp.status} ${text.slice(0, 200)}`);
+    }
+    return resp.json();
+  };
+
+  const fetchPrsForUser = async (repoCfg, username, token) => {
+    const allPrs = [];
+    const seen = new Set();
+    let states = Array.isArray(repoCfg.states) ? repoCfg.states : ['open'];
+    if (states.includes('all') && states.length > 1) states = ['all'];
+    const perPage = Math.min(Math.max(parseInt(repoCfg.per_page || 30, 10) || 30, 1), 100);
+    for (const state of states) {
+      let page = 1;
+      while (true) {
+        const data = await fetchJson(
+          `/repos/${repoCfg.owner}/${repoCfg.repo}/pulls`,
+          token,
+          {
+            state,
+            author: username,
+            page,
+            per_page: perPage,
+            only_count: 'false',
+          }
+        );
+        if (!Array.isArray(data) || data.length === 0) break;
+        data.forEach((pr) => {
+          const num = parseInt(pr.number || 0, 10) || 0;
+          const title = pr.title || '';
+          if (pr.work_in_progress === true || pr.draft === true) return;
+          if (isWipTitle(title)) return;
+          if (seen.has(num)) return;
+          seen.add(num);
+          const head = pr.head || {};
+          const base = pr.base || {};
+          allPrs.push({
+            number: num,
+            title,
+            state: pr.state || '',
+            html_url: pr.html_url || '',
+            created_at: pr.created_at || '',
+            updated_at: pr.updated_at || '',
+            merged_at: pr.merged_at || null,
+            source_branch: head.ref || head.name || '',
+            target_branch: base.ref || base.name || '',
+            issues: [],
+            comments: [],
+            additions: null,
+            deletions: null,
+            changed_files: null,
+            file_stats: {},
+          });
+        });
+        if (data.length < perPage) break;
+        page += 1;
+        await new Promise((r) => setTimeout(r, 50));
+      }
+    }
+    return allPrs;
+  };
+
+  const fetchIssuesForPr = async (repoCfg, prNumber, token) => {
+    try {
+      const data = await fetchJson(
+        `/repos/${repoCfg.owner}/${repoCfg.repo}/pulls/${prNumber}/issues`,
+        token,
+        { page: 1, per_page: 100 }
+      );
+      if (!Array.isArray(data)) return [];
+      return data.map((it) => ({
+        number: String(it.number || ''),
+        title: it.title || '',
+        state: it.state || '',
+        url: normalizeIssueUrl(it.url || it.html_url || ''),
+        html_url: it.html_url || '',
+        labels: Array.isArray(it.labels) ? it.labels.map((lab) => lab.name || '').filter(Boolean) : [],
+      }));
+    } catch (e) {
+      return [];
+    }
+  };
+
+  const fetchCommentsForPr = async (repoCfg, prNumber, token) => {
+    const comments = [];
+    let page = 1;
+    while (true) {
+      const data = await fetchJson(
+        `/repos/${repoCfg.owner}/${repoCfg.repo}/pulls/${prNumber}/comments`,
+        token,
+        { page, per_page: 100, comment_type: 'diff_comment' }
+      );
+      if (!Array.isArray(data) || data.length === 0) break;
+      const makeComment = (obj, opts = {}) => {
+        const userObj = obj.user || {};
+        const login = userObj.login || userObj.username || userObj.name || '';
+        let pos = obj.position;
+        if (pos == null) {
+          const diffPos = obj.diff_position || {};
+          pos = diffPos.start_new_line || diffPos.end_new_line;
+        }
+        let resolved = inferResolved(obj);
+        if (resolved == null) resolved = false;
+        return {
+          id: parseInt(obj.id || 0, 10) || 0,
+          user: login,
+          body: obj.body || '',
+          created_at: obj.created_at || '',
+          updated_at: obj.updated_at || '',
+          resolved,
+          path: obj.path || opts.fallbackPath || null,
+          position: pos != null ? pos : opts.fallbackPos || null,
+          is_reply: !!opts.isReply,
+          parent_user: opts.parentUser || null,
+          parent_id: opts.parentId || null,
+        };
+      };
+      data.forEach((c) => {
+        const parent = makeComment(c, { isReply: false });
+        comments.push(parent);
+        const replies = Array.isArray(c.reply) ? c.reply : [];
+        replies.forEach((r) => {
+          comments.push(
+            makeComment(r, {
+              isReply: true,
+              parentUser: parent.user,
+              parentId: parent.id,
+              fallbackPath: parent.path,
+              fallbackPos: parent.position,
+            })
+          );
+        });
+      });
+      if (data.length < 100) break;
+      page += 1;
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    return comments;
+  };
+
+  const fetchFilesForPr = async (repoCfg, prNumber, token) => {
+    let totalAdd = 0;
+    let totalDel = 0;
+    let totalFiles = 0;
+    const stats = {};
+    let page = 1;
+    const perPage = 100;
+    while (true) {
+      let data;
+      try {
+        data = await fetchJson(
+          `/repos/${repoCfg.owner}/${repoCfg.repo}/pulls/${prNumber}/files`,
+          token,
+          { page, per_page: perPage }
+        );
+      } catch (e) {
+        return { additions: null, deletions: null, changed_files: null, file_stats: {} };
+      }
+      if (!data) break;
+      const items = Array.isArray(data) ? data : [data];
+      items.forEach((it) => {
+        const add = parseInt(it.additions || 0, 10) || 0;
+        const del = parseInt(it.deletions || 0, 10) || 0;
+        const name = it.filename || it.new_path || it.old_path || '';
+        const ext = extFromFilename(name);
+        if (!CODE_STAT_SUFFIXES.has(ext)) return;
+        totalAdd += add;
+        totalDel += del;
+        totalFiles += 1;
+        const bucket = stats[ext] || { additions: 0, deletions: 0, files: 0 };
+        bucket.additions += add;
+        bucket.deletions += del;
+        bucket.files += 1;
+        stats[ext] = bucket;
+      });
+      if (!Array.isArray(data) || items.length < perPage) break;
+      page += 1;
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    return { additions: totalAdd, deletions: totalDel, changed_files: totalFiles, file_stats: stats };
+  };
+
+  const fetchRepoUserData = async (repoCfg, username, token, detailLimiter, onProgress) => {
+    const prs = await fetchPrsForUser(repoCfg, username, token);
+    const tasks = prs.map((pr) =>
+      detailLimiter(async () => {
+        if (onProgress) onProgress(`拉取 ${repoCfg.owner}/${repoCfg.repo} #${pr.number} 详情...`);
+        const detailTasks = [
+          fetchCommentsForPr(repoCfg, pr.number, token),
+          fetchIssuesForPr(repoCfg, pr.number, token),
+        ];
+        if (CODE_STATS_ENABLED) {
+          detailTasks.push(fetchFilesForPr(repoCfg, pr.number, token));
+        }
+        const results = await Promise.all(detailTasks);
+        const comments = results[0] || [];
+        const issues = results[1] || [];
+        const fileStats = CODE_STATS_ENABLED
+          ? (results[2] || { additions: null, deletions: null, changed_files: null, file_stats: {} })
+          : { additions: null, deletions: null, changed_files: null, file_stats: {} };
+        pr.comments = comments || [];
+        pr.issues = issues || [];
+        pr.additions = fileStats.additions;
+        pr.deletions = fileStats.deletions;
+        pr.changed_files = fileStats.changed_files;
+        pr.file_stats = fileStats.file_stats || {};
+        return pr;
+      })
+    );
+    return Promise.all(tasks);
+  };
+
+  const fetchAllData = async (token, onProgress) => {
+    const data = {};
+    const repos = Array.isArray(CLIENT_CONFIG.repos) ? CLIENT_CONFIG.repos : [];
+    const users = Array.isArray(CLIENT_CONFIG.users) ? CLIENT_CONFIG.users : [];
+    const repoLimiter = createLimiter(4);
+    const detailLimiter = createLimiter(6);
+    const tasks = [];
+    repos.forEach((repoCfg) => {
+      const repoName = `${repoCfg.owner}/${repoCfg.repo}`;
+      data[repoName] = {};
+      users.forEach((username) => {
+        tasks.push(
+          repoLimiter(async () => {
+            if (onProgress) onProgress(`拉取 ${repoName} / ${username}...`);
+            const prs = await fetchRepoUserData(repoCfg, username, token, detailLimiter, onProgress);
+            data[repoName][username] = prs || [];
+          })
+        );
+      });
+    });
+    await Promise.all(tasks);
+    return data;
+  };
+
+  const refreshFromApi = async () => {
+    const inputToken = (tokenInput?.value || '').trim();
+    const token = inputToken || readToken();
+    if (!token) {
+      setTokenStatus('', 'error');
+      alert('请先设置 API Token');
+      return;
+    }
+    if (inputToken) saveToken(inputToken);
+    setTokenStatus(token);
+
+    const btnLabel = refreshBtn ? refreshBtn.textContent : '';
+    if (refreshBtn) {
+      refreshBtn.disabled = true;
+      refreshBtn.textContent = '刷新中...';
+    }
+    setRefreshStatus('正在拉取数据...', 'ok');
+    try {
+      const data = await fetchAllData(token, (msg) => setRefreshStatus(msg, 'ok'));
+      const meta = collectMetaFromData(data);
+      renderDynamicFilters(meta);
+      buildCardView(data);
+      wrappedApply();
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const stamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      setRefreshStatus(`已刷新 ${stamp}`, 'ok');
+    } catch (e) {
+      console.error(e);
+      setRefreshStatus('刷新失败，请检查 Token 或网络', 'error');
+      alert(`刷新失败：${e?.message || e}`);
+    } finally {
+      if (refreshBtn) {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = btnLabel || '刷新数据';
+      }
+    }
+  };
+
   if (filterToggle && filterBar) {
     filterToggle.addEventListener('click', () => {
       const isOpen = filterBar.dataset.open === '1';
@@ -4166,7 +5068,9 @@ def build_html(
     reviewSortSelect.addEventListener('change', refreshActiveReviewView);
   }
   if (refreshBtn) {
-    refreshBtn.addEventListener('click', () => window.location.reload());
+    refreshBtn.addEventListener('click', () => {
+      refreshFromApi();
+    });
   }
 
   // 下拉面板开关
@@ -4367,7 +5271,11 @@ def build_html(
 </script>
 """
 
-    html_parts.append(script.replace("__GROUP_MEMBERS__", group_json))
+    html_parts.append(
+        script.replace("__GROUP_MEMBERS__", group_json).replace(
+            "__CLIENT_CONFIG__", client_config_json
+        )
+    )
 
     html_parts.append(
         f"<div class='footer'>由自动脚本生成 · 数据来源：GitCode API · 执行时间：{escape_html(executed_at)}</div>"
@@ -4406,6 +5314,16 @@ def main() -> None:
         default="site/index.html",
         help="输出 HTML 路径（默认 site/index.html）",
     )
+    parser.add_argument(
+        "--client-only",
+        action="store_true",
+        help="仅生成前端页面骨架，不在服务端拉取 PR 数据",
+    )
+    parser.add_argument(
+        "--no-code-stats",
+        action="store_true",
+        help="不在服务端计算代码变更统计（additions/deletions/files）",
+    )
 
     args = parser.parse_args()
 
@@ -4415,7 +5333,10 @@ def main() -> None:
         print(f"加载配置失败: {e}", file=sys.stderr)
         sys.exit(1)
 
-    if not cfg.access_token:
+    client_only = args.client_only or os.getenv("GITCODE_CLIENT_ONLY") == "1"
+    code_stats_enabled = cfg.code_stats and not args.no_code_stats
+
+    if not cfg.access_token and not client_only:
         print(
             "警告：未配置 access_token，私有仓或配额受限的情况下 API 可能失败。\n"
             "你可以在配置文件中设置 access_token，或者导出环境变量 GITCODE_TOKEN。",
@@ -4425,43 +5346,48 @@ def main() -> None:
     # { repo_name -> { username -> [PRInfo] } }
     repo_user_prs: Dict[str, Dict[str, List[PRInfo]]] = {}
 
-    # 先把所有 (repo_cfg, username) 任务列出来
-    tasks = []
-    for repo_cfg in cfg.repos:
-        repo_name = f"{repo_cfg.owner}/{repo_cfg.repo}"
-        for username in cfg.users:
-            tasks.append((repo_name, repo_cfg, username))
+    if not client_only:
+        # 先把所有 (repo_cfg, username) 任务列出来
+        tasks = []
+        for repo_cfg in cfg.repos:
+            repo_name = f"{repo_cfg.owner}/{repo_cfg.repo}"
+            for username in cfg.users:
+                tasks.append((repo_name, repo_cfg, username))
+    else:
+        tasks = []
 
     # 执行时间（Asia/Shanghai）
     executed_at = datetime.now(ZoneInfo("Asia/Shanghai")).strftime(
         "%Y-%m-%d %H:%M:%S %Z"
     )
 
-    # 并发执行，max_workers 可以按你仓库/用户规模调，8–16 一般够
-    max_workers = min(len(tasks), 16) or 1
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        future_to_key = {}
-        for repo_name, repo_cfg, username in tasks:
-            fut = executor.submit(
-                fetch_repo_user_data,
-                cfg.access_token,
-                repo_cfg,
-                username,
-            )
-            future_to_key[fut] = (repo_name, username)
-
-        for fut in as_completed(future_to_key):
-            repo_name, username = future_to_key[fut]
-            try:
-                prs = fut.result()
-            except Exception as e:
-                print(
-                    f"\n!!! 获取 {repo_name} 中 {username} 的 PR 时出错: {e}",
-                    file=sys.stderr,
+    if tasks:
+        # 并发执行，max_workers 可以按你仓库/用户规模调，8–16 一般够
+        max_workers = min(len(tasks), 16) or 1
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_key = {}
+            for repo_name, repo_cfg, username in tasks:
+                fut = executor.submit(
+                    fetch_repo_user_data,
+                    cfg.access_token,
+                    repo_cfg,
+                    username,
+                    code_stats_enabled=code_stats_enabled,
                 )
-                prs = []
+                future_to_key[fut] = (repo_name, username)
 
-            repo_user_prs.setdefault(repo_name, {})[username] = prs
+            for fut in as_completed(future_to_key):
+                repo_name, username = future_to_key[fut]
+                try:
+                    prs = fut.result()
+                except Exception as e:
+                    print(
+                        f"\n!!! 获取 {repo_name} 中 {username} 的 PR 时出错: {e}",
+                        file=sys.stderr,
+                    )
+                    prs = []
+
+                repo_user_prs.setdefault(repo_name, {})[username] = prs
 
     # 生成 HTML
     html = build_html(
