@@ -383,7 +383,7 @@ def fetch_files_for_pr(
                 params={"page": page, "per_page": per_page},
             )
         except Exception:
-            return None, None, None
+            return None, None, None, {}
 
         if not data:
             break
