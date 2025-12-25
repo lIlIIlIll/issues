@@ -91,6 +91,9 @@ class PRInfo:
     target_branch: str = ""
     issues: List[IssueInfo] = field(default_factory=list)
     comments: List[ReviewComment] = field(default_factory=list)
+    additions: Optional[int] = None
+    deletions: Optional[int] = None
+    changed_files: Optional[int] = None
 
 
 # ----------------- 配置读取 -----------------
@@ -354,6 +357,64 @@ def fetch_issues_for_pr(
     return issues
 
 
+def fetch_files_for_pr(
+    access_token: Optional[str],
+    repo_cfg: RepoConfig,
+    pr_number: int,
+) -> tuple[Optional[int], Optional[int], Optional[int]]:
+    """
+    GET /repos/:owner/:repo/pulls/:number/files
+    返回 (additions, deletions, changed_files)，若失败返回 (None, None, None)
+    """
+    total_add = 0
+    total_del = 0
+    total_files = 0
+    page = 1
+    per_page = 100
+
+    while True:
+        try:
+            data = gitcode_get(
+                f"/repos/{repo_cfg.owner}/{repo_cfg.repo}/pulls/{pr_number}/files",
+                access_token=access_token,
+                params={"page": page, "per_page": per_page},
+            )
+        except Exception:
+            return None, None, None
+
+        if not data:
+            break
+
+        items: List[Dict[str, Any]]
+        if isinstance(data, list):
+            items = data
+        elif isinstance(data, dict):
+            items = [data]
+        else:
+            break
+
+        for it in items:
+            try:
+                add = int(it.get("additions", 0) or 0)
+            except (TypeError, ValueError):
+                add = 0
+            try:
+                dele = int(it.get("deletions", 0) or 0)
+            except (TypeError, ValueError):
+                dele = 0
+            total_add += add
+            total_del += dele
+            total_files += 1
+
+        if not isinstance(data, list) or len(items) < per_page:
+            break
+
+        page += 1
+        time.sleep(0.05)
+
+    return total_add, total_del, total_files
+
+
 def _infer_resolved(comment: Dict[str, Any]) -> Optional[bool]:
     if "resolved" in comment:
         val = comment.get("resolved")
@@ -396,6 +457,12 @@ def fetch_repo_user_data(
 
         # 再拉 issues
         pr.issues = fetch_issues_for_pr(access_token, repo_cfg, pr.number)
+
+        # 再拉文件变更统计
+        add, dele, files = fetch_files_for_pr(access_token, repo_cfg, pr.number)
+        pr.additions = add
+        pr.deletions = dele
+        pr.changed_files = files
 
         result.append(pr)
 
@@ -986,6 +1053,11 @@ def build_html(
       color: var(--muted);
       margin-bottom: 4px;
     }
+    .pr-code {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
     .pr-link {
       font-size: 11px;
       color: var(--link);
@@ -1441,6 +1513,10 @@ def build_html(
       display: none;
       margin-top: 12px;
     }
+    .code-view {
+      display: none;
+      margin-top: 12px;
+    }
     .issue-toggle {
       background: none;
       border: none;
@@ -1515,7 +1591,8 @@ def build_html(
       background: var(--table-hover);
     }
     .issue-detail-row td,
-    .received-detail-row td {
+    .received-detail-row td,
+    .code-detail-row td {
       background: var(--surface-1);
     }
     .stats-block {
@@ -1623,6 +1700,7 @@ def build_html(
         "<button type='button' class='view-toggle-btn' id='view-list-btn' title='列表视图'>列表</button>"
         "<button type='button' class='view-toggle-btn' id='view-issue-btn' title='检视意见（提出）'>提出</button>"
         "<button type='button' class='view-toggle-btn' id='view-received-btn' title='被提检视意见（收到）'>被提</button>"
+        "<button type='button' class='view-toggle-btn' id='view-code-btn' title='代码量统计'>代码量</button>"
         "</div>"
     )
     html_parts.append(
@@ -1981,6 +2059,18 @@ def build_html(
 
                         pr_type = _infer_pr_type(pr.title or "")
 
+                        code_known = (
+                            pr.additions is not None
+                            and pr.deletions is not None
+                            and pr.changed_files is not None
+                        )
+                        if code_known:
+                            code_text = (
+                                f"代码变更：+{pr.additions} / -{pr.deletions} · 文件 {pr.changed_files}"
+                            )
+                        else:
+                            code_text = "代码变更：未知"
+
                         if unresolved_count > 0:
                             badge_cls = "badge-danger"
                             badge_text = f"{unresolved_count} 未解决"
@@ -1999,6 +2089,10 @@ def build_html(
                             f" data-total-comments='{len(all_comments)}'"
                             f" data-unresolved-count='{unresolved_count}'"
                             f" data-resolved-count='{resolved_count}'"
+                            f" data-code-known='{'1' if code_known else '0'}'"
+                            f" data-additions='{'' if pr.additions is None else pr.additions}'"
+                            f" data-deletions='{'' if pr.deletions is None else pr.deletions}'"
+                            f" data-changed-files='{'' if pr.changed_files is None else pr.changed_files}'"
                             f" data-created='{escape_html(pr.created_at)}'"
                             f" data-updated='{escape_html(pr.updated_at)}'"
                             f" data-issue-labels='{escape_html('||'.join(issue_labels_flat))}'"
@@ -2089,6 +2183,9 @@ def build_html(
                                 times_line += f" ｜ 更新：{escape_html(pr.updated_at)}"
                             html_parts.append(
                                 f"<div class='pr-times'>{times_line}</div>"
+                            )
+                            html_parts.append(
+                                f"<div class='pr-code'>{escape_html(code_text)}</div>"
                             )
 
                         # Issues
@@ -2318,7 +2415,7 @@ def build_html(
     html_parts.append(
         "<table class='list-table' id='list-table'>"
         "<thead><tr>"
-        "<th>仓库</th><th>用户</th><th>PR</th><th>状态</th><th>类型</th><th>未解决</th><th>已解决</th><th>创建</th><th>更新时间</th><th>分支</th>"
+        "<th>仓库</th><th>用户</th><th>PR</th><th>状态</th><th>类型</th><th>未解决</th><th>已解决</th><th>新增</th><th>删除</th><th>文件</th><th>创建</th><th>更新时间</th><th>分支</th>"
         "</tr></thead>"
         "<tbody></tbody>"
         "</table>"
@@ -2343,6 +2440,18 @@ def build_html(
         "<table class='list-table' id='received-table'>"
         "<thead><tr>"
         "<th>被提人（PR 作者）</th><th>检视意见（主评论）</th><th>未解决</th><th>已解决</th>"
+        "</tr></thead>"
+        "<tbody></tbody>"
+        "</table>"
+    )
+    html_parts.append("</div>")
+
+    # 代码量统计视图（按 PR 作者聚合）
+    html_parts.append("<div class='code-view' id='code-view'>")
+    html_parts.append(
+        "<table class='list-table' id='code-table'>"
+        "<thead><tr>"
+        "<th>用户</th><th>PR 数</th><th>新增</th><th>删除</th><th>文件</th>"
         "</tr></thead>"
         "<tbody></tbody>"
         "</table>"
@@ -2375,10 +2484,13 @@ def build_html(
   const issueTableBody = document.querySelector('#issue-table tbody');
   const receivedView = document.getElementById('received-view');
   const receivedTableBody = document.querySelector('#received-table tbody');
+  const codeView = document.getElementById('code-view');
+  const codeTableBody = document.querySelector('#code-table tbody');
   const viewCardBtn = document.getElementById('view-card-btn');
   const viewListBtn = document.getElementById('view-list-btn');
   const viewIssueBtn = document.getElementById('view-issue-btn');
   const viewReceivedBtn = document.getElementById('view-received-btn');
+  const viewCodeBtn = document.getElementById('view-code-btn');
   const reviewControls = document.getElementById('review-controls');
   const reviewUserKeyword = document.getElementById('review-user-keyword');
   const reviewSortSelect = document.getElementById('review-sort-select');
@@ -2494,6 +2606,13 @@ def build_html(
       const state = card.dataset.state || '';
       const unresolved = parseInt(card.dataset.unresolvedCount || '0', 10) || 0;
       const resolved = parseInt(card.dataset.resolvedCount || '0', 10) || 0;
+      const codeKnown = (card.dataset.codeKnown || '') === '1';
+      const additionsRaw = card.dataset.additions || '';
+      const deletionsRaw = card.dataset.deletions || '';
+      const filesRaw = card.dataset.changedFiles || '';
+      const additions = parseInt(additionsRaw || '0', 10) || 0;
+      const deletions = parseInt(deletionsRaw || '0', 10) || 0;
+      const files = parseInt(filesRaw || '0', 10) || 0;
       const created = card.dataset.created || '';
       const updated = card.dataset.updated || '';
       const branch =
@@ -2512,6 +2631,10 @@ def build_html(
         state,
         unresolved,
         resolved,
+        additions,
+        deletions,
+        files,
+        codeKnown,
         created,
         updated,
         branch,
@@ -2531,6 +2654,9 @@ def build_html(
       const prCell = r.url
         ? `<a href="${r.url}" target="_blank" rel="noopener noreferrer">#${r.num} ${r.title}</a>`
         : `#${r.num} ${r.title}`;
+      const addDisplay = r.codeKnown ? r.additions : '-';
+      const delDisplay = r.codeKnown ? r.deletions : '-';
+      const filesDisplay = r.codeKnown ? r.files : '-';
       tr.innerHTML = `
         <td>${r.repo}</td>
         <td>${r.user}</td>
@@ -2539,6 +2665,9 @@ def build_html(
         <td>${r.type || ''}</td>
         <td>${r.unresolved}</td>
         <td>${r.resolved}</td>
+        <td>${addDisplay}</td>
+        <td>${delDisplay}</td>
+        <td>${filesDisplay}</td>
         <td>${r.created}</td>
         <td>${r.updated}</td>
         <td>${r.branch}</td>
@@ -2943,6 +3072,172 @@ def build_html(
           }
 
           line.appendChild(pill);
+          line.appendChild(link);
+          line.appendChild(meta);
+          wrap.appendChild(line);
+        });
+      }
+
+      detailTd.appendChild(wrap);
+      detailTr.appendChild(detailTd);
+      row.after(detailTr);
+      btn.setAttribute('aria-expanded', 'true');
+      const label = btn.dataset.label || userKey;
+      btn.textContent = `▾ ${label}`;
+    });
+  }
+
+  // 代码量统计视图：按 PR 作者聚合
+  let codeDetailMap = new Map();
+  const collectVisibleCodeRows = () => {
+    const rows = [];
+    const cards = Array.from(document.querySelectorAll('.pr-card'));
+    cards.forEach((card) => {
+      const userBlock = card.closest('[data-user-block]');
+      if (card.style.display === 'none') return;
+      if (userBlock && userBlock.style.display === 'none') return;
+      const codeKnown = (card.dataset.codeKnown || '') === '1';
+      if (!codeKnown) return;
+      const repo = card.dataset.repo || '';
+      const user = card.dataset.username || '';
+      const num = card.dataset.prNumber || '';
+      const title = card.dataset.title || '';
+      const url = card.dataset.url || '';
+      const additions = parseInt(card.dataset.additions || '0', 10) || 0;
+      const deletions = parseInt(card.dataset.deletions || '0', 10) || 0;
+      const files = parseInt(card.dataset.changedFiles || '0', 10) || 0;
+      rows.push({ repo, user, num, title, url, additions, deletions, files });
+    });
+    return rows;
+  };
+
+  const refreshCodeView = () => {
+    if (!codeTableBody) return;
+    codeTableBody.innerHTML = '';
+    const rows = collectVisibleCodeRows();
+    const map = new Map();
+    codeDetailMap = new Map();
+    rows.forEach((r) => {
+      const key = r.user || '(unknown)';
+      if (!map.has(key)) {
+        map.set(key, { user: key, prs: 0, additions: 0, deletions: 0, files: 0 });
+      }
+      if (!codeDetailMap.has(key)) {
+        codeDetailMap.set(key, []);
+      }
+      codeDetailMap.get(key).push(r);
+      const acc = map.get(key);
+      acc.prs += 1;
+      acc.additions += r.additions;
+      acc.deletions += r.deletions;
+      acc.files += r.files;
+    });
+    const list = Array.from(map.values()).sort((a, b) => {
+      const ta = (a.additions || 0) + (a.deletions || 0);
+      const tb = (b.additions || 0) + (b.deletions || 0);
+      if (tb !== ta) return tb - ta;
+      return (a.user || '').localeCompare(b.user || '');
+    });
+    if (!list.length) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 5;
+      td.textContent = '当前筛选下无代码统计数据';
+      tr.appendChild(td);
+      codeTableBody.appendChild(tr);
+      return;
+    }
+    list.forEach((r) => {
+      const tr = document.createElement('tr');
+      const tdUser = document.createElement('td');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'issue-toggle';
+      btn.dataset.codeToggle = '1';
+      btn.dataset.user = r.user;
+      btn.dataset.label = r.user;
+      btn.setAttribute('aria-expanded', 'false');
+      btn.textContent = `▸ ${r.user}`;
+      tdUser.appendChild(btn);
+      const tdPrs = document.createElement('td');
+      tdPrs.textContent = String(r.prs);
+      const tdAdd = document.createElement('td');
+      tdAdd.textContent = String(r.additions);
+      const tdDel = document.createElement('td');
+      tdDel.textContent = String(r.deletions);
+      const tdFiles = document.createElement('td');
+      tdFiles.textContent = String(r.files);
+      tr.appendChild(tdUser);
+      tr.appendChild(tdPrs);
+      tr.appendChild(tdAdd);
+      tr.appendChild(tdDel);
+      tr.appendChild(tdFiles);
+      codeTableBody.appendChild(tr);
+    });
+  };
+
+  if (codeTableBody) {
+    codeTableBody.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-code-toggle]');
+      if (!btn) return;
+      const userKey = btn.dataset.user || '(unknown)';
+      const row = btn.closest('tr');
+      if (!row) return;
+
+      const next = row.nextElementSibling;
+      const isOpen = btn.getAttribute('aria-expanded') === 'true';
+      if (isOpen) {
+        if (next && next.classList.contains('code-detail-row')) {
+          next.remove();
+        }
+        btn.setAttribute('aria-expanded', 'false');
+        const label = btn.dataset.label || userKey;
+        btn.textContent = `▸ ${label}`;
+        return;
+      }
+      if (next && next.classList.contains('code-detail-row')) {
+        next.remove();
+      }
+
+      const details = codeDetailMap.get(userKey) || [];
+      const sorted = [...details].sort((a, b) => {
+        const ta = (a.additions || 0) + (a.deletions || 0);
+        const tb = (b.additions || 0) + (b.deletions || 0);
+        if (tb !== ta) return tb - ta;
+        return (a.repo || '').localeCompare(b.repo || '');
+      });
+
+      const detailTr = document.createElement('tr');
+      detailTr.className = 'code-detail-row';
+      const detailTd = document.createElement('td');
+      detailTd.colSpan = 5;
+      const wrap = document.createElement('div');
+      wrap.className = 'issue-detail';
+
+      if (!sorted.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-text';
+        empty.textContent = '无代码统计记录';
+        wrap.appendChild(empty);
+      } else {
+        sorted.forEach((it) => {
+          const line = document.createElement('div');
+          line.className = 'issue-detail-item';
+
+          const link = document.createElement(it.url ? 'a' : 'span');
+          if (it.url) {
+            link.href = it.url;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.className = 'issue-detail-link';
+          }
+          const prPrefix = it.repo ? `${it.repo} ` : '';
+          link.textContent = `${prPrefix}#${it.num || ''} ${it.title || ''}`.trim();
+
+          const meta = document.createElement('span');
+          meta.className = 'issue-detail-meta';
+          meta.textContent = `+${it.additions} / -${it.deletions} · 文件 ${it.files}`;
+
           line.appendChild(link);
           line.appendChild(meta);
           wrap.appendChild(line);
@@ -3516,6 +3811,9 @@ def build_html(
         'state',
         'unresolved',
         'resolved',
+        'additions',
+        'deletions',
+        'files',
         'created',
         'updated',
         'branch',
@@ -3538,6 +3836,9 @@ def build_html(
           escape(r.state),
           escape(r.unresolved),
           escape(r.resolved),
+          escape(r.codeKnown ? r.additions : ''),
+          escape(r.codeKnown ? r.deletions : ''),
+          escape(r.codeKnown ? r.files : ''),
           escape(r.created),
           escape(r.updated),
           escape(r.branch),
@@ -3660,7 +3961,10 @@ def build_html(
   const VIEW_KEY = 'pr_report_view_mode_v1';
   let currentViewMode = 'card';
   const setView = (mode, opts = {}) => {
-    const nextMode = (mode === 'list' || mode === 'issue' || mode === 'received') ? mode : 'card';
+    const nextMode =
+      (mode === 'list' || mode === 'issue' || mode === 'received' || mode === 'code')
+        ? mode
+        : 'card';
     currentViewMode = nextMode;
     if (!opts.skipPersist) {
       try { localStorage.setItem(VIEW_KEY, nextMode); } catch (e) {}
@@ -3678,41 +3982,61 @@ def build_html(
       listView.style.display = 'block';
       if (issueView) issueView.style.display = 'none';
       if (receivedView) receivedView.style.display = 'none';
+      if (codeView) codeView.style.display = 'none';
       if (viewListBtn) viewListBtn.classList.add('active');
       if (viewCardBtn) viewCardBtn.classList.remove('active');
       if (viewIssueBtn) viewIssueBtn.classList.remove('active');
       if (viewReceivedBtn) viewReceivedBtn.classList.remove('active');
+      if (viewCodeBtn) viewCodeBtn.classList.remove('active');
       refreshListView();
     } else if (nextMode === 'issue') {
       if (cardView) cardView.style.display = 'none';
       if (listView) listView.style.display = 'none';
       if (issueView) issueView.style.display = 'block';
       if (receivedView) receivedView.style.display = 'none';
+      if (codeView) codeView.style.display = 'none';
       if (viewIssueBtn) viewIssueBtn.classList.add('active');
       if (viewCardBtn) viewCardBtn.classList.remove('active');
       if (viewListBtn) viewListBtn.classList.remove('active');
       if (viewReceivedBtn) viewReceivedBtn.classList.remove('active');
+      if (viewCodeBtn) viewCodeBtn.classList.remove('active');
       refreshIssueView();
     } else if (nextMode === 'received') {
       if (cardView) cardView.style.display = 'none';
       if (listView) listView.style.display = 'none';
       if (issueView) issueView.style.display = 'none';
       if (receivedView) receivedView.style.display = 'block';
+      if (codeView) codeView.style.display = 'none';
       if (viewReceivedBtn) viewReceivedBtn.classList.add('active');
       if (viewCardBtn) viewCardBtn.classList.remove('active');
       if (viewListBtn) viewListBtn.classList.remove('active');
       if (viewIssueBtn) viewIssueBtn.classList.remove('active');
+      if (viewCodeBtn) viewCodeBtn.classList.remove('active');
       refreshReceivedView();
+    } else if (nextMode === 'code') {
+      if (cardView) cardView.style.display = 'none';
+      if (listView) listView.style.display = 'none';
+      if (issueView) issueView.style.display = 'none';
+      if (receivedView) receivedView.style.display = 'none';
+      if (codeView) codeView.style.display = 'block';
+      if (viewCodeBtn) viewCodeBtn.classList.add('active');
+      if (viewCardBtn) viewCardBtn.classList.remove('active');
+      if (viewListBtn) viewListBtn.classList.remove('active');
+      if (viewIssueBtn) viewIssueBtn.classList.remove('active');
+      if (viewReceivedBtn) viewReceivedBtn.classList.remove('active');
+      refreshCodeView();
     } else {
       if (!cardView || !listView) return;
       cardView.style.display = 'block';
       listView.style.display = 'none';
       if (issueView) issueView.style.display = 'none';
       if (receivedView) receivedView.style.display = 'none';
+      if (codeView) codeView.style.display = 'none';
       if (viewCardBtn) viewCardBtn.classList.add('active');
       if (viewListBtn) viewListBtn.classList.remove('active');
       if (viewIssueBtn) viewIssueBtn.classList.remove('active');
       if (viewReceivedBtn) viewReceivedBtn.classList.remove('active');
+      if (viewCodeBtn) viewCodeBtn.classList.remove('active');
     }
   };
   if (viewCardBtn) {
@@ -3726,6 +4050,9 @@ def build_html(
   }
   if (viewReceivedBtn) {
     viewReceivedBtn.addEventListener('click', () => setView('received'));
+  }
+  if (viewCodeBtn) {
+    viewCodeBtn.addEventListener('click', () => setView('code'));
   }
   const refreshActiveReviewView = () => {
     if (currentViewMode === 'issue') refreshIssueView();
@@ -3781,6 +4108,9 @@ def build_html(
     }
     if (receivedView && receivedView.style.display !== 'none') {
       refreshReceivedView();
+    }
+    if (codeView && codeView.style.display !== 'none') {
+      refreshCodeView();
     }
     refreshStats();
   };
