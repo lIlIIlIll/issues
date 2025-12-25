@@ -33,6 +33,7 @@ except ImportError:
 
 
 BASE_URL = "https://api.gitcode.com/api/v5"
+CODE_STAT_SUFFIXES = {".cj", ".c", ".cpp", ".h", ".md"}
 
 
 # ----------------- 数据结构 -----------------
@@ -404,11 +405,13 @@ def fetch_files_for_pr(
                 dele = int(it.get("deletions", 0) or 0)
             except (TypeError, ValueError):
                 dele = 0
+            name = it.get("filename") or it.get("new_path") or it.get("old_path") or ""
+            ext = _ext_from_filename(name)
+            if ext not in CODE_STAT_SUFFIXES:
+                continue
             total_add += add
             total_del += dele
             total_files += 1
-            name = it.get("filename") or it.get("new_path") or it.get("old_path") or ""
-            ext = _ext_from_filename(name)
             bucket = stats.setdefault(ext, {"additions": 0, "deletions": 0, "files": 0})
             bucket["additions"] += add
             bucket["deletions"] += dele
