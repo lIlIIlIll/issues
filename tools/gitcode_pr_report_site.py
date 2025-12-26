@@ -380,8 +380,10 @@ def fetch_files_for_pr(
     total_del = 0
     total_files = 0
     stats: Dict[str, Dict[str, int]] = {}
+    seen_items: set[str] = set()
     page = 1
     per_page = 100
+    max_pages = 10
 
     while True:
         try:
@@ -404,6 +406,7 @@ def fetch_files_for_pr(
         else:
             break
 
+        new_items = 0
         for it in items:
             try:
                 add = int(it.get("additions", 0) or 0)
@@ -414,6 +417,11 @@ def fetch_files_for_pr(
             except (TypeError, ValueError):
                 dele = 0
             name = it.get("filename") or it.get("new_path") or it.get("old_path") or ""
+            key = f"{name}|{add}|{dele}"
+            if key in seen_items:
+                continue
+            seen_items.add(key)
+            new_items += 1
             ext = _ext_from_filename(name)
             if ext not in CODE_STAT_SUFFIXES:
                 continue
@@ -425,10 +433,12 @@ def fetch_files_for_pr(
             bucket["deletions"] += dele
             bucket["files"] += 1
 
-        if not isinstance(data, list) or len(items) < per_page:
+        if not isinstance(data, list) or len(items) < per_page or new_items == 0:
             break
 
         page += 1
+        if page > max_pages:
+            break
         time.sleep(0.05)
 
     return total_add, total_del, total_files, stats
@@ -1367,6 +1377,54 @@ def build_html(
       font-size: 13px;
       height: 32px;
     }
+    .config-panel {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface-1);
+      padding: 4px 8px;
+    }
+    .config-panel > summary {
+      cursor: pointer;
+      font-size: 13px;
+      list-style: none;
+    }
+    .config-panel > summary::-webkit-details-marker {
+      display: none;
+    }
+    .config-body {
+      padding: 8px 0 4px;
+      display: grid;
+      gap: 6px;
+      min-width: 240px;
+    }
+    .config-label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .config-textarea {
+      background: var(--chip-bg-2);
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 12px;
+      resize: vertical;
+      min-width: 260px;
+    }
+    .config-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .config-hint {
+      font-size: 12px;
+      color: var(--muted2);
+    }
+    .group-members {
+      color: var(--muted2);
+      margin-left: 4px;
+      font-size: 12px;
+    }
     .view-tabs {
       display: inline-flex;
       border: 1px solid var(--border);
@@ -1823,6 +1881,22 @@ def build_html(
         "</select>"
     )
     html_parts.append(
+        "<details class='config-panel' id='client-config-panel'>"
+        "<summary>用户/组设置</summary>"
+        "<div class='config-body'>"
+        "<label class='config-label'>用户（每行一个）</label>"
+        "<textarea id='config-users' class='config-textarea' rows='4' placeholder='alice\\nbob'></textarea>"
+        "<label class='config-label'>用户组（格式：组名: user1, user2）</label>"
+        "<textarea id='config-groups' class='config-textarea' rows='4' placeholder='teamA: alice, bob'></textarea>"
+        "<div class='config-actions'>"
+        "<button type='button' class='filter-chip-btn secondary' id='config-apply'>应用并刷新</button>"
+        "<button type='button' class='filter-chip-btn' id='config-reset'>恢复默认</button>"
+        "</div>"
+        "<div class='config-hint'>设置会保存在浏览器本地，仅影响当前页面。</div>"
+        "</div>"
+        "</details>"
+    )
+    html_parts.append(
         "<div class='token-box'>"
         "<input type='password' id='api-token' class='filter-text token-input' "
         "placeholder='API Token（仅保存在本地浏览器）' />"
@@ -2034,67 +2108,71 @@ def build_html(
     html_parts.append("<div class='filter-group'>")
     html_parts.append("<h3>用户 / 组</h3>")
     # 用户筛选区域（默认全选），用下拉面板减少占位
+    user_dropdown_style = "" if cfg.users else " style='display:none'"
+    html_parts.append(
+        f"<div class='filter-users' id='filter-user-dropdown'{user_dropdown_style}>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-user-toggle' id='filter-user-toggle'>"
+        "用户：全部"
+        "</button>"
+    )
+    html_parts.append("<div class='filter-user-panel' id='filter-user-panel'>")
+    html_parts.append("<div class='filter-user-actions'>")
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn' id='filter-user-all'>全选</button>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn' id='filter-user-none'>全不选</button>"
+    )
+    html_parts.append("</div>")
+    html_parts.append("<div class='filter-user-list' id='filter-user-list'>")
     if cfg.users:
-        html_parts.append("<div class='filter-users' id='filter-user-dropdown'>")
-        html_parts.append(
-            "<button type='button' class='filter-user-toggle' id='filter-user-toggle'>"
-            "用户：全部"
-            "</button>"
-        )
-        html_parts.append("<div class='filter-user-panel' id='filter-user-panel'>")
-        html_parts.append("<div class='filter-user-actions'>")
-        html_parts.append(
-            "<button type='button' class='filter-chip-btn' id='filter-user-all'>全选</button>"
-        )
-        html_parts.append(
-            "<button type='button' class='filter-chip-btn' id='filter-user-none'>全不选</button>"
-        )
-        html_parts.append("</div>")
-        html_parts.append("<div class='filter-user-list'>")
-        if cfg.users:
-            for uname in cfg.users:
-                html_parts.append(
-                    "<label class='filter-user-item'>"
-                    f"<input type='checkbox' class='filter-user-checkbox' value='{escape_html(uname)}' checked /> "
-                    f"{escape_html(uname)}"
-                    "</label>"
-                )
-        else:
-            html_parts.append("<div class='empty-text'>配置中没有用户</div>")
-        html_parts.append("</div>")  # list
-        html_parts.append("</div>")  # panel
-        html_parts.append("</div>")  # dropdown
-
-    # 用户组筛选
-    if cfg.groups:
-        html_parts.append("<div class='filter-users' id='filter-group-dropdown'>")
-        html_parts.append(
-            "<button type='button' class='filter-user-toggle' id='filter-group-toggle'>"
-            "用户组：全部"
-            "</button>"
-        )
-        html_parts.append("<div class='filter-user-panel' id='filter-group-panel'>")
-        html_parts.append("<div class='filter-user-actions'>")
-        html_parts.append(
-            "<button type='button' class='filter-chip-btn' id='filter-group-all'>全选</button>"
-        )
-        html_parts.append(
-            "<button type='button' class='filter-chip-btn' id='filter-group-none'>全不选</button>"
-        )
-        html_parts.append("</div>")
-        html_parts.append("<div class='filter-user-list'>")
-        for gname, members in cfg.groups.items():
-            members_text = ", ".join(escape_html(m) for m in members)
+        for uname in cfg.users:
             html_parts.append(
                 "<label class='filter-user-item'>"
-                f"<input type='checkbox' class='filter-group-checkbox' value='{escape_html(gname)}' checked /> "
-                f"{escape_html(gname)}"
-                f" <span style='color:#9ca3af'>( {members_text} )</span>"
+                f"<input type='checkbox' class='filter-user-checkbox' value='{escape_html(uname)}' checked /> "
+                f"{escape_html(uname)}"
                 "</label>"
             )
-        html_parts.append("</div>")  # list
-        html_parts.append("</div>")  # panel
-        html_parts.append("</div>")  # dropdown
+    else:
+        html_parts.append("<div class='empty-text'>配置中没有用户</div>")
+    html_parts.append("</div>")  # list
+    html_parts.append("</div>")  # panel
+    html_parts.append("</div>")  # dropdown
+
+    # 用户组筛选
+    group_dropdown_style = "" if cfg.groups else " style='display:none'"
+    html_parts.append(
+        f"<div class='filter-users' id='filter-group-dropdown'{group_dropdown_style}>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-user-toggle' id='filter-group-toggle'>"
+        "用户组：全部"
+        "</button>"
+    )
+    html_parts.append("<div class='filter-user-panel' id='filter-group-panel'>")
+    html_parts.append("<div class='filter-user-actions'>")
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn' id='filter-group-all'>全选</button>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn' id='filter-group-none'>全不选</button>"
+    )
+    html_parts.append("</div>")
+    html_parts.append("<div class='filter-user-list' id='filter-group-list'>")
+    for gname, members in cfg.groups.items():
+        members_text = ", ".join(escape_html(m) for m in members)
+        html_parts.append(
+            "<label class='filter-user-item'>"
+            f"<input type='checkbox' class='filter-group-checkbox' value='{escape_html(gname)}' checked /> "
+            f"{escape_html(gname)}"
+            f" <span style='color:#9ca3af'>( {members_text} )</span>"
+            "</label>"
+        )
+    html_parts.append("</div>")  # list
+    html_parts.append("</div>")  # panel
+    html_parts.append("</div>")  # dropdown
     html_parts.append("</div>")  # filter-group 用户/组
     html_parts.append("</div>")  # filter-bar
     html_parts.append("</div>")  # filter-container
@@ -2658,24 +2736,33 @@ def build_html(
   let issueLabelChecks = Array.from(document.querySelectorAll('.filter-issue-label-checkbox'));
   let prTypeChecks = Array.from(document.querySelectorAll('.filter-pr-type-checkbox'));
   let targetChecks = Array.from(document.querySelectorAll('.filter-target-checkbox'));
-  const userChecks = Array.from(document.querySelectorAll('.filter-user-checkbox'));
+  let userChecks = Array.from(document.querySelectorAll('.filter-user-checkbox'));
   const userSelectAllBtn = document.getElementById('filter-user-all');
   const userSelectNoneBtn = document.getElementById('filter-user-none');
   const userToggle = document.getElementById('filter-user-toggle');
   const userPanel = document.getElementById('filter-user-panel');
   const userDropdown = document.getElementById('filter-user-dropdown');
+  const userList = document.getElementById('filter-user-list');
   const issueGroup = document.getElementById('filter-issue-group');
   const issueList = document.getElementById('filter-issue-list');
   const prTypeGroup = document.getElementById('filter-pr-type-group');
   const prTypeList = document.getElementById('filter-pr-type-list');
   const targetGroup = document.getElementById('filter-target-group');
   const targetList = document.getElementById('filter-target-list');
-  const groupChecks = Array.from(document.querySelectorAll('.filter-group-checkbox'));
+  let groupChecks = Array.from(document.querySelectorAll('.filter-group-checkbox'));
   const groupSelectAllBtn = document.getElementById('filter-group-all');
   const groupSelectNoneBtn = document.getElementById('filter-group-none');
   const groupToggle = document.getElementById('filter-group-toggle');
   const groupPanel = document.getElementById('filter-group-panel');
   const groupDropdown = document.getElementById('filter-group-dropdown');
+  const groupList = document.getElementById('filter-group-list');
+  const configPanel = document.getElementById('client-config-panel');
+  const configUsers = document.getElementById('config-users');
+  const configGroups = document.getElementById('config-groups');
+  const configApplyBtn = document.getElementById('config-apply');
+  const configResetBtn = document.getElementById('config-reset');
+  let wrappedApply = () => {};
+  let bindUserGroupListeners = () => {};
   const THEME_KEY = 'pr_report_theme_v1';
   const normalizeTheme = (v) => {
     const t = (v || '').toString();
@@ -2698,6 +2785,21 @@ def build_html(
       try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
     });
   }
+
+  const CLIENT_CONFIG = __CLIENT_CONFIG__;
+  const TOKEN_KEY = 'gitcode_api_token_v1';
+  const API_BASE_URL = CLIENT_CONFIG.baseUrl || 'https://api.gitcode.com/api/v5';
+  const ALLOWED_PR_TYPES = new Set(CLIENT_CONFIG.allowedPrTypes || []);
+  const CODE_STATS_ENABLED = CLIENT_CONFIG.codeStatsEnabled !== false;
+  const CODE_STAT_SUFFIXES = new Set(
+    (CLIENT_CONFIG.codeStatSuffixes || []).map((s) => (s || '').toLowerCase())
+  );
+  let groupMembers = __GROUP_MEMBERS__;
+  const logInfo = (...args) => {
+    if (typeof console !== 'undefined' && console.info) {
+      console.info('[pr-report]', ...args);
+    }
+  };
 
   const readToken = () => {
     try {
@@ -2742,6 +2844,165 @@ def build_html(
     });
   }
 
+  const CLIENT_CFG_KEY = 'pr_report_client_cfg_v1';
+  const normalizeUsers = (text) => {
+    const raw = (text || '').split(/[\\n,]/);
+    const seen = new Set();
+    const list = [];
+    raw.forEach((item) => {
+      const name = (item || '').trim();
+      if (!name || seen.has(name)) return;
+      seen.add(name);
+      list.push(name);
+    });
+    return list;
+  };
+  const parseGroups = (text) => {
+    const groups = {};
+    (text || '').split(/\\n/).forEach((line) => {
+      const trimmed = (line || '').trim();
+      if (!trimmed) return;
+      const idx = trimmed.indexOf(':');
+      if (idx <= 0) return;
+      const name = trimmed.slice(0, idx).trim();
+      const usersRaw = trimmed.slice(idx + 1).trim();
+      if (!name) return;
+      const users = normalizeUsers(usersRaw.replace(/\\s+/g, ' '));
+      groups[name] = users;
+    });
+    return groups;
+  };
+  const formatGroups = (groups) => {
+    if (!groups) return '';
+    return Object.entries(groups)
+      .map(([name, users]) => `${name}: ${(users || []).join(', ')}`.trim())
+      .join('\\n');
+  };
+  const loadClientConfig = () => {
+    try {
+      const raw = localStorage.getItem(CLIENT_CFG_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      return {
+        users: Array.isArray(parsed.users) ? parsed.users : [],
+        groups: parsed.groups && typeof parsed.groups === 'object' ? parsed.groups : {},
+        usersSet: parsed.usersSet === true,
+        groupsSet: parsed.groupsSet === true,
+      };
+    } catch (e) {
+      return null;
+    }
+  };
+  const saveClientConfig = (cfg) => {
+    try {
+      if (!cfg) {
+        localStorage.removeItem(CLIENT_CFG_KEY);
+        return;
+      }
+      localStorage.setItem(CLIENT_CFG_KEY, JSON.stringify(cfg));
+    } catch (e) {}
+  };
+  let clientConfigState = loadClientConfig();
+  const getEffectiveUsers = () => {
+    if (clientConfigState && clientConfigState.usersSet) {
+      return clientConfigState.users || [];
+    }
+    return Array.isArray(CLIENT_CONFIG.users) ? CLIENT_CONFIG.users : [];
+  };
+  const getEffectiveGroups = () => {
+    if (clientConfigState && clientConfigState.groupsSet) {
+      return clientConfigState.groups || {};
+    }
+    return CLIENT_CONFIG.groups || {};
+  };
+  const renderUserGroupFilters = (users, groups) => {
+    if (userList) {
+      userList.innerHTML = '';
+      if (!users.length) {
+        userList.innerHTML = "<div class='empty-text'>未配置用户</div>";
+      } else {
+        users.forEach((uname) => {
+          const label = document.createElement('label');
+          label.className = 'filter-user-item';
+          const input = document.createElement('input');
+          input.type = 'checkbox';
+          input.className = 'filter-user-checkbox';
+          input.value = uname;
+          input.checked = true;
+          label.appendChild(input);
+          label.append(` ${uname}`);
+          userList.appendChild(label);
+        });
+      }
+      userChecks = Array.from(userList.querySelectorAll('.filter-user-checkbox'));
+      if (userDropdown) userDropdown.style.display = users.length ? '' : 'none';
+    }
+
+    if (groupList) {
+      groupList.innerHTML = '';
+      const groupNames = Object.keys(groups || {});
+      if (!groupNames.length) {
+        groupList.innerHTML = "<div class='empty-text'>未配置用户组</div>";
+      } else {
+        groupNames.forEach((name) => {
+          const label = document.createElement('label');
+          label.className = 'filter-user-item';
+          const input = document.createElement('input');
+          input.type = 'checkbox';
+          input.className = 'filter-group-checkbox';
+          input.value = name;
+          input.checked = true;
+          label.appendChild(input);
+          label.append(` ${name}`);
+          const members = groups[name] || [];
+          if (members.length) {
+            const span = document.createElement('span');
+            span.className = 'group-members';
+            span.textContent = ` ( ${members.join(', ')} )`;
+            label.appendChild(span);
+          }
+          groupList.appendChild(label);
+        });
+      }
+      groupChecks = Array.from(groupList.querySelectorAll('.filter-group-checkbox'));
+      if (groupDropdown) groupDropdown.style.display = groupChecks.length ? '' : 'none';
+    }
+  };
+  const applyClientConfig = () => {
+    const users = getEffectiveUsers();
+    const groups = getEffectiveGroups();
+    groupMembers = groups || {};
+    if (configUsers) configUsers.value = users.join('\\n');
+    if (configGroups) configGroups.value = formatGroups(groups);
+    renderUserGroupFilters(users, groups);
+    bindUserGroupListeners();
+  };
+  applyClientConfig();
+  if (configApplyBtn) {
+    configApplyBtn.addEventListener('click', () => {
+      const users = normalizeUsers(configUsers ? configUsers.value : '');
+      const groups = parseGroups(configGroups ? configGroups.value : '');
+      clientConfigState = {
+        users,
+        groups,
+        usersSet: true,
+        groupsSet: true,
+      };
+      saveClientConfig(clientConfigState);
+      applyClientConfig();
+      refreshFromApi();
+    });
+  }
+  if (configResetBtn) {
+    configResetBtn.addEventListener('click', () => {
+      clientConfigState = { users: [], groups: {}, usersSet: false, groupsSet: false };
+      saveClientConfig(null);
+      applyClientConfig();
+      refreshFromApi();
+    });
+  }
+
   if (!filterUnresolved || !filterHideClean) return;
 
   const getSelectedUsers = () => {
@@ -2756,21 +3017,6 @@ def build_html(
     return new Set(
       groupChecks.filter((c) => c.checked).map((c) => c.value || '')
     );
-  };
-
-  const GROUP_MEMBERS = __GROUP_MEMBERS__;
-  const CLIENT_CONFIG = __CLIENT_CONFIG__;
-  const TOKEN_KEY = 'gitcode_api_token_v1';
-  const API_BASE_URL = CLIENT_CONFIG.baseUrl || 'https://api.gitcode.com/api/v5';
-  const ALLOWED_PR_TYPES = new Set(CLIENT_CONFIG.allowedPrTypes || []);
-  const CODE_STATS_ENABLED = CLIENT_CONFIG.codeStatsEnabled !== false;
-  const CODE_STAT_SUFFIXES = new Set(
-    (CLIENT_CONFIG.codeStatSuffixes || []).map((s) => (s || '').toLowerCase())
-  );
-  const logInfo = (...args) => {
-    if (typeof console !== 'undefined' && console.info) {
-      console.info('[pr-report]', ...args);
-    }
   };
 
   const getSelectedStates = () => {
@@ -3625,6 +3871,10 @@ def build_html(
 
   const refreshUserToggleText = (selectedUsers) => {
     if (!userToggle) return;
+    if (!userChecks.length) {
+      userToggle.textContent = "用户：无";
+      return;
+    }
     if (!selectedUsers || selectedUsers.size === userChecks.length) {
       userToggle.textContent = "用户：全部";
     } else if (selectedUsers.size === 0) {
@@ -3638,6 +3888,10 @@ def build_html(
 
   const refreshGroupToggleText = (selectedGroups) => {
     if (!groupToggle) return;
+    if (!groupChecks.length) {
+      groupToggle.textContent = "用户组：无";
+      return;
+    }
     if (!selectedGroups || selectedGroups.size === groupChecks.length) {
       groupToggle.textContent = "用户组：全部";
     } else if (selectedGroups.size === 0) {
@@ -3668,7 +3922,7 @@ def build_html(
     const selectedGroupUsers = new Set();
     if (selectedGroups) {
       selectedGroups.forEach((name) => {
-        const arr = GROUP_MEMBERS[name] || [];
+        const arr = groupMembers[name] || [];
         arr.forEach((u) => selectedGroupUsers.add(u));
       });
     }
@@ -4538,6 +4792,21 @@ def build_html(
       });
   };
 
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const REQUEST_INTERVAL_MS = Math.max(
+    300,
+    parseInt(CLIENT_CONFIG.requestIntervalMs || '700', 10) || 700
+  );
+  let lastRequestAt = 0;
+  const throttleRequest = async () => {
+    const now = Date.now();
+    const waitMs = lastRequestAt + REQUEST_INTERVAL_MS - now;
+    if (waitMs > 0) {
+      await wait(waitMs);
+    }
+    lastRequestAt = Date.now();
+  };
+
   const fetchJson = async (path, token, params = {}) => {
     const url = new URL(API_BASE_URL + path);
     Object.entries(params || {}).forEach(([k, v]) => {
@@ -4545,13 +4814,32 @@ def build_html(
       url.searchParams.set(k, String(v));
     });
     if (token) url.searchParams.set('access_token', token);
-    const resp = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
-    if (!resp.ok) {
-      const text = await resp.text();
-      logInfo('API 失败', path, resp.status, text.slice(0, 120));
-      throw new Error(`GitCode API 请求失败: ${resp.status} ${text.slice(0, 200)}`);
+    const maxRetry = 3;
+    for (let attempt = 0; attempt < maxRetry; attempt += 1) {
+      await throttleRequest();
+      const resp = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+      if (resp.status === 429) {
+        const retryAfterRaw = resp.headers.get('Retry-After') || '60';
+        const retryAfter = Math.max(parseInt(retryAfterRaw, 10) || 60, 5);
+        logInfo('触发限流', path, `等待 ${retryAfter}s`);
+        if (typeof setRefreshStatus === 'function') {
+          setRefreshStatus(`触发限流，等待 ${retryAfter}s...`, 'error');
+        }
+        if (attempt === maxRetry - 1) {
+          const text = await resp.text();
+          throw new Error(`GitCode API 429: ${text.slice(0, 200)}`);
+        }
+        await wait(retryAfter * 1000);
+        continue;
+      }
+      if (!resp.ok) {
+        const text = await resp.text();
+        logInfo('API 失败', path, resp.status, text.slice(0, 120));
+        throw new Error(`GitCode API 请求失败: ${resp.status} ${text.slice(0, 200)}`);
+      }
+      return resp.json();
     }
-    return resp.json();
+    return null;
   };
 
   const fetchPrsForUser = async (repoCfg, username, token) => {
@@ -4694,8 +4982,10 @@ def build_html(
     let totalDel = 0;
     let totalFiles = 0;
     const stats = {};
+    const seenItems = new Set();
     let page = 1;
     const perPage = 100;
+    const maxPages = 10;
     while (true) {
       let data;
       try {
@@ -4709,10 +4999,15 @@ def build_html(
       }
       if (!data) break;
       const items = Array.isArray(data) ? data : [data];
+      let newItems = 0;
       items.forEach((it) => {
         const add = parseInt(it.additions || 0, 10) || 0;
         const del = parseInt(it.deletions || 0, 10) || 0;
         const name = it.filename || it.new_path || it.old_path || '';
+        const key = `${name}|${add}|${del}`;
+        if (seenItems.has(key)) return;
+        seenItems.add(key);
+        newItems += 1;
         const ext = extFromFilename(name);
         if (!CODE_STAT_SUFFIXES.has(ext)) return;
         totalAdd += add;
@@ -4724,8 +5019,14 @@ def build_html(
         bucket.files += 1;
         stats[ext] = bucket;
       });
-      if (!Array.isArray(data) || items.length < perPage) break;
+      if (!Array.isArray(data) || items.length < perPage || newItems === 0) {
+        if (newItems === 0) {
+          logInfo('文件分页重复，停止继续拉取', `${repoCfg.owner}/${repoCfg.repo}#${prNumber}`, `page=${page}`);
+        }
+        break;
+      }
       page += 1;
+      if (page > maxPages) break;
       await new Promise((r) => setTimeout(r, 50));
     }
     return { additions: totalAdd, deletions: totalDel, changed_files: totalFiles, file_stats: stats };
@@ -4777,12 +5078,16 @@ def build_html(
   const fetchAllData = async (token, onProgress) => {
     const data = {};
     const repos = Array.isArray(CLIENT_CONFIG.repos) ? CLIENT_CONFIG.repos : [];
-    const users = Array.isArray(CLIENT_CONFIG.users) ? CLIENT_CONFIG.users : [];
+    const users = getEffectiveUsers();
     logInfo('开始拉取', {
       repos: repos.length,
       users: users.length,
       codeStats: CODE_STATS_ENABLED,
     });
+    if (!users.length) {
+      logInfo('未配置用户，跳过拉取');
+      return data;
+    }
     const repoLimiter = createLimiter(4);
     const detailLimiter = createLimiter(6);
     const tasks = [];
@@ -5171,7 +5476,7 @@ def build_html(
   document.addEventListener('click', () => closeAllDropdowns());
 
   // 更新 summary 时机
-  const wrappedApply = () => {
+  wrappedApply = () => {
     applyFilters();
     updateSummary();
     if (listView && listView.style.display !== 'none') {
@@ -5188,6 +5493,19 @@ def build_html(
     }
     refreshStats();
   };
+  bindUserGroupListeners = () => {
+    userChecks.forEach((c) => {
+      c.removeEventListener('change', applyFilters);
+      c.addEventListener('change', wrappedApply);
+    });
+    groupChecks.forEach((c) => {
+      c.removeEventListener('change', applyFilters);
+      c.addEventListener('change', wrappedApply);
+    });
+    refreshUserToggleText(getSelectedUsers());
+    refreshGroupToggleText(getSelectedGroups());
+  };
+  bindUserGroupListeners();
 
   // 评论关键字输入，轻量防抖
   let keywordDebounce = null;
@@ -5286,10 +5604,6 @@ def build_html(
       wrappedApply();
     });
   }
-  userChecks.forEach((c) => {
-    c.removeEventListener('change', applyFilters);
-    c.addEventListener('change', wrappedApply);
-  });
   if (groupSelectAllBtn) {
     groupSelectAllBtn.removeEventListener('click', applyFilters);
     groupSelectAllBtn.addEventListener('click', () => {
@@ -5304,10 +5618,6 @@ def build_html(
       wrappedApply();
     });
   }
-  groupChecks.forEach((c) => {
-    c.removeEventListener('change', applyFilters);
-    c.addEventListener('change', wrappedApply);
-  });
 
   // 初始执行：默认结束日期为当天
   if (filterDateEnd && !filterDateEnd.value) {
