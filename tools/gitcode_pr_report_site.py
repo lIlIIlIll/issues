@@ -908,6 +908,39 @@ def build_html(
       font-size: 28px;
       margin-bottom: 8px;
     }
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .page-header h1 {
+      margin: 0;
+    }
+    .header-menu-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--chip-bg-2);
+      color: var(--fg);
+      cursor: pointer;
+      font-size: 16px;
+    }
+    @media (max-width: 720px) {
+      .header-right .mini-stats,
+      .header-right .refresh-stamp,
+      .header-right #filter-toggle {
+        display: none;
+      }
+      .header-menu-btn {
+        display: inline-flex;
+      }
+    }
     .sub-title {
       font-size: 14px;
       color: var(--muted);
@@ -1323,6 +1356,84 @@ def build_html(
       gap: 10px;
       margin-bottom: 6px;
     }
+    .header-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .mini-stats {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface-0);
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .mini-stats b {
+      color: var(--fg);
+      font-weight: 600;
+    }
+    .refresh-stamp {
+      font-size: 12px;
+      color: var(--muted2);
+      padding: 4px 6px;
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+      background: var(--surface-2);
+    }
+    .settings-modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+    }
+    .settings-modal[data-open="1"] {
+      display: flex;
+    }
+    .settings-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+    }
+    .settings-panel {
+      position: relative;
+      width: min(980px, 92vw);
+      max-height: 86vh;
+      display: flex;
+      flex-direction: column;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--surface-1);
+      box-shadow: 0 24px 60px var(--shadow);
+      overflow: hidden;
+      z-index: 1;
+    }
+    .settings-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .settings-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .settings-body {
+      padding: 12px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
     .filter-toggle {
       border: 1px solid var(--border);
       background: var(--chip-bg-2);
@@ -1345,6 +1456,36 @@ def build_html(
       border-radius: 12px;
       border: 1px solid var(--border);
       background: var(--surface-0);
+    }
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface-0);
+      margin-bottom: 8px;
+    }
+    .top-actions-left,
+    .top-actions-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    @media (max-width: 900px) {
+      .top-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .top-actions-left,
+      .top-actions-right {
+        width: 100%;
+        justify-content: flex-start;
+      }
     }
     .token-box {
       display: inline-flex;
@@ -1818,8 +1959,29 @@ def build_html(
         "</head>",
         "<body>",
         "<div class='container'>",
-        f"<h1>{escape_html(title)}</h1>",
     ]
+    html_parts.append("<div class='page-header'>")
+    html_parts.append(f"<h1>{escape_html(title)}</h1>")
+    html_parts.append("<div class='header-right'>")
+    html_parts.append(
+        "<div class='mini-stats'>"
+        "总 <b id='stat-total-mini'>0</b> · "
+        "open <b id='stat-open-mini'>0</b> · "
+        "merged <b id='stat-merged-mini'>0</b> · "
+        "未解决 <b id='stat-unresolved-mini'>0</b>"
+        "</div>"
+    )
+    html_parts.append(
+        "<div class='refresh-stamp' id='refresh-stamp'>未刷新</div>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-toggle' id='filter-toggle'>设置</button>"
+    )
+    html_parts.append(
+        "<button type='button' class='header-menu-btn' id='header-menu-btn' title='打开设置'>☰</button>"
+    )
+    html_parts.append("</div>")
+    html_parts.append("</div>")
 
     html_parts.append(
         f"<div class='sub-title'>执行时间：{escape_html(executed_at)}</div>"
@@ -1846,12 +2008,56 @@ def build_html(
     html_parts.append("<div class='filter-container'>")
     html_parts.append("<div class='filter-header'>")
     html_parts.append(
-        "<button type='button' class='filter-toggle' id='filter-toggle'>收起筛选</button>"
-    )
-    html_parts.append(
         "<div class='filter-summary' id='filter-summary'>当前筛选：全部</div>"
     )
     html_parts.append("</div>")
+    html_parts.append("<div class='top-actions'>")
+    html_parts.append("<div class='top-actions-left'>")
+    html_parts.append(
+        "<div class='view-tabs'>"
+        "<button type='button' class='view-toggle-btn active' id='view-card-btn' title='卡片视图'>卡片</button>"
+        "<button type='button' class='view-toggle-btn' id='view-list-btn' title='列表视图'>列表</button>"
+        "<button type='button' class='view-toggle-btn' id='view-issue-btn' title='检视意见（提出）'>提出</button>"
+        "<button type='button' class='view-toggle-btn' id='view-received-btn' title='被提检视意见（收到）'>被提</button>"
+        "<button type='button' class='view-toggle-btn' id='view-code-btn' title='代码量统计'>代码量</button>"
+        "</div>"
+    )
+    html_parts.append("</div>")
+    html_parts.append("<div class='top-actions-right'>")
+    html_parts.append(
+        "<select id='theme-select' class='filter-select' style='min-width:140px'>"
+        "<option value='dark'>主题：暗色</option>"
+        "<option value='dim'>主题：柔和</option>"
+        "<option value='light'>主题：亮色</option>"
+        "<option value='contrast'>主题：高对比</option>"
+        "</select>"
+    )
+    html_parts.append(
+        "<select id='preset-select' class='filter-select' style='min-width:160px'>"
+        "<option value=''>预设：选择</option>"
+        "</select>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn secondary' id='preset-apply'>应用预设</button>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn secondary' id='preset-save'>保存为预设</button>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn secondary' id='refresh-data'>刷新数据</button>"
+    )
+    html_parts.append("</div>")
+    html_parts.append("</div>")
+    html_parts.append("<div class='settings-modal' id='settings-modal' data-open='0'>")
+    html_parts.append("<div class='settings-backdrop' id='settings-backdrop'></div>")
+    html_parts.append("<div class='settings-panel'>")
+    html_parts.append(
+        "<div class='settings-header'>"
+        "<div class='settings-title'>筛选与操作</div>"
+        "<button type='button' class='filter-toggle' id='settings-close'>关闭</button>"
+        "</div>"
+    )
+    html_parts.append("<div class='settings-body'>")
     html_parts.append("<div class='filter-actions'>")
     html_parts.append(
         "<select id='sort-select' class='filter-select'>"
@@ -1864,20 +2070,10 @@ def build_html(
         "<button type='button' class='filter-chip-btn secondary' id='quick-open-unresolved'>仅看 open 且有未解决意见</button>"
     )
     html_parts.append(
-        "<div class='view-tabs'>"
-        "<button type='button' class='view-toggle-btn active' id='view-card-btn' title='卡片视图'>卡片</button>"
-        "<button type='button' class='view-toggle-btn' id='view-list-btn' title='列表视图'>列表</button>"
-        "<button type='button' class='view-toggle-btn' id='view-issue-btn' title='检视意见（提出）'>提出</button>"
-        "<button type='button' class='view-toggle-btn' id='view-received-btn' title='被提检视意见（收到）'>被提</button>"
-        "<button type='button' class='view-toggle-btn' id='view-code-btn' title='代码量统计'>代码量</button>"
-        "</div>"
-    )
-    html_parts.append(
-        "<select id='theme-select' class='filter-select' style='min-width:140px'>"
-        "<option value='dark'>主题：暗色</option>"
-        "<option value='dim'>主题：柔和</option>"
-        "<option value='light'>主题：亮色</option>"
-        "<option value='contrast'>主题：高对比</option>"
+        "<select id='fetch-mode-select' class='filter-select' style='min-width:220px'>"
+        "<option value='none' selected>抓取范围：不限制</option>"
+        "<option value='details'>抓取范围：仅拉取日期内详情</option>"
+        "<option value='api'>抓取范围：API 过滤 + 日期内详情</option>"
         "</select>"
     )
     html_parts.append(
@@ -1920,20 +2116,6 @@ def build_html(
     html_parts.append(
         "<button type='button' class='filter-chip-btn secondary' id='export-csv'>导出当前筛选 CSV</button>"
     )
-    html_parts.append(
-        "<select id='preset-select' class='filter-select' style='min-width:160px'>"
-        "<option value=''>预设：选择</option>"
-        "</select>"
-    )
-    html_parts.append(
-        "<button type='button' class='filter-chip-btn secondary' id='preset-apply'>应用预设</button>"
-    )
-    html_parts.append(
-        "<button type='button' class='filter-chip-btn secondary' id='preset-save'>保存为预设</button>"
-    )
-    html_parts.append(
-        "<button type='button' class='filter-chip-btn secondary' id='refresh-data'>刷新数据</button>"
-    )
     html_parts.append("</div>")
     html_parts.append("<div class='filter-bar' id='filter-bar' data-open='1'>")
     # 状态
@@ -1950,6 +2132,40 @@ def build_html(
         "<input type='checkbox' class='filter-state-checkbox' value='merged' checked />"
         " 状态：merged"
         "</label>"
+    )
+    html_parts.append("</div>")
+
+    # 抓取日期范围（仅影响刷新抓取）
+    html_parts.append("<div class='filter-group'>")
+    html_parts.append("<h3>抓取日期范围</h3>")
+    html_parts.append(
+        "<div class='filter-hint'>仅影响刷新抓取，不改变页面筛选。</div>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
+        "<span style='min-width:96px'>抓取字段：</span>"
+        "<select id='fetch-date-field' class='filter-select'>"
+        "<option value='created' selected>创建时间</option>"
+        "<option value='updated'>更新时间</option>"
+        "</select>"
+        "</label>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
+        "<span style='min-width:96px'>开始日期：</span>"
+        "<input type='date' id='fetch-date-start' class='filter-text' style='min-width:150px' />"
+        "<button type='button' class='date-picker-btn' data-picker='fetch-start'>选择</button>"
+        "</label>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
+        "<span style='min-width:96px'>结束日期：</span>"
+        "<input type='date' id='fetch-date-end' class='filter-text' style='min-width:150px' />"
+        "<button type='button' class='date-picker-btn' data-picker='fetch-end'>选择</button>"
+        "</label>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn secondary' id='fetch-date-clear'>清空抓取日期</button>"
     )
     html_parts.append("</div>")
 
@@ -2175,26 +2391,12 @@ def build_html(
     html_parts.append("</div>")  # dropdown
     html_parts.append("</div>")  # filter-group 用户/组
     html_parts.append("</div>")  # filter-bar
+    html_parts.append("</div>")  # settings-body
+    html_parts.append("</div>")  # settings-panel
+    html_parts.append("</div>")  # settings-modal
     html_parts.append("</div>")  # filter-container
 
-    # 统计概览
-    html_parts.append("<div class='stats-block' id='stats-block'>")
-    html_parts.append("<h3>当前筛选统计</h3>")
-    html_parts.append("<div class='stats-grid'>")
-    html_parts.append(
-        "<div class='stats-item'>总计：<span id='stat-total'>0</span></div>"
-    )
-    html_parts.append(
-        "<div class='stats-item'>open：<span id='stat-open'>0</span></div>"
-    )
-    html_parts.append(
-        "<div class='stats-item'>merged：<span id='stat-merged'>0</span></div>"
-    )
-    html_parts.append(
-        "<div class='stats-item'>有未解决意见：<span id='stat-unresolved'>0</span></div>"
-    )
-    html_parts.append("</div>")
-    html_parts.append("</div>")
+    # 统计概览（顶部已提供迷你统计）
 
     html_parts.append("<div id='card-view'>")
     if not data:
@@ -2695,9 +2897,17 @@ def build_html(
   const filterResolvedOnly = document.getElementById('filter-resolved-only');
   const filterDateStart = document.getElementById('filter-date-start');
   const filterDateEnd = document.getElementById('filter-date-end');
+  const fetchDateField = document.getElementById('fetch-date-field');
+  const fetchDateStart = document.getElementById('fetch-date-start');
+  const fetchDateEnd = document.getElementById('fetch-date-end');
+  const fetchDateClear = document.getElementById('fetch-date-clear');
   const filterBar = document.getElementById('filter-bar');
   const filterToggle = document.getElementById('filter-toggle');
   const filterSummary = document.getElementById('filter-summary');
+  const settingsModal = document.getElementById('settings-modal');
+  const settingsBackdrop = document.getElementById('settings-backdrop');
+  const settingsCloseBtn = document.getElementById('settings-close');
+  const headerMenuBtn = document.getElementById('header-menu-btn');
   const themeSelect = document.getElementById('theme-select');
   const sortSelect = document.getElementById('sort-select');
   const quickOpenUnresolvedBtn = document.getElementById('quick-open-unresolved');
@@ -2726,11 +2936,13 @@ def build_html(
   const tokenClearBtn = document.getElementById('token-clear');
   const tokenStatus = document.getElementById('token-status');
   const refreshStatus = document.getElementById('refresh-status');
+  const fetchModeSelect = document.getElementById('fetch-mode-select');
   const refreshBtn = document.getElementById('refresh-data');
-  const statTotal = document.getElementById('stat-total');
-  const statOpen = document.getElementById('stat-open');
-  const statMerged = document.getElementById('stat-merged');
-  const statUnresolved = document.getElementById('stat-unresolved');
+  const statTotalMini = document.getElementById('stat-total-mini');
+  const statOpenMini = document.getElementById('stat-open-mini');
+  const statMergedMini = document.getElementById('stat-merged-mini');
+  const statUnresolvedMini = document.getElementById('stat-unresolved-mini');
+  const refreshStamp = document.getElementById('refresh-stamp');
   const stateChecks = Array.from(document.querySelectorAll('.filter-state-checkbox'));
   const commentChecks = Array.from(document.querySelectorAll('.filter-comment-checkbox'));
   let issueLabelChecks = Array.from(document.querySelectorAll('.filter-issue-label-checkbox'));
@@ -2800,6 +3012,66 @@ def build_html(
       console.info('[pr-report]', ...args);
     }
   };
+  try {
+    const savedStamp = localStorage.getItem('pr_report_last_refresh_v1') || '';
+    if (savedStamp && refreshStamp) {
+      refreshStamp.textContent = `刷新：${savedStamp}`;
+    }
+  } catch (e) {}
+  const FETCH_MODE_KEY = 'pr_report_fetch_mode_v1';
+  const normalizeFetchMode = (val) =>
+    ['none', 'details', 'api'].includes(val) ? val : 'none';
+  if (fetchModeSelect) {
+    const saved = normalizeFetchMode(localStorage.getItem(FETCH_MODE_KEY) || '');
+    fetchModeSelect.value = saved;
+    fetchModeSelect.addEventListener('change', () => {
+      const v = normalizeFetchMode(fetchModeSelect.value || '');
+      try { localStorage.setItem(FETCH_MODE_KEY, v); } catch (e) {}
+    });
+  }
+  const FETCH_RANGE_KEY = 'pr_report_fetch_range_v1';
+  const loadFetchRange = () => {
+    try {
+      const raw = localStorage.getItem(FETCH_RANGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      return {
+        field: parsed.field === 'updated' ? 'updated' : 'created',
+        start: parsed.start || '',
+        end: parsed.end || '',
+      };
+    } catch (e) {
+      return null;
+    }
+  };
+  const saveFetchRange = () => {
+    if (!fetchDateField || !fetchDateStart || !fetchDateEnd) return;
+    const payload = {
+      field: fetchDateField.value === 'updated' ? 'updated' : 'created',
+      start: fetchDateStart.value || '',
+      end: fetchDateEnd.value || '',
+    };
+    try { localStorage.setItem(FETCH_RANGE_KEY, JSON.stringify(payload)); } catch (e) {}
+  };
+  const syncFetchRangeUi = () => {
+    const saved = loadFetchRange();
+    if (!saved) return;
+    if (fetchDateField) fetchDateField.value = saved.field || 'created';
+    if (fetchDateStart) fetchDateStart.value = saved.start || '';
+    if (fetchDateEnd) fetchDateEnd.value = saved.end || '';
+  };
+  syncFetchRangeUi();
+  if (fetchDateField) fetchDateField.addEventListener('change', saveFetchRange);
+  if (fetchDateStart) fetchDateStart.addEventListener('change', saveFetchRange);
+  if (fetchDateEnd) fetchDateEnd.addEventListener('change', saveFetchRange);
+  if (fetchDateClear) {
+    fetchDateClear.addEventListener('click', () => {
+      if (fetchDateStart) fetchDateStart.value = '';
+      if (fetchDateEnd) fetchDateEnd.value = '';
+      saveFetchRange();
+    });
+  }
 
   const readToken = () => {
     try {
@@ -3739,16 +4011,15 @@ def build_html(
   }
 
   const refreshStats = () => {
-    if (!statTotal || !statOpen || !statMerged || !statUnresolved) return;
     const rows = collectVisibleCards();
     const total = rows.length;
     const openCnt = rows.filter((r) => (r.state || '').toLowerCase() === 'open').length;
     const mergedCnt = rows.filter((r) => (r.state || '').toLowerCase() === 'merged').length;
     const unresolvedCnt = rows.filter((r) => r.unresolved > 0).length;
-    statTotal.textContent = total;
-    statOpen.textContent = openCnt;
-    statMerged.textContent = mergedCnt;
-    statUnresolved.textContent = unresolvedCnt;
+    if (statTotalMini) statTotalMini.textContent = total;
+    if (statOpenMini) statOpenMini.textContent = openCnt;
+    if (statMergedMini) statMergedMini.textContent = mergedCnt;
+    if (statUnresolvedMini) statUnresolvedMini.textContent = unresolvedCnt;
   };
 
   // 预设
@@ -4299,6 +4570,34 @@ def build_html(
     return parts.join(' · ') + (list.length > max ? ' 等' : '');
   };
 
+  const buildFetchRange = () => {
+    const field = fetchDateField?.value === 'updated' ? 'updated' : 'created';
+    const start = fetchDateStart?.value || '';
+    const end = fetchDateEnd?.value || '';
+    const startRaw = start ? Date.parse(start) : null;
+    const startMs = Number.isNaN(startRaw) ? null : startRaw;
+    const endRaw = end ? Date.parse(end) : null;
+    let endMs = Number.isNaN(endRaw) ? null : endRaw;
+    if (endMs !== null) {
+      endMs += 24 * 60 * 60 * 1000;
+    }
+    const startIso = start ? new Date(`${start}T00:00:00`).toISOString() : '';
+    const endIso = end ? new Date(`${end}T23:59:59`).toISOString() : '';
+    return { field, start, end, startMs, endMs, startIso, endIso };
+  };
+  const isPrInRange = (pr, range) => {
+    if (!range) return true;
+    const ts = Date.parse(
+      range.field === 'updated'
+        ? (pr.updated_at || pr.created_at || '')
+        : (pr.created_at || '')
+    );
+    if (Number.isNaN(ts)) return true;
+    if (range.startMs && ts < range.startMs) return false;
+    if (range.endMs && ts > range.endMs) return false;
+    return true;
+  };
+
   const escapeHtml = (s) => {
     return (s ?? '')
       .toString()
@@ -4842,7 +5141,7 @@ def build_html(
     return null;
   };
 
-  const fetchPrsForUser = async (repoCfg, username, token) => {
+  const fetchPrsForUser = async (repoCfg, username, token, fetchMode, fetchRange) => {
     const allPrs = [];
     const seen = new Set();
     let states = Array.isArray(repoCfg.states) ? repoCfg.states : ['open'];
@@ -4851,16 +5150,26 @@ def build_html(
     for (const state of states) {
       let page = 1;
       while (true) {
+        const params = {
+          state,
+          author: username,
+          page,
+          per_page: perPage,
+          only_count: 'false',
+        };
+        if (fetchMode === 'api' && fetchRange && (fetchRange.start || fetchRange.end)) {
+          const afterKey = fetchRange.field === 'updated' ? 'updated_after' : 'created_after';
+          const beforeKey = fetchRange.field === 'updated' ? 'updated_before' : 'created_before';
+          if (fetchRange.startIso) params[afterKey] = fetchRange.startIso;
+          if (fetchRange.endIso) params[beforeKey] = fetchRange.endIso;
+          if (fetchRange.field === 'updated' && fetchRange.startIso) {
+            params.since = fetchRange.startIso;
+          }
+        }
         const data = await fetchJson(
           `/repos/${repoCfg.owner}/${repoCfg.repo}/pulls`,
           token,
-          {
-            state,
-            author: username,
-            page,
-            per_page: perPage,
-            only_count: 'false',
-          }
+          params
         );
         if (!Array.isArray(data) || data.length === 0) break;
         data.forEach((pr) => {
@@ -5032,11 +5341,16 @@ def build_html(
     return { additions: totalAdd, deletions: totalDel, changed_files: totalFiles, file_stats: stats };
   };
 
-  const fetchRepoUserData = async (repoCfg, username, token, detailLimiter, onProgress) => {
+  const fetchRepoUserData = async (repoCfg, username, token, detailLimiter, onProgress, fetchMode, fetchRange) => {
     const repoName = `${repoCfg.owner}/${repoCfg.repo}`;
     const t0 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
     logInfo('用户开始', repoName, username);
-    const prs = await fetchPrsForUser(repoCfg, username, token);
+    const prsRaw = await fetchPrsForUser(repoCfg, username, token, fetchMode, fetchRange);
+    const applyRange = fetchMode === 'details' || fetchMode === 'api';
+    const prs = applyRange && fetchRange ? prsRaw.filter((pr) => isPrInRange(pr, fetchRange)) : prsRaw;
+    if (applyRange && fetchRange) {
+      logInfo('日期过滤 PR', repoName, username, `${prs.length}/${prsRaw.length}`);
+    }
     const tasks = prs.map((pr) =>
       detailLimiter(async () => {
         if (onProgress) onProgress(`拉取 ${repoCfg.owner}/${repoCfg.repo} #${pr.number} 详情...`);
@@ -5075,7 +5389,7 @@ def build_html(
     return list;
   };
 
-  const fetchAllData = async (token, onProgress) => {
+  const fetchAllData = async (token, onProgress, fetchMode, fetchRange) => {
     const data = {};
     const repos = Array.isArray(CLIENT_CONFIG.repos) ? CLIENT_CONFIG.repos : [];
     const users = getEffectiveUsers();
@@ -5083,6 +5397,7 @@ def build_html(
       repos: repos.length,
       users: users.length,
       codeStats: CODE_STATS_ENABLED,
+      fetchMode,
     });
     if (!users.length) {
       logInfo('未配置用户，跳过拉取');
@@ -5098,7 +5413,15 @@ def build_html(
         tasks.push(
           repoLimiter(async () => {
             if (onProgress) onProgress(`拉取 ${repoName} / ${username}...`);
-            const prs = await fetchRepoUserData(repoCfg, username, token, detailLimiter, onProgress);
+            const prs = await fetchRepoUserData(
+              repoCfg,
+              username,
+              token,
+              detailLimiter,
+              onProgress,
+              fetchMode,
+              fetchRange
+            );
             data[repoName][username] = prs || [];
           })
         );
@@ -5128,10 +5451,17 @@ def build_html(
       refreshBtn.disabled = true;
       refreshBtn.textContent = '刷新中...';
     }
+    const fetchMode = normalizeFetchMode(fetchModeSelect?.value || '');
+    const fetchRange = buildFetchRange();
     setRefreshStatus('正在拉取数据...', 'ok');
-    logInfo('刷新开始');
+    logInfo('刷新开始', {
+      fetchMode,
+      fetchField: fetchRange.field,
+      fetchStart: fetchRange.start,
+      fetchEnd: fetchRange.end,
+    });
     try {
-      const data = await fetchAllData(token, (msg) => setRefreshStatus(msg, 'ok'));
+      const data = await fetchAllData(token, (msg) => setRefreshStatus(msg, 'ok'), fetchMode, fetchRange);
       const meta = collectMetaFromData(data);
       renderDynamicFilters(meta);
       buildCardView(data);
@@ -5145,6 +5475,8 @@ def build_html(
       const pad = (n) => String(n).padStart(2, '0');
       const stamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
       setRefreshStatus(`已刷新 ${stamp}`, 'ok');
+      if (refreshStamp) refreshStamp.textContent = `刷新：${stamp}`;
+      try { localStorage.setItem('pr_report_last_refresh_v1', stamp); } catch (e) {}
       logInfo('刷新完成', { stamp });
     } catch (e) {
       console.error(e);
@@ -5159,14 +5491,29 @@ def build_html(
     }
   };
 
-  if (filterToggle && filterBar) {
-    filterToggle.addEventListener('click', () => {
-      const isOpen = filterBar.dataset.open === '1';
-      filterBar.style.display = isOpen ? 'none' : 'flex';
-      filterBar.dataset.open = isOpen ? '0' : '1';
-      filterToggle.textContent = isOpen ? '展开筛选' : '收起筛选';
-    });
+  const openSettings = () => {
+    if (!settingsModal) return;
+    settingsModal.dataset.open = '1';
+  };
+  const closeSettings = () => {
+    if (!settingsModal) return;
+    settingsModal.dataset.open = '0';
+  };
+  if (filterToggle) {
+    filterToggle.addEventListener('click', openSettings);
   }
+  if (headerMenuBtn) {
+    headerMenuBtn.addEventListener('click', openSettings);
+  }
+  if (settingsBackdrop) {
+    settingsBackdrop.addEventListener('click', closeSettings);
+  }
+  if (settingsCloseBtn) {
+    settingsCloseBtn.addEventListener('click', closeSettings);
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSettings();
+  });
 
   // 导出 CSV
   const exportBtn = document.getElementById('export-csv');
@@ -5631,8 +5978,13 @@ def build_html(
   // 日期按钮弹出日历
   document.querySelectorAll('.date-picker-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const targetId =
-        btn.dataset.picker === 'start' ? 'filter-date-start' : 'filter-date-end';
+      const map = {
+        start: 'filter-date-start',
+        end: 'filter-date-end',
+        'fetch-start': 'fetch-date-start',
+        'fetch-end': 'fetch-date-end',
+      };
+      const targetId = map[btn.dataset.picker] || 'filter-date-start';
       const input = document.getElementById(targetId);
       if (!input) return;
       if (typeof input.showPicker === 'function') {
