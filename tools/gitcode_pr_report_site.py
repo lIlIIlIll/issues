@@ -2945,7 +2945,8 @@ def build_html(
     html_parts.append(
         "<table class='list-table' id='code-table'>"
         "<thead><tr>"
-        "<th>用户</th><th>PR 数</th><th>新增</th><th>删除</th><th>文件</th><th>后缀</th>"
+        "<th>用户</th><th>PR 数</th><th>新增</th><th>删除</th><th>文件</th>"
+        "<th>cj</th><th>c/cpp</th><th>h</th><th>md</th>"
         "</tr></thead>"
         "<tbody></tbody>"
         "</table>"
@@ -3084,6 +3085,12 @@ def build_html(
   const CODE_STAT_SUFFIXES = new Set(
     (CLIENT_CONFIG.codeStatSuffixes || []).map((s) => (s || '').toLowerCase())
   );
+  const CODE_STAT_COLUMNS = [
+    { label: 'cj', exts: ['.cj'] },
+    { label: 'c/cpp', exts: ['.c', '.cpp'] },
+    { label: 'h', exts: ['.h'] },
+    { label: 'md', exts: ['.md'] },
+  ];
   const DEFAULT_REQUEST_INTERVAL_MS = Math.max(
     500,
     parseInt(CLIENT_CONFIG.requestIntervalMs || '1200', 10) || 1200
@@ -4079,12 +4086,13 @@ def build_html(
     return rows;
   };
 
-    const refreshCodeView = () => {
-      if (!codeTableBody) return;
-      codeTableBody.innerHTML = '';
-      const rows = collectVisibleCodeRows();
+  const refreshCodeView = () => {
+    if (!codeTableBody) return;
+    codeTableBody.innerHTML = '';
+    const rows = collectVisibleCodeRows();
     const map = new Map();
     codeDetailMap = new Map();
+    const codeColCount = 5 + CODE_STAT_COLUMNS.length;
     rows.forEach((r) => {
       const key = r.user || '(unknown)';
       if (!map.has(key)) {
@@ -4125,7 +4133,7 @@ def build_html(
     if (!list.length) {
       const tr = document.createElement('tr');
       const td = document.createElement('td');
-      td.colSpan = 6;
+      td.colSpan = codeColCount;
       td.textContent = '当前筛选下无代码统计数据';
       tr.appendChild(td);
       codeTableBody.appendChild(tr);
@@ -4151,14 +4159,17 @@ def build_html(
       tdDel.textContent = String(r.deletions);
       const tdFiles = document.createElement('td');
       tdFiles.textContent = String(r.files);
-      const tdExt = document.createElement('td');
-      tdExt.textContent = summarizeExtStats(r.extStats) || '-';
       tr.appendChild(tdUser);
       tr.appendChild(tdPrs);
       tr.appendChild(tdAdd);
       tr.appendChild(tdDel);
       tr.appendChild(tdFiles);
-      tr.appendChild(tdExt);
+      CODE_STAT_COLUMNS.forEach((col) => {
+        const td = document.createElement('td');
+        const sums = sumExtStats(r.extStats, col.exts);
+        td.textContent = sums.add || sums.del ? `+${sums.add}/-${sums.del}` : '-';
+        tr.appendChild(td);
+      });
       codeTableBody.appendChild(tr);
     });
   };
@@ -4197,7 +4208,7 @@ def build_html(
       const detailTr = document.createElement('tr');
       detailTr.className = 'code-detail-row';
       const detailTd = document.createElement('td');
-      detailTd.colSpan = 6;
+      detailTd.colSpan = 5 + CODE_STAT_COLUMNS.length;
       const wrap = document.createElement('div');
       wrap.className = 'issue-detail';
 
@@ -4786,6 +4797,19 @@ def build_html(
     } catch (e) {
       return null;
     }
+  };
+
+  const sumExtStats = (stats, exts) => {
+    let add = 0;
+    let del = 0;
+    if (!stats || !exts) return { add, del };
+    exts.forEach((ext) => {
+      const bucket = stats[ext];
+      if (!bucket) return;
+      add += parseInt(bucket.additions || 0, 10) || 0;
+      del += parseInt(bucket.deletions || 0, 10) || 0;
+    });
+    return { add, del };
   };
 
   const summarizeExtStats = (stats, max = 3) => {
