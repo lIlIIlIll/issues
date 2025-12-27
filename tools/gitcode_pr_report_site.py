@@ -1457,6 +1457,22 @@ def build_html(
       border: 1px solid var(--border);
       background: var(--surface-0);
     }
+    .fetch-state-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      border: 1px dashed var(--border);
+      background: var(--surface-1);
+    }
+    .fetch-state-title {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .fetch-state-box .filter-label {
+      margin: 0;
+    }
     .top-actions {
       display: flex;
       gap: 8px;
@@ -2044,6 +2060,9 @@ def build_html(
         "<button type='button' class='filter-chip-btn secondary' id='preset-save'>保存为预设</button>"
     )
     html_parts.append(
+        "<button type='button' class='filter-chip-btn secondary' id='fetch-toggle'>抓取设置</button>"
+    )
+    html_parts.append(
         "<button type='button' class='filter-chip-btn secondary' id='refresh-data'>刷新数据</button>"
     )
     html_parts.append(
@@ -2056,7 +2075,7 @@ def build_html(
     html_parts.append("<div class='settings-panel'>")
     html_parts.append(
         "<div class='settings-header'>"
-        "<div class='settings-title'>筛选与操作</div>"
+        "<div class='settings-title'>筛选设置</div>"
         "<button type='button' class='filter-toggle' id='settings-close'>关闭</button>"
         "</div>"
     )
@@ -2071,58 +2090,6 @@ def build_html(
     )
     html_parts.append(
         "<button type='button' class='filter-chip-btn secondary' id='quick-open-unresolved'>仅看 open 且有未解决意见</button>"
-    )
-    html_parts.append(
-        "<select id='fetch-mode-select' class='filter-select' style='min-width:220px'>"
-        "<option value='none' selected>抓取范围：不限制</option>"
-        "<option value='details'>抓取范围：仅拉取日期内详情</option>"
-        "<option value='api'>抓取范围：API 过滤 + 日期内详情</option>"
-        "</select>"
-    )
-    html_parts.append(
-        "<details class='config-panel' id='client-config-panel'>"
-        "<summary>用户/组设置</summary>"
-        "<div class='config-body'>"
-        "<label class='config-label'>用户（每行一个）</label>"
-        "<textarea id='config-users' class='config-textarea' rows='4' placeholder='alice\\nbob'></textarea>"
-        "<label class='config-label'>用户组（格式：组名: user1, user2）</label>"
-        "<textarea id='config-groups' class='config-textarea' rows='4' placeholder='teamA: alice, bob'></textarea>"
-        "<div class='config-actions'>"
-        "<button type='button' class='filter-chip-btn secondary' id='config-apply'>应用并刷新</button>"
-        "<button type='button' class='filter-chip-btn' id='config-reset'>恢复默认</button>"
-        "</div>"
-        "<div class='config-hint'>设置会保存在浏览器本地，仅影响当前页面。</div>"
-        "</div>"
-        "</details>"
-    )
-    html_parts.append(
-        "<details class='config-panel' id='fetch-tuning-panel'>"
-        "<summary>抓取性能设置</summary>"
-        "<div class='config-body'>"
-        "<label class='config-label'>请求间隔（毫秒，建议 >= 800）</label>"
-        "<input type='number' id='config-request-interval' class='filter-text' "
-        "min='500' step='100' placeholder='1200' style='min-width:140px' />"
-        "<label class='config-label'>仓库并发（同时拉取用户/仓库）</label>"
-        "<input type='number' id='config-repo-concurrency' class='filter-text' "
-        "min='1' max='6' step='1' placeholder='4' style='min-width:140px' />"
-        "<label class='config-label'>详情并发（单用户 PR 详情）</label>"
-        "<input type='number' id='config-detail-concurrency' class='filter-text' "
-        "min='1' max='10' step='1' placeholder='6' style='min-width:140px' />"
-        "<div class='config-actions'>"
-        "<button type='button' class='filter-chip-btn secondary' id='config-tuning-apply'>保存设置</button>"
-        "<button type='button' class='filter-chip-btn' id='config-tuning-reset'>恢复默认</button>"
-        "</div>"
-        "<div class='config-hint'>仅影响后续刷新；并发越高、间隔越小越容易触发限流。</div>"
-        "</div>"
-        "</details>"
-    )
-    html_parts.append(
-        "<div class='token-box'>"
-        "<input type='password' id='api-token' class='filter-text token-input' "
-        "placeholder='API Token（仅保存在本地浏览器）' />"
-        "<button type='button' class='filter-chip-btn secondary' id='token-clear'>清除 Token</button>"
-        "<span class='token-status' id='token-status'>未设置</span>"
-        "</div>"
     )
     html_parts.append(
         "<div class='review-controls' id='review-controls' data-show='0'>"
@@ -2155,40 +2122,6 @@ def build_html(
         "<input type='checkbox' class='filter-state-checkbox' value='merged' checked />"
         " 状态：merged"
         "</label>"
-    )
-    html_parts.append("</div>")
-
-    # 抓取日期范围（仅影响刷新抓取）
-    html_parts.append("<div class='filter-group'>")
-    html_parts.append("<h3>抓取日期范围</h3>")
-    html_parts.append(
-        "<div class='filter-hint'>仅影响刷新抓取，不改变页面筛选。</div>"
-    )
-    html_parts.append(
-        "<label class='filter-label'>"
-        "<span style='min-width:96px'>抓取字段：</span>"
-        "<select id='fetch-date-field' class='filter-select'>"
-        "<option value='created' selected>创建时间</option>"
-        "<option value='updated'>更新时间</option>"
-        "</select>"
-        "</label>"
-    )
-    html_parts.append(
-        "<label class='filter-label'>"
-        "<span style='min-width:96px'>开始日期：</span>"
-        "<input type='date' id='fetch-date-start' class='filter-text' style='min-width:150px' />"
-        "<button type='button' class='date-picker-btn' data-picker='fetch-start'>选择</button>"
-        "</label>"
-    )
-    html_parts.append(
-        "<label class='filter-label'>"
-        "<span style='min-width:96px'>结束日期：</span>"
-        "<input type='date' id='fetch-date-end' class='filter-text' style='min-width:150px' />"
-        "<button type='button' class='date-picker-btn' data-picker='fetch-end'>选择</button>"
-        "</label>"
-    )
-    html_parts.append(
-        "<button type='button' class='filter-chip-btn secondary' id='fetch-date-clear'>清空抓取日期</button>"
     )
     html_parts.append("</div>")
 
@@ -2417,6 +2350,118 @@ def build_html(
     html_parts.append("</div>")  # settings-body
     html_parts.append("</div>")  # settings-panel
     html_parts.append("</div>")  # settings-modal
+    html_parts.append("<div class='settings-modal' id='fetch-modal' data-open='0'>")
+    html_parts.append("<div class='settings-backdrop' id='fetch-backdrop'></div>")
+    html_parts.append("<div class='settings-panel'>")
+    html_parts.append(
+        "<div class='settings-header'>"
+        "<div class='settings-title'>抓取设置</div>"
+        "<button type='button' class='filter-toggle' id='fetch-close'>关闭</button>"
+        "</div>"
+    )
+    html_parts.append("<div class='settings-body'>")
+    html_parts.append("<div class='filter-actions'>")
+    html_parts.append(
+        "<select id='fetch-mode-select' class='filter-select' style='min-width:220px'>"
+        "<option value='none' selected>抓取范围：不限制</option>"
+        "<option value='details'>抓取范围：仅拉取日期内详情</option>"
+        "<option value='api'>抓取范围：API 过滤 + 日期内详情</option>"
+        "</select>"
+    )
+    html_parts.append(
+        "<div class='fetch-state-box'>"
+        "<span class='fetch-state-title'>抓取状态</span>"
+        "<label class='filter-label'>"
+        "<input type='checkbox' class='fetch-state-checkbox' value='open' checked /> open"
+        "</label>"
+        "<label class='filter-label'>"
+        "<input type='checkbox' class='fetch-state-checkbox' value='merged' checked /> merged"
+        "</label>"
+        "</div>"
+    )
+    html_parts.append("</div>")
+    html_parts.append("<div class='filter-bar'>")
+    html_parts.append("<div class='filter-group'>")
+    html_parts.append("<h3>抓取日期范围</h3>")
+    html_parts.append(
+        "<div class='filter-hint'>仅影响刷新抓取，不改变页面筛选。</div>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
+        "<span style='min-width:96px'>抓取字段：</span>"
+        "<select id='fetch-date-field' class='filter-select'>"
+        "<option value='created' selected>创建时间</option>"
+        "<option value='updated'>更新时间</option>"
+        "</select>"
+        "</label>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
+        "<span style='min-width:96px'>开始日期：</span>"
+        "<input type='date' id='fetch-date-start' class='filter-text' style='min-width:150px' />"
+        "<button type='button' class='date-picker-btn' data-picker='fetch-start'>选择</button>"
+        "</label>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
+        "<span style='min-width:96px'>结束日期：</span>"
+        "<input type='date' id='fetch-date-end' class='filter-text' style='min-width:150px' />"
+        "<button type='button' class='date-picker-btn' data-picker='fetch-end'>选择</button>"
+        "</label>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn secondary' id='fetch-date-clear'>清空抓取日期</button>"
+    )
+    html_parts.append("</div>")
+    html_parts.append("</div>")
+    html_parts.append(
+        "<details class='config-panel' id='client-config-panel'>"
+        "<summary>用户/组设置</summary>"
+        "<div class='config-body'>"
+        "<label class='config-label'>用户（每行一个）</label>"
+        "<textarea id='config-users' class='config-textarea' rows='4' placeholder='alice\\nbob'></textarea>"
+        "<label class='config-label'>用户组（格式：组名: user1, user2）</label>"
+        "<textarea id='config-groups' class='config-textarea' rows='4' placeholder='teamA: alice, bob'></textarea>"
+        "<div class='config-actions'>"
+        "<button type='button' class='filter-chip-btn secondary' id='config-apply'>应用并刷新</button>"
+        "<button type='button' class='filter-chip-btn' id='config-reset'>恢复默认</button>"
+        "</div>"
+        "<div class='config-hint'>设置会保存在浏览器本地，仅影响当前页面。</div>"
+        "</div>"
+        "</details>"
+    )
+    html_parts.append(
+        "<details class='config-panel' id='fetch-tuning-panel'>"
+        "<summary>抓取性能设置</summary>"
+        "<div class='config-body'>"
+        "<label class='config-label'>请求间隔（毫秒，建议 >= 800）</label>"
+        "<input type='number' id='config-request-interval' class='filter-text' "
+        "min='500' step='100' placeholder='1200' style='min-width:140px' />"
+        "<label class='config-label'>仓库并发（同时拉取用户/仓库）</label>"
+        "<input type='number' id='config-repo-concurrency' class='filter-text' "
+        "min='1' max='6' step='1' placeholder='4' style='min-width:140px' />"
+        "<label class='config-label'>详情并发（单用户 PR 详情）</label>"
+        "<input type='number' id='config-detail-concurrency' class='filter-text' "
+        "min='1' max='10' step='1' placeholder='6' style='min-width:140px' />"
+        "<div class='config-actions'>"
+        "<button type='button' class='filter-chip-btn secondary' id='config-tuning-apply'>保存设置</button>"
+        "<button type='button' class='filter-chip-btn' id='config-tuning-reset'>恢复默认</button>"
+        "</div>"
+        "<div class='config-hint'>仅影响后续刷新；并发越高、间隔越小越容易触发限流。</div>"
+        "</div>"
+        "</details>"
+    )
+    html_parts.append(
+        "<div class='token-box'>"
+        "<input type='password' id='api-token' class='filter-text token-input' "
+        "placeholder='API Token（仅保存在本地浏览器）' />"
+        "<button type='button' class='filter-chip-btn secondary' id='token-clear'>清除 Token</button>"
+        "<span class='token-status' id='token-status'>未设置</span>"
+        "</div>"
+    )
+    html_parts.append("</div>")  # settings-body
+    html_parts.append("</div>")  # settings-panel
+    html_parts.append("</div>")  # fetch-modal
     html_parts.append("</div>")  # filter-container
 
     # 统计概览（顶部已提供迷你统计）
@@ -2930,6 +2975,9 @@ def build_html(
   const settingsModal = document.getElementById('settings-modal');
   const settingsBackdrop = document.getElementById('settings-backdrop');
   const settingsCloseBtn = document.getElementById('settings-close');
+  const fetchModal = document.getElementById('fetch-modal');
+  const fetchBackdrop = document.getElementById('fetch-backdrop');
+  const fetchCloseBtn = document.getElementById('fetch-close');
   const headerMenuBtn = document.getElementById('header-menu-btn');
   const themeSelect = document.getElementById('theme-select');
   const sortSelect = document.getElementById('sort-select');
@@ -2955,6 +3003,7 @@ def build_html(
   const presetSelect = document.getElementById('preset-select');
   const presetApplyBtn = document.getElementById('preset-apply');
   const presetSaveBtn = document.getElementById('preset-save');
+  const fetchToggle = document.getElementById('fetch-toggle');
   const tokenInput = document.getElementById('api-token');
   const tokenClearBtn = document.getElementById('token-clear');
   const tokenStatus = document.getElementById('token-status');
@@ -2966,6 +3015,7 @@ def build_html(
   const statMergedMini = document.getElementById('stat-merged-mini');
   const statUnresolvedMini = document.getElementById('stat-unresolved-mini');
   const refreshStamp = document.getElementById('refresh-stamp');
+  const fetchStateChecks = Array.from(document.querySelectorAll('.fetch-state-checkbox'));
   const stateChecks = Array.from(document.querySelectorAll('.filter-state-checkbox'));
   const commentChecks = Array.from(document.querySelectorAll('.filter-comment-checkbox'));
   let issueLabelChecks = Array.from(document.querySelectorAll('.filter-issue-label-checkbox'));
@@ -3067,6 +3117,43 @@ def build_html(
       const v = normalizeFetchMode(fetchModeSelect.value || '');
       try { localStorage.setItem(FETCH_MODE_KEY, v); } catch (e) {}
     });
+  }
+  const FETCH_STATE_KEY = 'pr_report_fetch_state_v1';
+  const normalizeFetchStates = (input) => {
+    const allowed = new Set(['open', 'merged', 'closed', 'all', 'locked']);
+    const list = Array.isArray(input) ? input : [];
+    return list
+      .map((val) => (val || '').toString().toLowerCase().trim())
+      .filter((val) => allowed.has(val));
+  };
+  const getFetchStates = () => {
+    if (!fetchStateChecks.length) return [];
+    const selected = fetchStateChecks.filter((c) => c.checked).map((c) => c.value || '');
+    return normalizeFetchStates(selected);
+  };
+  const applyFetchStateUi = (states) => {
+    if (!fetchStateChecks.length) return;
+    const set = new Set(normalizeFetchStates(states));
+    fetchStateChecks.forEach((c) => {
+      c.checked = set.has(c.value);
+    });
+  };
+  const saveFetchStates = () => {
+    try {
+      localStorage.setItem(FETCH_STATE_KEY, JSON.stringify(getFetchStates()));
+    } catch (e) {}
+  };
+  if (fetchStateChecks.length) {
+    try {
+      const raw = localStorage.getItem(FETCH_STATE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) {
+          applyFetchStateUi(parsed);
+        }
+      }
+    } catch (e) {}
+    fetchStateChecks.forEach((c) => c.addEventListener('change', saveFetchStates));
   }
   const FETCH_RANGE_KEY = 'pr_report_fetch_range_v1';
   const loadFetchRange = () => {
@@ -5328,11 +5415,23 @@ def build_html(
     return null;
   };
 
-  const fetchPrsForUser = async (repoCfg, username, token, fetchMode, fetchRange) => {
+  const fetchPrsForUser = async (repoCfg, username, token, fetchMode, fetchRange, fetchStates) => {
     const allPrs = [];
     const seen = new Set();
-    let states = Array.isArray(repoCfg.states) ? repoCfg.states : ['open'];
+    let states = normalizeFetchStates(Array.isArray(repoCfg.states) ? repoCfg.states : ['open']);
     if (states.includes('all') && states.length > 1) states = ['all'];
+    const wanted = normalizeFetchStates(fetchStates);
+    if (wanted.length) {
+      if (states.includes('all')) {
+        states = wanted;
+      } else {
+        states = states.filter((st) => wanted.includes(st));
+      }
+    }
+    if (!states.length) {
+      logInfo('抓取状态为空，跳过用户', `${repoCfg.owner}/${repoCfg.repo}`, username);
+      return allPrs;
+    }
     const perPage = Math.min(Math.max(parseInt(repoCfg.per_page || 30, 10) || 30, 1), 100);
     for (const state of states) {
       let page = 1;
@@ -5533,11 +5632,11 @@ def build_html(
     return { additions: totalAdd, deletions: totalDel, changed_files: totalFiles, file_stats: stats };
   };
 
-  const fetchRepoUserData = async (repoCfg, username, token, detailLimiter, onProgress, fetchMode, fetchRange) => {
+  const fetchRepoUserData = async (repoCfg, username, token, detailLimiter, onProgress, fetchMode, fetchRange, fetchStates) => {
     const repoName = `${repoCfg.owner}/${repoCfg.repo}`;
     const t0 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
     logInfo('用户开始', repoName, username);
-    const prsRaw = await fetchPrsForUser(repoCfg, username, token, fetchMode, fetchRange);
+    const prsRaw = await fetchPrsForUser(repoCfg, username, token, fetchMode, fetchRange, fetchStates);
     const applyRange = fetchMode === 'details' || fetchMode === 'api';
     const prs = applyRange && fetchRange ? prsRaw.filter((pr) => isPrInRange(pr, fetchRange)) : prsRaw;
     if (applyRange && fetchRange) {
@@ -5581,7 +5680,7 @@ def build_html(
     return list;
   };
 
-  const fetchAllData = async (token, onProgress, fetchMode, fetchRange) => {
+  const fetchAllData = async (token, onProgress, fetchMode, fetchRange, fetchStates) => {
     const data = {};
     const repos = Array.isArray(CLIENT_CONFIG.repos) ? CLIENT_CONFIG.repos : [];
     const users = getEffectiveUsers();
@@ -5590,6 +5689,7 @@ def build_html(
       users: users.length,
       codeStats: CODE_STATS_ENABLED,
       fetchMode,
+      fetchStates,
       requestIntervalMs,
       repoConcurrency,
       detailConcurrency,
@@ -5615,7 +5715,8 @@ def build_html(
               detailLimiter,
               onProgress,
               fetchMode,
-              fetchRange
+              fetchRange,
+              fetchStates
             );
             data[repoName][username] = prs || [];
           })
@@ -5648,15 +5749,32 @@ def build_html(
     }
     const fetchMode = normalizeFetchMode(fetchModeSelect?.value || '');
     const fetchRange = buildFetchRange();
+    const fetchStates = getFetchStates();
+    if (!fetchStates.length) {
+      setRefreshStatus('未选择抓取状态', 'error');
+      alert('请至少选择一个抓取状态（open / merged）');
+      if (refreshBtn) {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = btnLabel || '刷新数据';
+      }
+      return;
+    }
     setRefreshStatus('正在拉取数据...', 'ok');
     logInfo('刷新开始', {
       fetchMode,
       fetchField: fetchRange.field,
+      fetchStates,
       fetchStart: fetchRange.start,
       fetchEnd: fetchRange.end,
     });
     try {
-      const data = await fetchAllData(token, (msg) => setRefreshStatus(msg, 'ok'), fetchMode, fetchRange);
+      const data = await fetchAllData(
+        token,
+        (msg) => setRefreshStatus(msg, 'ok'),
+        fetchMode,
+        fetchRange,
+        fetchStates
+      );
       const meta = collectMetaFromData(data);
       renderDynamicFilters(meta);
       buildCardView(data);
@@ -5688,14 +5806,27 @@ def build_html(
 
   const openSettings = () => {
     if (!settingsModal) return;
+    if (fetchModal) fetchModal.dataset.open = '0';
     settingsModal.dataset.open = '1';
   };
   const closeSettings = () => {
     if (!settingsModal) return;
     settingsModal.dataset.open = '0';
   };
+  const openFetch = () => {
+    if (!fetchModal) return;
+    if (settingsModal) settingsModal.dataset.open = '0';
+    fetchModal.dataset.open = '1';
+  };
+  const closeFetch = () => {
+    if (!fetchModal) return;
+    fetchModal.dataset.open = '0';
+  };
   if (filterToggle) {
     filterToggle.addEventListener('click', openSettings);
+  }
+  if (fetchToggle) {
+    fetchToggle.addEventListener('click', openFetch);
   }
   if (headerMenuBtn) {
     headerMenuBtn.addEventListener('click', openSettings);
@@ -5706,8 +5837,17 @@ def build_html(
   if (settingsCloseBtn) {
     settingsCloseBtn.addEventListener('click', closeSettings);
   }
+  if (fetchBackdrop) {
+    fetchBackdrop.addEventListener('click', closeFetch);
+  }
+  if (fetchCloseBtn) {
+    fetchCloseBtn.addEventListener('click', closeFetch);
+  }
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeSettings();
+    if (e.key === 'Escape') {
+      closeSettings();
+      closeFetch();
+    }
   });
 
   // 导出 CSV
