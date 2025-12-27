@@ -3156,6 +3156,7 @@ def build_html(
     fetchStateChecks.forEach((c) => c.addEventListener('change', saveFetchStates));
   }
   const FETCH_RANGE_KEY = 'pr_report_fetch_range_v1';
+  const DATA_CACHE_KEY = 'pr_report_cached_data_v1';
   const loadFetchRange = () => {
     try {
       const raw = localStorage.getItem(FETCH_RANGE_KEY);
@@ -3198,6 +3199,30 @@ def build_html(
       saveFetchRange();
     });
   }
+  const saveCachedData = (data) => {
+    try {
+      const json = JSON.stringify(data || {});
+      if (json.length > 4500000) {
+        logInfo('缓存过大，跳过保存', json.length);
+        localStorage.removeItem(DATA_CACHE_KEY);
+        return;
+      }
+      localStorage.setItem(DATA_CACHE_KEY, json);
+    } catch (e) {
+      logInfo('缓存保存失败', e?.message || e);
+    }
+  };
+  const loadCachedData = () => {
+    try {
+      const raw = localStorage.getItem(DATA_CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      return parsed;
+    } catch (e) {
+      return null;
+    }
+  };
 
   const readToken = () => {
     try {
@@ -5778,6 +5803,7 @@ def build_html(
       const meta = collectMetaFromData(data);
       renderDynamicFilters(meta);
       buildCardView(data);
+      saveCachedData(data);
       wrappedApply();
       logInfo('筛选项数量', {
         issueLabels: (meta.issueLabels || []).length,
@@ -6301,6 +6327,17 @@ def build_html(
     });
   }
 
+  const hydrateFromCache = () => {
+    if (!cardView || cardView.querySelector('.pr-card')) return false;
+    const cached = loadCachedData();
+    if (!cached) return false;
+    const meta = collectMetaFromData(cached);
+    renderDynamicFilters(meta);
+    buildCardView(cached);
+    logInfo('已加载缓存数据');
+    return true;
+  };
+
   // 初始执行：默认结束日期为当天
   if (filterDateEnd && !filterDateEnd.value) {
     const today = new Date();
@@ -6330,6 +6367,7 @@ def build_html(
       }
     });
   });
+  hydrateFromCache();
   wrappedApply();
   try {
     const savedView = localStorage.getItem(VIEW_KEY) || '';
