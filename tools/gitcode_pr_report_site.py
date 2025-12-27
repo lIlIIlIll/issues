@@ -2046,6 +2046,9 @@ def build_html(
     html_parts.append(
         "<button type='button' class='filter-chip-btn secondary' id='refresh-data'>刷新数据</button>"
     )
+    html_parts.append(
+        "<span class='token-status' id='refresh-status'></span>"
+    )
     html_parts.append("</div>")
     html_parts.append("</div>")
     html_parts.append("<div class='settings-modal' id='settings-modal' data-open='0'>")
@@ -2093,12 +2096,32 @@ def build_html(
         "</details>"
     )
     html_parts.append(
+        "<details class='config-panel' id='fetch-tuning-panel'>"
+        "<summary>抓取性能设置</summary>"
+        "<div class='config-body'>"
+        "<label class='config-label'>请求间隔（毫秒，建议 >= 800）</label>"
+        "<input type='number' id='config-request-interval' class='filter-text' "
+        "min='500' step='100' placeholder='1200' style='min-width:140px' />"
+        "<label class='config-label'>仓库并发（同时拉取用户/仓库）</label>"
+        "<input type='number' id='config-repo-concurrency' class='filter-text' "
+        "min='1' max='6' step='1' placeholder='4' style='min-width:140px' />"
+        "<label class='config-label'>详情并发（单用户 PR 详情）</label>"
+        "<input type='number' id='config-detail-concurrency' class='filter-text' "
+        "min='1' max='10' step='1' placeholder='6' style='min-width:140px' />"
+        "<div class='config-actions'>"
+        "<button type='button' class='filter-chip-btn secondary' id='config-tuning-apply'>保存设置</button>"
+        "<button type='button' class='filter-chip-btn' id='config-tuning-reset'>恢复默认</button>"
+        "</div>"
+        "<div class='config-hint'>仅影响后续刷新；并发越高、间隔越小越容易触发限流。</div>"
+        "</div>"
+        "</details>"
+    )
+    html_parts.append(
         "<div class='token-box'>"
         "<input type='password' id='api-token' class='filter-text token-input' "
         "placeholder='API Token（仅保存在本地浏览器）' />"
         "<button type='button' class='filter-chip-btn secondary' id='token-clear'>清除 Token</button>"
         "<span class='token-status' id='token-status'>未设置</span>"
-        "<span class='token-status' id='refresh-status'></span>"
         "</div>"
     )
     html_parts.append(
@@ -2973,6 +2996,11 @@ def build_html(
   const configGroups = document.getElementById('config-groups');
   const configApplyBtn = document.getElementById('config-apply');
   const configResetBtn = document.getElementById('config-reset');
+  const tuningIntervalInput = document.getElementById('config-request-interval');
+  const tuningRepoInput = document.getElementById('config-repo-concurrency');
+  const tuningDetailInput = document.getElementById('config-detail-concurrency');
+  const tuningApplyBtn = document.getElementById('config-tuning-apply');
+  const tuningResetBtn = document.getElementById('config-tuning-reset');
   let wrappedApply = () => {};
   let bindUserGroupListeners = () => {};
   const THEME_KEY = 'pr_report_theme_v1';
@@ -3006,6 +3034,17 @@ def build_html(
   const CODE_STAT_SUFFIXES = new Set(
     (CLIENT_CONFIG.codeStatSuffixes || []).map((s) => (s || '').toLowerCase())
   );
+  const DEFAULT_REQUEST_INTERVAL_MS = Math.max(
+    500,
+    parseInt(CLIENT_CONFIG.requestIntervalMs || '1200', 10) || 1200
+  );
+  const DEFAULT_REPO_CONCURRENCY = 4;
+  const DEFAULT_DETAIL_CONCURRENCY = 6;
+  let baseRequestIntervalMs = DEFAULT_REQUEST_INTERVAL_MS;
+  let requestIntervalMs = baseRequestIntervalMs;
+  let successStreak = 0;
+  let repoConcurrency = DEFAULT_REPO_CONCURRENCY;
+  let detailConcurrency = DEFAULT_DETAIL_CONCURRENCY;
   let groupMembers = __GROUP_MEMBERS__;
   const logInfo = (...args) => {
     if (typeof console !== 'undefined' && console.info) {
@@ -3113,6 +3152,86 @@ def build_html(
       saveToken('');
       setTokenStatus('');
       setRefreshStatus('');
+    });
+  }
+
+  const FETCH_TUNING_KEY = 'pr_report_fetch_tuning_v1';
+  const clampInt = (raw, min, max, fallback) => {
+    const num = parseInt(raw, 10);
+    if (Number.isNaN(num)) return fallback;
+    return Math.min(Math.max(num, min), max);
+  };
+  const loadFetchTuning = () => {
+    try {
+      const raw = localStorage.getItem(FETCH_TUNING_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      return parsed;
+    } catch (e) {
+      return null;
+    }
+  };
+  const saveFetchTuning = (tuning) => {
+    try {
+      if (!tuning) {
+        localStorage.removeItem(FETCH_TUNING_KEY);
+        return;
+      }
+      localStorage.setItem(FETCH_TUNING_KEY, JSON.stringify(tuning));
+    } catch (e) {}
+  };
+  const applyFetchTuning = (tuning, opts = {}) => {
+    const next = {
+      requestIntervalMs: clampInt(
+        tuning?.requestIntervalMs,
+        500,
+        8000,
+        DEFAULT_REQUEST_INTERVAL_MS
+      ),
+      repoConcurrency: clampInt(
+        tuning?.repoConcurrency,
+        1,
+        6,
+        DEFAULT_REPO_CONCURRENCY
+      ),
+      detailConcurrency: clampInt(
+        tuning?.detailConcurrency,
+        1,
+        10,
+        DEFAULT_DETAIL_CONCURRENCY
+      ),
+    };
+    baseRequestIntervalMs = next.requestIntervalMs;
+    requestIntervalMs = next.requestIntervalMs;
+    repoConcurrency = next.repoConcurrency;
+    detailConcurrency = next.detailConcurrency;
+    successStreak = 0;
+    if (opts?.updateUi !== false) {
+      if (tuningIntervalInput) tuningIntervalInput.value = String(next.requestIntervalMs);
+      if (tuningRepoInput) tuningRepoInput.value = String(next.repoConcurrency);
+      if (tuningDetailInput) tuningDetailInput.value = String(next.detailConcurrency);
+    }
+    if (opts?.persist) {
+      saveFetchTuning(next);
+    }
+    logInfo('抓取设置', next);
+  };
+  applyFetchTuning(loadFetchTuning() || {}, { updateUi: true });
+  if (tuningApplyBtn) {
+    tuningApplyBtn.addEventListener('click', () => {
+      const tuning = {
+        requestIntervalMs: tuningIntervalInput?.value,
+        repoConcurrency: tuningRepoInput?.value,
+        detailConcurrency: tuningDetailInput?.value,
+      };
+      applyFetchTuning(tuning, { persist: true, updateUi: true });
+    });
+  }
+  if (tuningResetBtn) {
+    tuningResetBtn.addEventListener('click', () => {
+      saveFetchTuning(null);
+      applyFetchTuning({}, { updateUi: true });
     });
   }
 
@@ -5092,18 +5211,70 @@ def build_html(
   };
 
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-  const REQUEST_INTERVAL_MS = Math.max(
-    300,
-    parseInt(CLIENT_CONFIG.requestIntervalMs || '700', 10) || 700
-  );
-  let lastRequestAt = 0;
-  const throttleRequest = async () => {
-    const now = Date.now();
-    const waitMs = lastRequestAt + REQUEST_INTERVAL_MS - now;
-    if (waitMs > 0) {
-      await wait(waitMs);
+  const updateInterval = (nextMs, reason) => {
+    const clamped = Math.min(Math.max(nextMs, baseRequestIntervalMs), 8000);
+    if (clamped === requestIntervalMs) return;
+    requestIntervalMs = clamped;
+    logInfo('请求间隔调整', `${requestIntervalMs}ms`, reason);
+  };
+  const noteSuccess = () => {
+    successStreak += 1;
+    if (successStreak >= 20 && requestIntervalMs > baseRequestIntervalMs) {
+      updateInterval(requestIntervalMs - 200, '恢复');
+      successStreak = 0;
     }
-    lastRequestAt = Date.now();
+  };
+  const noteRateLimit = (retryAfter) => {
+    successStreak = 0;
+    const boosted = Math.max(requestIntervalMs * 1.5, baseRequestIntervalMs + 400);
+    updateInterval(boosted, '限流');
+    const jitter = Math.floor(Math.random() * 300);
+    rateLimitUntil = Math.max(rateLimitUntil, Date.now() + (retryAfter * 1000) + jitter);
+  };
+  let lastRequestAt = 0;
+  let rateLimitUntil = 0;
+  let throttleQueue = Promise.resolve();
+  const throttleRequest = async () => {
+    let release = null;
+    const gate = new Promise((resolve) => {
+      release = resolve;
+    });
+    const prev = throttleQueue;
+    throttleQueue = gate;
+    await prev;
+    try {
+      const now = Date.now();
+      if (rateLimitUntil && now < rateLimitUntil) {
+        await wait(rateLimitUntil - now);
+      }
+      const now2 = Date.now();
+      const waitMs = lastRequestAt + requestIntervalMs - now2;
+      if (waitMs > 0) {
+        await wait(waitMs);
+      }
+      lastRequestAt = Date.now();
+    } finally {
+      if (release) release();
+    }
+  };
+
+  const parseErrorPayload = async (resp) => {
+    const text = await resp.text();
+    let payload = null;
+    try {
+      payload = JSON.parse(text);
+    } catch (e) {
+      payload = null;
+    }
+    return { text, payload };
+  };
+
+  const isRateLimitError = (status, payload, text) => {
+    if (status === 429) return true;
+    if (payload && (payload.error_code === 429 || payload.error_code === '429')) return true;
+    if (payload && typeof payload.error_message === 'string' && payload.error_message.includes('429')) return true;
+    if (text && text.includes('429')) return true;
+    return false;
   };
 
   const fetchJson = async (path, token, params = {}) => {
@@ -5113,29 +5284,45 @@ def build_html(
       url.searchParams.set(k, String(v));
     });
     if (token) url.searchParams.set('access_token', token);
-    const maxRetry = 3;
+    const maxRetry = 4;
     for (let attempt = 0; attempt < maxRetry; attempt += 1) {
       await throttleRequest();
-      const resp = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
-      if (resp.status === 429) {
-        const retryAfterRaw = resp.headers.get('Retry-After') || '60';
-        const retryAfter = Math.max(parseInt(retryAfterRaw, 10) || 60, 5);
-        logInfo('触发限流', path, `等待 ${retryAfter}s`);
-        if (typeof setRefreshStatus === 'function') {
-          setRefreshStatus(`触发限流，等待 ${retryAfter}s...`, 'error');
-        }
+      let resp;
+      try {
+        resp = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+      } catch (err) {
+        const msg = err?.message || String(err || '');
+        logInfo('网络错误', path, msg);
         if (attempt === maxRetry - 1) {
-          const text = await resp.text();
-          throw new Error(`GitCode API 429: ${text.slice(0, 200)}`);
+          throw err;
         }
-        await wait(retryAfter * 1000);
+        await wait(1000 * (attempt + 1));
         continue;
       }
       if (!resp.ok) {
-        const text = await resp.text();
+        const { text, payload } = await parseErrorPayload(resp);
+        if (isRateLimitError(resp.status, payload, text)) {
+          const retryAfterRaw = resp.headers.get('Retry-After') || '60';
+          const retryAfter = Math.max(parseInt(retryAfterRaw, 10) || 60, 5);
+          noteRateLimit(retryAfter);
+          logInfo('触发限流', path, `等待 ${retryAfter}s`);
+          if (typeof setRefreshStatus === 'function') {
+            setRefreshStatus(`触发限流，等待 ${retryAfter}s...`, 'error');
+          }
+          if (attempt === maxRetry - 1) {
+            throw new Error(`GitCode API 429: ${text.slice(0, 200)}`);
+          }
+          await wait(retryAfter * 1000);
+          continue;
+        }
         logInfo('API 失败', path, resp.status, text.slice(0, 120));
+        if (attempt < maxRetry - 1 && resp.status >= 500) {
+          await wait(800 * (attempt + 1));
+          continue;
+        }
         throw new Error(`GitCode API 请求失败: ${resp.status} ${text.slice(0, 200)}`);
       }
+      noteSuccess();
       return resp.json();
     }
     return null;
@@ -5233,11 +5420,16 @@ def build_html(
     const comments = [];
     let page = 1;
     while (true) {
-      const data = await fetchJson(
-        `/repos/${repoCfg.owner}/${repoCfg.repo}/pulls/${prNumber}/comments`,
-        token,
-        { page, per_page: 100, comment_type: 'diff_comment' }
-      );
+      let data;
+      try {
+        data = await fetchJson(
+          `/repos/${repoCfg.owner}/${repoCfg.repo}/pulls/${prNumber}/comments`,
+          token,
+          { page, per_page: 100, comment_type: 'diff_comment' }
+        );
+      } catch (e) {
+        return comments;
+      }
       if (!Array.isArray(data) || data.length === 0) break;
       const makeComment = (obj, opts = {}) => {
         const userObj = obj.user || {};
@@ -5398,13 +5590,16 @@ def build_html(
       users: users.length,
       codeStats: CODE_STATS_ENABLED,
       fetchMode,
+      requestIntervalMs,
+      repoConcurrency,
+      detailConcurrency,
     });
     if (!users.length) {
       logInfo('未配置用户，跳过拉取');
       return data;
     }
-    const repoLimiter = createLimiter(4);
-    const detailLimiter = createLimiter(6);
+    const repoLimiter = createLimiter(repoConcurrency);
+    const detailLimiter = createLimiter(detailConcurrency);
     const tasks = [];
     repos.forEach((repoCfg) => {
       const repoName = `${repoCfg.owner}/${repoCfg.repo}`;
