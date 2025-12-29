@@ -1928,6 +1928,18 @@ def build_html(
     .code-detail-row td {
       background: var(--surface-1);
     }
+    .detail-table {
+      margin-top: 6px;
+    }
+    .detail-table th,
+    .detail-table td {
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+    .density-good {
+      color: #22c55e;
+      font-weight: 600;
+    }
     .stats-block {
       margin-top: 12px;
       border: 1px solid var(--border);
@@ -2400,7 +2412,6 @@ def build_html(
     html_parts.append(
         "<select id='fetch-mode-select' class='filter-select' style='min-width:220px'>"
         "<option value='none' selected>抓取范围：不限制</option>"
-        "<option value='details'>抓取范围：仅拉取日期内详情</option>"
         "<option value='api'>抓取范围：API 过滤 + 日期内详情</option>"
         "</select>"
     )
@@ -2985,7 +2996,7 @@ def build_html(
     html_parts.append(
         "<table class='list-table' id='code-table'>"
         "<thead><tr>"
-        "<th>用户</th><th>PR 数</th><th>新增</th><th>删除</th><th>文件</th>"
+        "<th>用户</th><th>PR 数</th><th>检视意见</th><th>缺陷密度/千行</th><th>新增</th><th>删除</th><th>文件</th>"
         "<th>cj</th><th>c/cpp</th><th>h</th><th>md</th>"
         "</tr></thead>"
         "<tbody></tbody>"
@@ -3162,7 +3173,7 @@ def build_html(
   } catch (e) {}
   const FETCH_MODE_KEY = 'pr_report_fetch_mode_v1';
   const normalizeFetchMode = (val) =>
-    ['none', 'details', 'api'].includes(val) ? val : 'none';
+    ['none', 'api'].includes(val) ? val : 'none';
   if (fetchModeSelect) {
     const saved = normalizeFetchMode(localStorage.getItem(FETCH_MODE_KEY) || '');
     fetchModeSelect.value = saved;
@@ -4277,11 +4288,36 @@ def build_html(
       const additions = parseInt(card.dataset.additions || '0', 10) || 0;
       const deletions = parseInt(card.dataset.deletions || '0', 10) || 0;
       const files = parseInt(card.dataset.changedFiles || '0', 10) || 0;
+      const unresolved = parseInt(card.dataset.unresolvedCount || '0', 10) || 0;
+      const resolved = parseInt(card.dataset.resolvedCount || '0', 10) || 0;
+      const reviewCount = unresolved + resolved;
       const codeStats = parseCodeStats(card.dataset.codeStats || '');
-      rows.push({ repo, user, num, title, url, additions, deletions, files, codeStats });
+      rows.push({
+        repo,
+        user,
+        num,
+        title,
+        url,
+        additions,
+        deletions,
+        files,
+        reviewCount,
+        codeStats,
+      });
     });
     return rows;
   };
+
+  const calcDefectDensity = (reviews, additions, deletions) => {
+    const total = (additions || 0) + (deletions || 0);
+    if (!total) return null;
+    return (reviews / total) * 1000;
+  };
+  const formatDefectDensity = (reviews, additions, deletions) => {
+    const density = calcDefectDensity(reviews, additions, deletions);
+    return density == null ? '-' : density.toFixed(2);
+  };
+  const isDensityGood = (density) => density != null && density >= 10;
 
   const refreshCodeView = () => {
     if (!codeTableBody) return;
@@ -4289,13 +4325,14 @@ def build_html(
     const rows = collectVisibleCodeRows();
     const map = new Map();
     codeDetailMap = new Map();
-    const codeColCount = 5 + CODE_STAT_COLUMNS.length;
+    const codeColCount = 7 + CODE_STAT_COLUMNS.length;
     rows.forEach((r) => {
       const key = r.user || '(unknown)';
       if (!map.has(key)) {
         map.set(key, {
           user: key,
           prs: 0,
+          reviews: 0,
           additions: 0,
           deletions: 0,
           files: 0,
@@ -4308,6 +4345,7 @@ def build_html(
       codeDetailMap.get(key).push(r);
       const acc = map.get(key);
       acc.prs += 1;
+      acc.reviews += r.reviewCount || 0;
       acc.additions += r.additions;
       acc.deletions += r.deletions;
       acc.files += r.files;
@@ -4350,6 +4388,12 @@ def build_html(
       tdUser.appendChild(btn);
       const tdPrs = document.createElement('td');
       tdPrs.textContent = String(r.prs);
+      const tdReviews = document.createElement('td');
+      tdReviews.textContent = String(r.reviews || 0);
+      const tdDensity = document.createElement('td');
+      const density = calcDefectDensity(r.reviews || 0, r.additions, r.deletions);
+      tdDensity.textContent = density == null ? '-' : density.toFixed(2);
+      if (isDensityGood(density)) tdDensity.classList.add('density-good');
       const tdAdd = document.createElement('td');
       tdAdd.textContent = String(r.additions);
       const tdDel = document.createElement('td');
@@ -4358,6 +4402,8 @@ def build_html(
       tdFiles.textContent = String(r.files);
       tr.appendChild(tdUser);
       tr.appendChild(tdPrs);
+      tr.appendChild(tdReviews);
+      tr.appendChild(tdDensity);
       tr.appendChild(tdAdd);
       tr.appendChild(tdDel);
       tr.appendChild(tdFiles);
@@ -4405,7 +4451,7 @@ def build_html(
       const detailTr = document.createElement('tr');
       detailTr.className = 'code-detail-row';
       const detailTd = document.createElement('td');
-      detailTd.colSpan = 5 + CODE_STAT_COLUMNS.length;
+      detailTd.colSpan = 7 + CODE_STAT_COLUMNS.length;
       const wrap = document.createElement('div');
       wrap.className = 'issue-detail';
 
@@ -4415,10 +4461,15 @@ def build_html(
         empty.textContent = '无代码统计记录';
         wrap.appendChild(empty);
       } else {
+        const table = document.createElement('table');
+        table.className = 'list-table detail-table';
+        const thead = document.createElement('thead');
+        thead.innerHTML =
+          '<tr><th>PR</th><th>检视意见</th><th>缺陷密度/千行</th><th>新增</th><th>删除</th><th>文件</th><th>后缀</th></tr>';
+        const tbody = document.createElement('tbody');
         sorted.forEach((it) => {
-          const line = document.createElement('div');
-          line.className = 'issue-detail-item';
-
+          const tr = document.createElement('tr');
+          const tdPr = document.createElement('td');
           const link = document.createElement(it.url ? 'a' : 'span');
           if (it.url) {
             link.href = it.url;
@@ -4428,16 +4479,36 @@ def build_html(
           }
           const prPrefix = it.repo ? `${it.repo} ` : '';
           link.textContent = `${prPrefix}#${it.num || ''} ${it.title || ''}`.trim();
+          tdPr.appendChild(link);
 
-          const meta = document.createElement('span');
-          meta.className = 'issue-detail-meta';
+          const tdReviews = document.createElement('td');
+          tdReviews.textContent = String(it.reviewCount || 0);
+          const tdDensity = document.createElement('td');
+          const density = calcDefectDensity(it.reviewCount || 0, it.additions, it.deletions);
+          tdDensity.textContent = density == null ? '-' : density.toFixed(2);
+          if (isDensityGood(density)) tdDensity.classList.add('density-good');
+          const tdAdd = document.createElement('td');
+          tdAdd.textContent = String(it.additions || 0);
+          const tdDel = document.createElement('td');
+          tdDel.textContent = String(it.deletions || 0);
+          const tdFiles = document.createElement('td');
+          tdFiles.textContent = String(it.files || 0);
+          const tdExt = document.createElement('td');
           const extSummary = summarizeExtStats(it.codeStats) || '';
-          meta.textContent = `+${it.additions} / -${it.deletions} · 文件 ${it.files}${extSummary ? ` · ${extSummary}` : ''}`;
+          tdExt.textContent = extSummary || '-';
 
-          line.appendChild(link);
-          line.appendChild(meta);
-          wrap.appendChild(line);
+          tr.appendChild(tdPr);
+          tr.appendChild(tdReviews);
+          tr.appendChild(tdDensity);
+          tr.appendChild(tdAdd);
+          tr.appendChild(tdDel);
+          tr.appendChild(tdFiles);
+          tr.appendChild(tdExt);
+          tbody.appendChild(tr);
         });
+        table.appendChild(thead);
+        table.appendChild(tbody);
+        wrap.appendChild(table);
       }
 
       detailTd.appendChild(wrap);
@@ -5886,7 +5957,7 @@ def build_html(
     const t0 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
     logInfo('用户开始', repoName, username);
     const prsRaw = await fetchPrsForUser(repoCfg, username, token, fetchMode, fetchRange, fetchStates);
-    const applyRange = fetchMode === 'details' || fetchMode === 'api';
+    const applyRange = fetchMode === 'api';
     const prs = applyRange && fetchRange ? prsRaw.filter((pr) => isPrInRange(pr, fetchRange)) : prsRaw;
     if (applyRange && fetchRange) {
       logInfo('日期过滤 PR', repoName, username, `${prs.length}/${prsRaw.length}`);
