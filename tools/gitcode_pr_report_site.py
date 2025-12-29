@@ -2229,6 +2229,12 @@ def build_html(
     )
     html_parts.append(
         "<label class='filter-label'>"
+        "<input type='checkbox' id='filter-collapse-reviews' />"
+        " 默认收起检视意见（卡片视图）"
+        "</label>"
+    )
+    html_parts.append(
+        "<label class='filter-label'>"
         "<span style='min-width:96px'>回复包含：</span>"
         "<input type='text' id='filter-comment-keyword' class='filter-text' placeholder='输入关键字，模糊匹配' />"
         "</label>"
@@ -3015,6 +3021,7 @@ def build_html(
   const filterHideReplies = document.getElementById('filter-hide-replies');
   const filterDateField = document.getElementById('filter-date-field');
   const filterResolvedOnly = document.getElementById('filter-resolved-only');
+  const filterCollapseReviews = document.getElementById('filter-collapse-reviews');
   const filterDateStart = document.getElementById('filter-date-start');
   const filterDateEnd = document.getElementById('filter-date-end');
   const fetchDateField = document.getElementById('fetch-date-field');
@@ -3260,6 +3267,28 @@ def build_html(
       if (reviewDateStart) reviewDateStart.value = '';
       if (reviewDateEnd) reviewDateEnd.value = '';
       saveReviewRange();
+    });
+  }
+  const REVIEW_COLLAPSE_KEY = 'pr_report_collapse_reviews_v1';
+  const syncReviewCollapseUi = () => {
+    if (!filterCollapseReviews) return;
+    try {
+      const raw = localStorage.getItem(REVIEW_COLLAPSE_KEY);
+      if (raw === null) return;
+      filterCollapseReviews.checked = raw === '1';
+    } catch (e) {}
+  };
+  const saveReviewCollapse = () => {
+    if (!filterCollapseReviews) return;
+    try {
+      localStorage.setItem(REVIEW_COLLAPSE_KEY, filterCollapseReviews.checked ? '1' : '0');
+    } catch (e) {}
+  };
+  syncReviewCollapseUi();
+  if (filterCollapseReviews) {
+    filterCollapseReviews.addEventListener('change', () => {
+      saveReviewCollapse();
+      applyReviewCollapse();
     });
   }
   const FETCH_RANGE_KEY = 'pr_report_fetch_range_v1';
@@ -4574,6 +4603,7 @@ def build_html(
       onlyUnresolved: filterUnresolved?.checked ?? false,
       hideReplies: filterHideReplies?.checked ?? false,
       onlyResolved: filterResolvedOnly?.checked ?? false,
+      collapseReviews: filterCollapseReviews?.checked ?? false,
       commentKeyword: filterCommentKeyword?.value || '',
       commentExclude: filterCommentExclude?.value || '',
       dateField: filterDateField?.value || 'created',
@@ -4596,6 +4626,7 @@ def build_html(
     if (filterUnresolved) filterUnresolved.checked = !!snap.onlyUnresolved;
     if (filterHideReplies) filterHideReplies.checked = !!snap.hideReplies;
     if (filterResolvedOnly) filterResolvedOnly.checked = !!snap.onlyResolved;
+    if (filterCollapseReviews) filterCollapseReviews.checked = !!snap.collapseReviews;
     if (filterCommentKeyword) filterCommentKeyword.value = snap.commentKeyword || '';
     if (filterCommentExclude) filterCommentExclude.value = snap.commentExclude || '';
     if (filterDateField && snap.dateField) filterDateField.value = snap.dateField;
@@ -4603,6 +4634,7 @@ def build_html(
     if (filterDateEnd) filterDateEnd.value = snap.dateEnd || '';
     if (sortSelect && snap.sortKey) sortSelect.value = snap.sortKey;
     wrappedApply();
+    applyReviewCollapse();
   };
   if (presetSaveBtn) {
     presetSaveBtn.addEventListener('click', () => {
@@ -4973,6 +5005,19 @@ def build_html(
       const meta = repoBlock.querySelector('[data-repo-count]');
       if (meta) {
         meta.textContent = `共 ${visibleCards.length} 个 PR（当前筛选）`;
+      }
+    });
+  };
+
+  const applyReviewCollapse = () => {
+    if (!filterCollapseReviews) return;
+    const shouldCollapse = !!filterCollapseReviews.checked;
+    const groups = Array.from(document.querySelectorAll('.reviewer-group'));
+    groups.forEach((group) => {
+      if (shouldCollapse) {
+        group.removeAttribute('open');
+      } else {
+        group.setAttribute('open', '');
       }
     });
   };
@@ -6098,6 +6143,7 @@ def build_html(
       const meta = collectMetaFromData(data);
       renderDynamicFilters(meta);
       buildCardView(data);
+      applyReviewCollapse();
       saveCachedData(data);
       wrappedApply();
       logInfo('筛选项数量', {
@@ -6665,6 +6711,7 @@ def build_html(
     const meta = collectMetaFromData(cached);
     renderDynamicFilters(meta);
     buildCardView(cached);
+    applyReviewCollapse();
     logInfo('已加载缓存数据');
     return true;
   };
