@@ -1485,6 +1485,18 @@ def build_html(
       background: var(--surface-0);
       margin-bottom: 8px;
     }
+    .quick-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      flex-basis: 100%;
+      width: 100%;
+      margin: 6px 0 0;
+    }
+    .quick-controls .filter-label {
+      margin: 0;
+    }
     .top-actions-left,
     .top-actions-right {
       display: flex;
@@ -1597,6 +1609,13 @@ def build_html(
     }
     .review-controls[data-show="1"] {
       display: inline-flex;
+    }
+    .review-controls-title {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .quick-controls[data-show="0"] {
+      display: none;
     }
     .filter-text {
       background: var(--chip-bg-2);
@@ -1752,6 +1771,10 @@ def build_html(
       padding: 10px 12px;
       z-index: 50;
       display: none;
+    }
+    .filter-user-panel.open-up {
+      top: auto;
+      bottom: calc(100% + 6px);
     }
     .filter-user-panel.open {
       display: block;
@@ -1991,10 +2014,10 @@ def build_html(
         "<div class='refresh-stamp' id='refresh-stamp'>未刷新</div>"
     )
     html_parts.append(
-        "<button type='button' class='filter-toggle' id='filter-toggle'>设置</button>"
+        "<button type='button' class='filter-toggle' id='filter-toggle'>筛选设置</button>"
     )
     html_parts.append(
-        "<button type='button' class='header-menu-btn' id='header-menu-btn' title='打开设置'>☰</button>"
+        "<button type='button' class='header-menu-btn' id='header-menu-btn' title='打开筛选设置'>☰</button>"
     )
     html_parts.append("</div>")
     html_parts.append("</div>")
@@ -2007,8 +2030,8 @@ def build_html(
         filter_desc.append("默认仅展示未解决检视意见（可切换）")
     if default_hide_clean_prs:
         filter_desc.append("默认隐藏已关闭/已合并且无未解决检视意见的 PR（可切换）")
-    filter_desc.append("状态、检视意见均可多选，支持创建日期筛选")
-    filter_desc.append("当前筛选下无 PR 的用户默认隐藏，可切换显示")
+    filter_desc.append("支持按状态、检视意见、时间范围筛选")
+    filter_desc.append("默认隐藏无 PR 用户，可切换显示")
     if cfg.groups:
         filter_desc.append("支持按用户组/个人筛选")
     if issue_labels:
@@ -2018,7 +2041,7 @@ def build_html(
     if not filter_desc:
         filter_desc.append("可直接在页面上切换过滤，无需重新生成报表")
     html_parts.append(
-        f"<div class='sub-title'>默认：{escape_html(' · '.join(filter_desc))}</div>"
+        f"<div class='sub-title'>提示：{escape_html(' · '.join(filter_desc))}</div>"
     )
 
     html_parts.append("<div class='filter-container'>")
@@ -2068,6 +2091,28 @@ def build_html(
     html_parts.append(
         "<span class='token-status' id='refresh-status'></span>"
     )
+    html_parts.append("<div class='quick-controls' id='quick-controls' data-show='0'>")
+    html_parts.append(
+        "<div class='review-controls' id='review-controls' data-show='0'>"
+        "<span class='review-controls-title'>提出/被提筛选</span>"
+        "<input type='text' id='review-user-keyword' class='filter-text' placeholder='筛选人名' />"
+        "<select id='review-sort-select' class='filter-select'>"
+        "<option value='total' selected>排序：总数</option>"
+        "<option value='unresolved'>排序：未解决</option>"
+        "<option value='resolved'>排序：已解决</option>"
+        "<option value='name'>排序：姓名</option>"
+        "</select>"
+        "<select id='review-date-field' class='filter-select'>"
+        "<option value='created' selected>评论时间：创建</option>"
+        "<option value='updated'>评论时间：更新</option>"
+        "</select>"
+        "<input type='date' id='review-date-start' class='filter-text' style='min-width:150px' />"
+        "<input type='date' id='review-date-end' class='filter-text' style='min-width:150px' />"
+        "<button type='button' class='filter-chip-btn secondary' id='review-date-clear'>清空日期</button>"
+        "<button type='button' class='filter-chip-btn secondary' id='export-review-csv'>导出检视意见 CSV</button>"
+        "</div>"
+    )
+    html_parts.append("</div>")
     html_parts.append("</div>")
     html_parts.append("</div>")
     html_parts.append("<div class='settings-modal' id='settings-modal' data-open='0'>")
@@ -2075,7 +2120,7 @@ def build_html(
     html_parts.append("<div class='settings-panel'>")
     html_parts.append(
         "<div class='settings-header'>"
-        "<div class='settings-title'>筛选设置</div>"
+        "<div class='settings-title'>页面筛选</div>"
         "<button type='button' class='filter-toggle' id='settings-close'>关闭</button>"
         "</div>"
     )
@@ -2090,18 +2135,6 @@ def build_html(
     )
     html_parts.append(
         "<button type='button' class='filter-chip-btn secondary' id='quick-open-unresolved'>仅看 open 且有未解决意见</button>"
-    )
-    html_parts.append(
-        "<div class='review-controls' id='review-controls' data-show='0'>"
-        "<input type='text' id='review-user-keyword' class='filter-text' placeholder='筛选人名' />"
-        "<select id='review-sort-select' class='filter-select'>"
-        "<option value='total' selected>排序：总数</option>"
-        "<option value='unresolved'>排序：未解决</option>"
-        "<option value='resolved'>排序：已解决</option>"
-        "<option value='name'>排序：姓名</option>"
-        "</select>"
-        "<button type='button' class='filter-chip-btn secondary' id='export-review-csv'>导出检视意见 CSV</button>"
-        "</div>"
     )
     html_parts.append(
         "<button type='button' class='filter-chip-btn secondary' id='export-csv'>导出当前筛选 CSV</button>"
@@ -2127,7 +2160,7 @@ def build_html(
 
     # 评论（拆分：PR 过滤 vs 展示控制）
     html_parts.append("<div class='filter-group'>")
-    html_parts.append("<h3>检视意见（PR 过滤） <span>(多选)</span></h3>")
+    html_parts.append("<h3>PR 保留（检视意见状态） <span>(多选)</span></h3>")
     html_parts.append(
         "<div class='filter-hint'>下方选项决定哪些 PR 会保留在列表中。</div>"
     )
@@ -2158,9 +2191,9 @@ def build_html(
     html_parts.append("</div>")
 
     html_parts.append("<div class='filter-group'>")
-    html_parts.append("<h3>检视意见（评论显示）</h3>")
+    html_parts.append("<h3>评论展示</h3>")
     html_parts.append(
-        "<div class='filter-hint'>仅影响评论的显示/隐藏，不改变 PR 是否保留；是否保留 PR 由上方“检视意见（PR 过滤）”决定。</div>"
+        "<div class='filter-hint'>仅影响评论显示，不改变 PR 是否保留；是否保留 PR 由上方“PR 保留（检视意见状态）”决定。</div>"
     )
     html_parts.append(
         "<label class='filter-label'>"
@@ -2198,7 +2231,7 @@ def build_html(
     html_parts.append(
         f"<div class='filter-group' id='filter-issue-group'{issue_group_style}>"
     )
-    html_parts.append("<h3>Issue 标签 <span>(多选)</span></h3>")
+    html_parts.append("<h3>Issue 标签筛选 <span>(多选)</span></h3>")
     html_parts.append("<div class='filter-user-list' id='filter-issue-list'>")
     for lab in issue_labels:
         html_parts.append(
@@ -2215,7 +2248,7 @@ def build_html(
     html_parts.append(
         f"<div class='filter-group' id='filter-pr-type-group'{pr_type_group_style}>"
     )
-    html_parts.append("<h3>PR 类型 <span>(title 前缀，多选)</span></h3>")
+    html_parts.append("<h3>PR 类型（标题前缀） <span>(多选)</span></h3>")
     html_parts.append("<div class='filter-user-list' id='filter-pr-type-list'>")
     for t in pr_types:
         html_parts.append(
@@ -2231,7 +2264,7 @@ def build_html(
     html_parts.append(
         f"<div class='filter-group' id='filter-target-group'{target_group_style}>"
     )
-    html_parts.append("<h3>目标分支 <span>(多选)</span></h3>")
+    html_parts.append("<h3>目标分支筛选 <span>(多选)</span></h3>")
     html_parts.append("<div class='filter-user-list' id='filter-target-list'>")
     for t in target_branches:
         html_parts.append(
@@ -2243,9 +2276,9 @@ def build_html(
     html_parts.append("</div>")
     html_parts.append("</div>")
 
-    # 时间 / 用户开关
+    # 时间范围
     html_parts.append("<div class='filter-group'>")
-    html_parts.append("<h3>时间 / 用户</h3>")
+    html_parts.append("<h3>时间范围（页面筛选）</h3>")
     html_parts.append(
         "<div class='filter-dates'>"
         "<select id='filter-date-field' class='filter-select' style='margin-left:8px'>"
@@ -2268,17 +2301,17 @@ def build_html(
         "<button type='button' class='date-quick-btn' data-range='0'>全部</button>"
         "</div>"
     )
+    html_parts.append("</div>")
+
+    # 用户 / 组
+    html_parts.append("<div class='filter-group'>")
+    html_parts.append("<h3>用户 / 用户组</h3>")
     html_parts.append(
         "<label class='filter-label'>"
         "<input type='checkbox' id='filter-hide-empty-users' checked />"
         " 隐藏当前筛选下没有 PR 的用户"
         "</label>"
     )
-    html_parts.append("</div>")
-
-    # 用户 / 组
-    html_parts.append("<div class='filter-group'>")
-    html_parts.append("<h3>用户 / 组</h3>")
     # 用户筛选区域（默认全选），用下拉面板减少占位
     user_dropdown_style = "" if cfg.users else " style='display:none'"
     html_parts.append(
@@ -2806,6 +2839,8 @@ def build_html(
                                         else ""
                                     )
                                     comment_id_attr = f" data-comment-id='{cm.id}'"
+                                    created_attr = escape_html(cm.created_at or "")
+                                    updated_attr = escape_html(cm.updated_at or "")
 
                                     loc = ""
                                     if cm.path:
@@ -2818,7 +2853,7 @@ def build_html(
                                         header_left += f" · {loc}"
 
                                     html_parts.append(
-                                        f"<div class='review-item {status_cls}{' review-reply' if is_reply else ''}' data-resolved='{resolved_attr}' data-is-reply='{is_reply_attr}' data-user='{user_attr}' data-parent-user='{parent_user_attr}'{parent_id_attr}{comment_id_attr}>"
+                                        f"<div class='review-item {status_cls}{' review-reply' if is_reply else ''}' data-resolved='{resolved_attr}' data-is-reply='{is_reply_attr}' data-user='{user_attr}' data-parent-user='{parent_user_attr}' data-comment-created='{created_attr}' data-comment-updated='{updated_attr}'{parent_id_attr}{comment_id_attr}>"
                                     )
 
                                     # header
@@ -3000,11 +3035,16 @@ def build_html(
   const reviewControls = document.getElementById('review-controls');
   const reviewUserKeyword = document.getElementById('review-user-keyword');
   const reviewSortSelect = document.getElementById('review-sort-select');
+  const reviewDateField = document.getElementById('review-date-field');
+  const reviewDateStart = document.getElementById('review-date-start');
+  const reviewDateEnd = document.getElementById('review-date-end');
+  const reviewDateClear = document.getElementById('review-date-clear');
   const exportReviewBtn = document.getElementById('export-review-csv');
   const presetSelect = document.getElementById('preset-select');
   const presetApplyBtn = document.getElementById('preset-apply');
   const presetSaveBtn = document.getElementById('preset-save');
   const fetchToggle = document.getElementById('fetch-toggle');
+  const quickControls = document.getElementById('quick-controls');
   const tokenInput = document.getElementById('api-token');
   const tokenClearBtn = document.getElementById('token-clear');
   const tokenStatus = document.getElementById('token-status');
@@ -3161,6 +3201,49 @@ def build_html(
       }
     } catch (e) {}
     fetchStateChecks.forEach((c) => c.addEventListener('change', saveFetchStates));
+  }
+  const REVIEW_DATE_KEY = 'pr_report_review_date_v1';
+  const loadReviewRange = () => {
+    try {
+      const raw = localStorage.getItem(REVIEW_DATE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      return {
+        field: parsed.field === 'updated' ? 'updated' : 'created',
+        start: parsed.start || '',
+        end: parsed.end || '',
+      };
+    } catch (e) {
+      return null;
+    }
+  };
+  const saveReviewRange = () => {
+    if (!reviewDateField || !reviewDateStart || !reviewDateEnd) return;
+    const payload = {
+      field: reviewDateField.value === 'updated' ? 'updated' : 'created',
+      start: reviewDateStart.value || '',
+      end: reviewDateEnd.value || '',
+    };
+    try { localStorage.setItem(REVIEW_DATE_KEY, JSON.stringify(payload)); } catch (e) {}
+  };
+  const syncReviewRangeUi = () => {
+    const saved = loadReviewRange();
+    if (!saved) return;
+    if (reviewDateField) reviewDateField.value = saved.field || 'created';
+    if (reviewDateStart) reviewDateStart.value = saved.start || '';
+    if (reviewDateEnd) reviewDateEnd.value = saved.end || '';
+  };
+  syncReviewRangeUi();
+  if (reviewDateField) reviewDateField.addEventListener('change', saveReviewRange);
+  if (reviewDateStart) reviewDateStart.addEventListener('change', saveReviewRange);
+  if (reviewDateEnd) reviewDateEnd.addEventListener('change', saveReviewRange);
+  if (reviewDateClear) {
+    reviewDateClear.addEventListener('click', () => {
+      if (reviewDateStart) reviewDateStart.value = '';
+      if (reviewDateEnd) reviewDateEnd.value = '';
+      saveReviewRange();
+    });
   }
   const FETCH_RANGE_KEY = 'pr_report_fetch_range_v1';
   const DATA_CACHE_KEY = 'pr_report_cached_data_v1';
@@ -3652,9 +3735,36 @@ def build_html(
 
   // 检视意见视图：按“提出检视意见的人（主评论作者）”聚合
   let issueDetailMap = new Map();
+  const getReviewDateRange = () => {
+    const field = reviewDateField?.value === 'updated' ? 'updated' : 'created';
+    const startVal = reviewDateStart?.value || '';
+    const endVal = reviewDateEnd?.value || '';
+    const startMs = startVal ? Date.parse(startVal) : null;
+    const endMs = endVal ? Date.parse(endVal) : null;
+    return {
+      field,
+      startMs: Number.isNaN(startMs) ? null : startMs,
+      endMs: Number.isNaN(endMs) ? null : endMs,
+    };
+  };
+  const isCommentInRange = (el, range) => {
+    if (!range || (!range.startMs && !range.endMs)) return true;
+    const raw =
+      range.field === 'updated'
+        ? (el.dataset.commentUpdated || '')
+        : (el.dataset.commentCreated || '');
+    if (!raw) return false;
+    const parsed = Date.parse(raw.replace('Z', '+00:00'));
+    if (Number.isNaN(parsed)) return false;
+    let ok = true;
+    if (range.startMs != null) ok = ok && parsed >= range.startMs;
+    if (range.endMs != null) ok = ok && parsed <= range.endMs + 24 * 60 * 60 * 1000;
+    return ok;
+  };
   const collectVisibleIssues = () => {
     const rows = [];
     const cards = Array.from(document.querySelectorAll('.pr-card'));
+    const dateRange = getReviewDateRange();
     const toExcerpt = (text) => {
       const compact = (text || '').replace(/\\s+/g, ' ').trim();
       if (!compact) return '';
@@ -3674,6 +3784,7 @@ def build_html(
       );
       items.forEach((it) => {
         if (it.style.display === 'none') return;
+        if (!isCommentInRange(it, dateRange)) return;
         const user = (it.dataset.user || '').trim();
         const resolved = it.dataset.resolved === 'true';
         const commentId = (it.dataset.commentId || '').trim();
@@ -3854,6 +3965,7 @@ def build_html(
   const collectVisibleReceived = () => {
     const rows = [];
     const cards = Array.from(document.querySelectorAll('.pr-card'));
+    const dateRange = getReviewDateRange();
     const toExcerpt = (text) => {
       const compact = (text || '').replace(/\\s+/g, ' ').trim();
       if (!compact) return '';
@@ -3874,6 +3986,7 @@ def build_html(
       );
       items.forEach((it) => {
         if (it.style.display === 'none') return;
+        if (!isCommentInRange(it, dateRange)) return;
         const reviewer = (it.dataset.user || '').trim() || '(unknown)';
         const resolved = it.dataset.resolved === 'true';
         const commentId = (it.dataset.commentId || '').trim();
@@ -5233,6 +5346,8 @@ def build_html(
               const parentUserAttr = escapeHtml(cm.parent_user || '');
               const parentIdAttr = isReply && cm.parent_id != null ? ` data-parent-id='${cm.parent_id}'` : '';
               const commentIdAttr = ` data-comment-id='${cm.id}'`;
+              const createdAttr = ` data-comment-created='${escapeHtml(cm.created_at || '')}'`;
+              const updatedAttr = ` data-comment-updated='${escapeHtml(cm.updated_at || '')}'`;
               let loc = '';
               if (cm.path) {
                 loc = cm.path;
@@ -5243,7 +5358,8 @@ def build_html(
               let html =
                 `<div class='review-item ${statusCls}${isReply ? ' review-reply' : ''}'` +
                 ` data-resolved='${resolvedAttr}' data-is-reply='${isReplyAttr}'` +
-                ` data-user='${userAttr}' data-parent-user='${parentUserAttr}'${parentIdAttr}${commentIdAttr}>`;
+                ` data-user='${userAttr}' data-parent-user='${parentUserAttr}'` +
+                `${createdAttr}${updatedAttr}${parentIdAttr}${commentIdAttr}>`;
               html += `<div class='review-header'><span>${escapeHtml(headerLeft)}</span></div>`;
               html += `<div class='review-meta'>创建：${escapeHtml(cm.created_at || '')} ｜ 更新：${escapeHtml(cm.updated_at || '')}</div>`;
               if (cm.body) {
@@ -6082,6 +6198,9 @@ def build_html(
     if (reviewControls) {
       reviewControls.dataset.show = showReviewControls ? '1' : '0';
     }
+    if (quickControls) {
+      quickControls.dataset.show = showReviewControls ? '1' : '0';
+    }
     if (reviewUserKeyword) {
       reviewUserKeyword.placeholder = nextMode === 'received' ? '筛选被提人（PR 作者）' : '筛选提出人';
     }
@@ -6177,6 +6296,20 @@ def build_html(
   if (reviewSortSelect) {
     reviewSortSelect.addEventListener('change', refreshActiveReviewView);
   }
+  if (reviewDateField) {
+    reviewDateField.addEventListener('change', refreshActiveReviewView);
+  }
+  if (reviewDateStart) {
+    reviewDateStart.addEventListener('change', refreshActiveReviewView);
+  }
+  if (reviewDateEnd) {
+    reviewDateEnd.addEventListener('change', refreshActiveReviewView);
+  }
+  if (reviewDateClear) {
+    reviewDateClear.addEventListener('click', () => {
+      refreshActiveReviewView();
+    });
+  }
   if (refreshBtn) {
     refreshBtn.addEventListener('click', () => {
       refreshFromApi();
@@ -6186,8 +6319,19 @@ def build_html(
   // 下拉面板开关
   const closeAllDropdowns = () => {
     document.querySelectorAll('.filter-user-panel').forEach((panel) => {
-      panel.classList.remove('open');
+      panel.classList.remove('open', 'open-up');
     });
+  };
+  const positionDropdown = (toggleEl, panelEl) => {
+    if (!toggleEl || !panelEl) return;
+    panelEl.classList.remove('open-up');
+    const toggleRect = toggleEl.getBoundingClientRect();
+    const panelRect = panelEl.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - toggleRect.bottom;
+    const spaceAbove = toggleRect.top;
+    if (spaceBelow < panelRect.height && spaceAbove > spaceBelow) {
+      panelEl.classList.add('open-up');
+    }
   };
   const bindDropdown = (toggleEl, panelEl, wrapper) => {
     if (!toggleEl || !panelEl) return;
@@ -6197,6 +6341,7 @@ def build_html(
       closeAllDropdowns();
       if (!isOpen) {
         panelEl.classList.add('open');
+        positionDropdown(toggleEl, panelEl);
       }
     });
     if (wrapper) {
@@ -6206,6 +6351,13 @@ def build_html(
   bindDropdown(userToggle, userPanel, userDropdown);
   bindDropdown(groupToggle, groupPanel, groupDropdown);
   document.addEventListener('click', () => closeAllDropdowns());
+  window.addEventListener('resize', () => {
+    document.querySelectorAll('.filter-user-panel.open').forEach((panel) => {
+      const toggle =
+        panel.id === 'filter-group-panel' ? groupToggle : userToggle;
+      if (toggle) positionDropdown(toggle, panel);
+    });
+  });
 
   // 更新 summary 时机
   wrappedApply = () => {
