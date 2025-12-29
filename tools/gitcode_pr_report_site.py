@@ -934,7 +934,10 @@ def build_html(
     @media (max-width: 720px) {
       .header-right .mini-stats,
       .header-right .refresh-stamp,
-      .header-right #filter-toggle {
+      .header-right #filter-toggle,
+      .header-right #fetch-toggle,
+      .header-right #refresh-data,
+      .header-right #refresh-status {
         display: none;
       }
       .header-menu-btn {
@@ -2014,7 +2017,16 @@ def build_html(
         "<div class='refresh-stamp' id='refresh-stamp'>未刷新</div>"
     )
     html_parts.append(
-        "<button type='button' class='filter-toggle' id='filter-toggle'>筛选设置</button>"
+        "<button type='button' class='filter-chip-btn secondary' id='filter-toggle'>筛选设置</button>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn secondary' id='fetch-toggle'>抓取设置</button>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn secondary' id='refresh-data'>刷新数据</button>"
+    )
+    html_parts.append(
+        "<span class='token-status' id='refresh-status'></span>"
     )
     html_parts.append(
         "<button type='button' class='header-menu-btn' id='header-menu-btn' title='打开筛选设置'>☰</button>"
@@ -2082,15 +2094,8 @@ def build_html(
     html_parts.append(
         "<button type='button' class='filter-chip-btn secondary' id='preset-save'>保存为预设</button>"
     )
-    html_parts.append(
-        "<button type='button' class='filter-chip-btn secondary' id='fetch-toggle'>抓取设置</button>"
-    )
-    html_parts.append(
-        "<button type='button' class='filter-chip-btn secondary' id='refresh-data'>刷新数据</button>"
-    )
-    html_parts.append(
-        "<span class='token-status' id='refresh-status'></span>"
-    )
+    html_parts.append("</div>")
+    html_parts.append("</div>")
     html_parts.append("<div class='quick-controls' id='quick-controls' data-show='0'>")
     html_parts.append(
         "<div class='review-controls' id='review-controls' data-show='0'>"
@@ -2112,8 +2117,6 @@ def build_html(
         "<button type='button' class='filter-chip-btn secondary' id='export-review-csv'>导出检视意见 CSV</button>"
         "</div>"
     )
-    html_parts.append("</div>")
-    html_parts.append("</div>")
     html_parts.append("</div>")
     html_parts.append("<div class='settings-modal' id='settings-modal' data-open='0'>")
     html_parts.append("<div class='settings-backdrop' id='settings-backdrop'></div>")
@@ -2449,12 +2452,14 @@ def build_html(
     html_parts.append("</div>")
     html_parts.append(
         "<details class='config-panel' id='client-config-panel'>"
-        "<summary>用户/组设置</summary>"
+        "<summary>用户 / 用户组 / 仓库</summary>"
         "<div class='config-body'>"
         "<label class='config-label'>用户（每行一个）</label>"
         "<textarea id='config-users' class='config-textarea' rows='4' placeholder='alice\\nbob'></textarea>"
         "<label class='config-label'>用户组（格式：组名: user1, user2）</label>"
         "<textarea id='config-groups' class='config-textarea' rows='4' placeholder='teamA: alice, bob'></textarea>"
+        "<label class='config-label'>仓库（每行 owner/repo）</label>"
+        "<textarea id='config-repos' class='config-textarea' rows='3' placeholder='cangjie/cangjie_runtime'></textarea>"
         "<div class='config-actions'>"
         "<button type='button' class='filter-chip-btn secondary' id='config-apply'>应用并刷新</button>"
         "<button type='button' class='filter-chip-btn' id='config-reset'>恢复默认</button>"
@@ -3085,6 +3090,7 @@ def build_html(
   const configPanel = document.getElementById('client-config-panel');
   const configUsers = document.getElementById('config-users');
   const configGroups = document.getElementById('config-groups');
+  const configRepos = document.getElementById('config-repos');
   const configApplyBtn = document.getElementById('config-apply');
   const configResetBtn = document.getElementById('config-reset');
   const tuningIntervalInput = document.getElementById('config-request-interval');
@@ -3450,6 +3456,21 @@ def build_html(
     });
     return list;
   };
+  const normalizeRepos = (text) => {
+    const raw = (text || '').split(/[\\n,]/);
+    const seen = new Set();
+    const list = [];
+    raw.forEach((item) => {
+      const line = (item || '').trim();
+      if (!line) return;
+      const token = line.split(/\\s+/)[0];
+      if (!token || !token.includes('/')) return;
+      if (seen.has(token)) return;
+      seen.add(token);
+      list.push(token);
+    });
+    return list;
+  };
   const parseGroups = (text) => {
     const groups = {};
     (text || '').split(/\\n/).forEach((line) => {
@@ -3471,6 +3492,10 @@ def build_html(
       .map(([name, users]) => `${name}: ${(users || []).join(', ')}`.trim())
       .join('\\n');
   };
+  const formatRepos = (repos) => {
+    if (!repos) return '';
+    return (repos || []).join('\\n');
+  };
   const loadClientConfig = () => {
     try {
       const raw = localStorage.getItem(CLIENT_CFG_KEY);
@@ -3480,8 +3505,10 @@ def build_html(
       return {
         users: Array.isArray(parsed.users) ? parsed.users : [],
         groups: parsed.groups && typeof parsed.groups === 'object' ? parsed.groups : {},
+        repos: Array.isArray(parsed.repos) ? parsed.repos : [],
         usersSet: parsed.usersSet === true,
         groupsSet: parsed.groupsSet === true,
+        reposSet: parsed.reposSet === true,
       };
     } catch (e) {
       return null;
@@ -3497,6 +3524,41 @@ def build_html(
     } catch (e) {}
   };
   let clientConfigState = loadClientConfig();
+  const repoConfigMap = new Map(
+    (CLIENT_CONFIG.repos || []).map((r) => [`${r.owner}/${r.repo}`, r])
+  );
+  const fallbackRepoStates = (CLIENT_CONFIG.repos?.[0]?.states || ['open', 'merged']);
+  const fallbackRepoPerPage = CLIENT_CONFIG.repos?.[0]?.per_page || 30;
+  const buildRepoConfigs = (repoNames) => {
+    const list = [];
+    const seen = new Set();
+    (repoNames || []).forEach((name) => {
+      if (!name || seen.has(name)) return;
+      seen.add(name);
+      const fromCfg = repoConfigMap.get(name);
+      if (fromCfg) {
+        list.push({
+          owner: fromCfg.owner,
+          repo: fromCfg.repo,
+          states: Array.isArray(fromCfg.states) ? fromCfg.states : fallbackRepoStates,
+          per_page: fromCfg.per_page || fallbackRepoPerPage,
+        });
+        return;
+      }
+      const parts = name.split('/');
+      if (parts.length < 2) return;
+      const owner = parts[0];
+      const repo = parts.slice(1).join('/');
+      if (!owner || !repo) return;
+      list.push({
+        owner,
+        repo,
+        states: fallbackRepoStates,
+        per_page: fallbackRepoPerPage,
+      });
+    });
+    return list;
+  };
   const getEffectiveUsers = () => {
     if (clientConfigState && clientConfigState.usersSet) {
       return clientConfigState.users || [];
@@ -3508,6 +3570,12 @@ def build_html(
       return clientConfigState.groups || {};
     }
     return CLIENT_CONFIG.groups || {};
+  };
+  const getEffectiveRepos = () => {
+    if (clientConfigState && clientConfigState.reposSet) {
+      return buildRepoConfigs(clientConfigState.repos || []);
+    }
+    return Array.isArray(CLIENT_CONFIG.repos) ? CLIENT_CONFIG.repos : [];
   };
   const renderUserGroupFilters = (users, groups) => {
     if (userList) {
@@ -3565,9 +3633,15 @@ def build_html(
   const applyClientConfig = () => {
     const users = getEffectiveUsers();
     const groups = getEffectiveGroups();
+    const repos = getEffectiveRepos();
     groupMembers = groups || {};
     if (configUsers) configUsers.value = users.join('\\n');
     if (configGroups) configGroups.value = formatGroups(groups);
+    if (configRepos) {
+      configRepos.value = formatRepos(
+        repos.map((r) => `${r.owner}/${r.repo}`)
+      );
+    }
     renderUserGroupFilters(users, groups);
     bindUserGroupListeners();
   };
@@ -3576,11 +3650,14 @@ def build_html(
     configApplyBtn.addEventListener('click', () => {
       const users = normalizeUsers(configUsers ? configUsers.value : '');
       const groups = parseGroups(configGroups ? configGroups.value : '');
+      const repos = normalizeRepos(configRepos ? configRepos.value : '');
       clientConfigState = {
         users,
         groups,
+        repos,
         usersSet: true,
         groupsSet: true,
+        reposSet: true,
       };
       saveClientConfig(clientConfigState);
       applyClientConfig();
@@ -3589,7 +3666,14 @@ def build_html(
   }
   if (configResetBtn) {
     configResetBtn.addEventListener('click', () => {
-      clientConfigState = { users: [], groups: {}, usersSet: false, groupsSet: false };
+      clientConfigState = {
+        users: [],
+        groups: {},
+        repos: [],
+        usersSet: false,
+        groupsSet: false,
+        reposSet: false,
+      };
       saveClientConfig(null);
       applyClientConfig();
       refreshFromApi();
@@ -5847,7 +5931,7 @@ def build_html(
 
   const fetchAllData = async (token, onProgress, fetchMode, fetchRange, fetchStates) => {
     const data = {};
-    const repos = Array.isArray(CLIENT_CONFIG.repos) ? CLIENT_CONFIG.repos : [];
+    const repos = getEffectiveRepos();
     const users = getEffectiveUsers();
     logInfo('开始拉取', {
       repos: repos.length,
@@ -5859,8 +5943,8 @@ def build_html(
       repoConcurrency,
       detailConcurrency,
     });
-    if (!users.length) {
-      logInfo('未配置用户，跳过拉取');
+    if (!users.length || !repos.length) {
+      logInfo('未配置用户或仓库，跳过拉取');
       return data;
     }
     const repoLimiter = createLimiter(repoConcurrency);
