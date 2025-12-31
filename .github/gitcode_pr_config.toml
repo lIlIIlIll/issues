@@ -4,6 +4,10 @@ access_token = ""
 # 默认 PR 状态 & 每页数量（单个仓库也可以覆盖）
 states = ["merged", "open"]
 per_page = 20
+# 最大抓取页数（0 表示不限制）
+max_pr_pages = 0
+# PR 文件列表最大页数（0 表示不限制）
+max_file_pages = 10
 users = [
   "EMROF",
   "zhaoshenghua1",

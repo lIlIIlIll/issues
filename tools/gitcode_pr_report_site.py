@@ -54,6 +54,8 @@ class Config:
     groups: Dict[str, List[str]]
     repos: List[RepoConfig]
     code_stats: bool = True
+    max_pr_pages: Optional[int] = None
+    max_file_pages: Optional[int] = None
 
 
 @dataclass
@@ -122,6 +124,18 @@ def _normalize_states(obj: Dict[str, Any], default_states: List[str]) -> List[st
     return list(default_states)
 
 
+def _normalize_max_pages(raw: Any, default: Optional[int]) -> Optional[int]:
+    if raw is None:
+        return default
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return default
+    if value <= 0:
+        return None
+    return value
+
+
 def load_config(path: str) -> Config:
     def _normalize_user_list(obj: Any) -> List[str]:
         if not obj:
@@ -174,6 +188,9 @@ def load_config(path: str) -> Config:
     code_stats_raw = data.get("code_stats", True)
     code_stats = bool(code_stats_raw) if isinstance(code_stats_raw, bool) else True
 
+    max_pr_pages = _normalize_max_pages(data.get("max_pr_pages"), None)
+    max_file_pages = _normalize_max_pages(data.get("max_file_pages"), 10)
+
     repos_raw = data.get("repos")
     if not repos_raw or not isinstance(repos_raw, list):
         raise ValueError(
@@ -216,6 +233,8 @@ def load_config(path: str) -> Config:
         groups=groups,
         repos=repos,
         code_stats=code_stats,
+        max_pr_pages=max_pr_pages,
+        max_file_pages=max_file_pages,
     )
 
 
@@ -260,6 +279,7 @@ def fetch_prs_for_user(
     access_token: Optional[str],
     repo_cfg: RepoConfig,
     username: str,
+    max_pages: Optional[int] = None,
 ) -> List[PRInfo]:
     all_prs: List[PRInfo] = []
     seen_numbers: set[int] = set()
@@ -271,6 +291,8 @@ def fetch_prs_for_user(
     for state in states:
         page = 1
         while True:
+            if max_pages is not None and page > max_pages:
+                break
             params = {
                 "state": state,
                 "author": username,
@@ -371,6 +393,7 @@ def fetch_files_for_pr(
     access_token: Optional[str],
     repo_cfg: RepoConfig,
     pr_number: int,
+    max_pages: Optional[int] = 10,
 ) -> tuple[Optional[int], Optional[int], Optional[int], Dict[str, Dict[str, int]]]:
     """
     GET /repos/:owner/:repo/pulls/:number/files
@@ -383,9 +406,10 @@ def fetch_files_for_pr(
     seen_items: set[str] = set()
     page = 1
     per_page = 100
-    max_pages = 10
 
     while True:
+        if max_pages is not None and page > max_pages:
+            break
         try:
             data = gitcode_get(
                 f"/repos/{repo_cfg.owner}/{repo_cfg.repo}/pulls/{pr_number}/files",
@@ -437,8 +461,6 @@ def fetch_files_for_pr(
             break
 
         page += 1
-        if page > max_pages:
-            break
         time.sleep(0.05)
 
     return total_add, total_del, total_files, stats
@@ -485,6 +507,8 @@ def fetch_repo_user_data(
     username: str,
     *,
     code_stats_enabled: bool = True,
+    max_pr_pages: Optional[int] = None,
+    max_file_pages: Optional[int] = None,
 ) -> List[PRInfo]:
     """
     拉取一个仓库 + 一个用户的所有 PR，并填充 issues/comments，
@@ -493,7 +517,9 @@ def fetch_repo_user_data(
     repo_name = f"{repo_cfg.owner}/{repo_cfg.repo}"
     t0 = time.perf_counter()
     print(f"[info] fetch start: {repo_name} {username}")
-    prs = fetch_prs_for_user(access_token, repo_cfg, username)
+    prs = fetch_prs_for_user(
+        access_token, repo_cfg, username, max_pages=max_pr_pages
+    )
     print(f"[info] fetch prs: {repo_name} {username} count={len(prs)}")
 
     result: List[PRInfo] = []
@@ -515,7 +541,7 @@ def fetch_repo_user_data(
         # 再拉文件变更统计
         if code_stats_enabled:
             add, dele, files, stats = fetch_files_for_pr(
-                access_token, repo_cfg, pr.number
+                access_token, repo_cfg, pr.number, max_pages=max_file_pages
             )
             pr.additions = add
             pr.deletions = dele
@@ -1997,6 +2023,8 @@ def build_html(
         "allowedPrTypes": sorted(allowed_pr_types),
         "codeStatSuffixes": sorted(CODE_STAT_SUFFIXES),
         "codeStatsEnabled": cfg.code_stats,
+        "maxPrPages": cfg.max_pr_pages or 0,
+        "maxFilePages": cfg.max_file_pages if cfg.max_file_pages is not None else 0,
     }
     client_config_json = json.dumps(client_config, ensure_ascii=False)
 
@@ -2497,6 +2525,12 @@ def build_html(
         "<label class='config-label'>详情并发（单用户 PR 详情）</label>"
         "<input type='number' id='config-detail-concurrency' class='filter-text' "
         "min='1' max='10' step='1' placeholder='6' style='min-width:140px' />"
+        "<label class='config-label'>PR 列表最大抓取页数（0 表示不限制）</label>"
+        "<input type='number' id='config-max-pr-pages' class='filter-text' "
+        "min='0' step='1' placeholder='0' style='min-width:140px' />"
+        "<label class='config-label'>文件列表最大页数（0 表示不限制）</label>"
+        "<input type='number' id='config-max-file-pages' class='filter-text' "
+        "min='0' step='1' placeholder='10' style='min-width:140px' />"
         "<div class='config-actions'>"
         "<button type='button' class='filter-chip-btn secondary' id='config-tuning-apply'>保存设置</button>"
         "<button type='button' class='filter-chip-btn' id='config-tuning-reset'>恢复默认</button>"
@@ -3113,6 +3147,8 @@ def build_html(
   const tuningIntervalInput = document.getElementById('config-request-interval');
   const tuningRepoInput = document.getElementById('config-repo-concurrency');
   const tuningDetailInput = document.getElementById('config-detail-concurrency');
+  const tuningMaxPrInput = document.getElementById('config-max-pr-pages');
+  const tuningMaxFileInput = document.getElementById('config-max-file-pages');
   const tuningApplyBtn = document.getElementById('config-tuning-apply');
   const tuningResetBtn = document.getElementById('config-tuning-reset');
   let wrappedApply = () => {};
@@ -3165,6 +3201,8 @@ def build_html(
   let successStreak = 0;
   let repoConcurrency = DEFAULT_REPO_CONCURRENCY;
   let detailConcurrency = DEFAULT_DETAIL_CONCURRENCY;
+  let maxPrPages = 0;
+  let maxFilePages = 10;
   let groupMembers = __GROUP_MEMBERS__;
   const logInfo = (...args) => {
     if (typeof console !== 'undefined' && console.info) {
@@ -3408,6 +3446,8 @@ def build_html(
     if (Number.isNaN(num)) return fallback;
     return Math.min(Math.max(num, min), max);
   };
+  const DEFAULT_MAX_PR_PAGES = clampInt(CLIENT_CONFIG.maxPrPages, 0, 200, 0);
+  const DEFAULT_MAX_FILE_PAGES = clampInt(CLIENT_CONFIG.maxFilePages, 0, 200, 10);
   const loadFetchTuning = () => {
     try {
       const raw = localStorage.getItem(FETCH_TUNING_KEY);
@@ -3448,16 +3488,32 @@ def build_html(
         10,
         DEFAULT_DETAIL_CONCURRENCY
       ),
+      maxPrPages: clampInt(
+        tuning?.maxPrPages,
+        0,
+        200,
+        DEFAULT_MAX_PR_PAGES
+      ),
+      maxFilePages: clampInt(
+        tuning?.maxFilePages,
+        0,
+        200,
+        DEFAULT_MAX_FILE_PAGES
+      ),
     };
     baseRequestIntervalMs = next.requestIntervalMs;
     requestIntervalMs = next.requestIntervalMs;
     repoConcurrency = next.repoConcurrency;
     detailConcurrency = next.detailConcurrency;
+    maxPrPages = next.maxPrPages;
+    maxFilePages = next.maxFilePages;
     successStreak = 0;
     if (opts?.updateUi !== false) {
       if (tuningIntervalInput) tuningIntervalInput.value = String(next.requestIntervalMs);
       if (tuningRepoInput) tuningRepoInput.value = String(next.repoConcurrency);
       if (tuningDetailInput) tuningDetailInput.value = String(next.detailConcurrency);
+      if (tuningMaxPrInput) tuningMaxPrInput.value = String(next.maxPrPages);
+      if (tuningMaxFileInput) tuningMaxFileInput.value = String(next.maxFilePages);
     }
     if (opts?.persist) {
       saveFetchTuning(next);
@@ -3471,6 +3527,8 @@ def build_html(
         requestIntervalMs: tuningIntervalInput?.value,
         repoConcurrency: tuningRepoInput?.value,
         detailConcurrency: tuningDetailInput?.value,
+        maxPrPages: tuningMaxPrInput?.value,
+        maxFilePages: tuningMaxFileInput?.value,
       };
       applyFetchTuning(tuning, { persist: true, updateUi: true });
     });
@@ -5800,6 +5858,7 @@ def build_html(
     for (const state of states) {
       let page = 1;
       while (true) {
+        if (maxPrPages > 0 && page > maxPrPages) break;
         const params = {
           state,
           author: username,
@@ -5949,8 +6008,9 @@ def build_html(
     const seenItems = new Set();
     let page = 1;
     const perPage = 100;
-    const maxPages = 10;
+    const maxPages = maxFilePages > 0 ? maxFilePages : 0;
     while (true) {
+      if (maxPages > 0 && page > maxPages) break;
       let data;
       try {
         data = await fetchJson(
@@ -5990,7 +6050,7 @@ def build_html(
         break;
       }
       page += 1;
-      if (page > maxPages) break;
+      if (maxPages > 0 && page > maxPages) break;
       await new Promise((r) => setTimeout(r, 50));
     }
     return { additions: totalAdd, deletions: totalDel, changed_files: totalFiles, file_stats: stats };
@@ -6057,6 +6117,8 @@ def build_html(
       requestIntervalMs,
       repoConcurrency,
       detailConcurrency,
+      maxPrPages,
+      maxFilePages,
     });
     if (!users.length || !repos.length) {
       logInfo('未配置用户或仓库，跳过拉取');
@@ -6866,6 +6928,8 @@ def main() -> None:
                     repo_cfg,
                     username,
                     code_stats_enabled=code_stats_enabled,
+                    max_pr_pages=cfg.max_pr_pages,
+                    max_file_pages=cfg.max_file_pages,
                 )
                 future_to_key[fut] = (repo_name, username)
 

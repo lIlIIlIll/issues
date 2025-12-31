@@ -38,6 +38,7 @@ class Config:
     access_token: Optional[str]
     users: List[str]
     repos: List[RepoConfig]
+    max_pr_pages: Optional[int] = None
 
 
 @dataclass
@@ -99,6 +100,18 @@ def _normalize_states(obj: Dict[str, Any], default_states: List[str]) -> List[st
     return list(default_states)
 
 
+def _normalize_max_pages(raw: Any, default: Optional[int]) -> Optional[int]:
+    if raw is None:
+        return default
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return default
+    if value <= 0:
+        return None
+    return value
+
+
 def load_config(path: str) -> Config:
     with open(path, "rb") as f:
         data = tomllib.load(f)
@@ -119,6 +132,8 @@ def load_config(path: str) -> Config:
     global_per_page = int(data.get("per_page", 50))
     if global_per_page < 1 or global_per_page > 100:
         global_per_page = 50
+
+    max_pr_pages = _normalize_max_pages(data.get("max_pr_pages"), None)
 
     repos_raw = data.get("repos")
     if not repos_raw or not isinstance(repos_raw, list):
@@ -143,7 +158,12 @@ def load_config(path: str) -> Config:
             RepoConfig(owner=owner, repo=repo, states=states, per_page=per_page)
         )
 
-    return Config(access_token=access_token, users=users, repos=repos)
+    return Config(
+        access_token=access_token,
+        users=users,
+        repos=repos,
+        max_pr_pages=max_pr_pages,
+    )
 
 
 # ----------------- HTTP 封装 -----------------
@@ -172,6 +192,7 @@ def fetch_prs_for_user(
     access_token: Optional[str],
     repo_cfg: RepoConfig,
     username: str,
+    max_pages: Optional[int] = None,
 ) -> List[PRInfo]:
     """
     支持多个状态：
@@ -183,6 +204,8 @@ def fetch_prs_for_user(
     for state in repo_cfg.states:
         page = 1
         while True:
+            if max_pages is not None and page > max_pages:
+                break
             params = {
                 "state": state,
                 "author": username,
@@ -494,7 +517,12 @@ def main() -> None:
     for repo_cfg in cfg.repos:
         for username in cfg.users:
             try:
-                prs = fetch_prs_for_user(cfg.access_token, repo_cfg, username)
+                prs = fetch_prs_for_user(
+                    cfg.access_token,
+                    repo_cfg,
+                    username,
+                    max_pages=cfg.max_pr_pages,
+                )
                 for pr in prs:
                     pr.issues = fetch_issues_for_pr(
                         cfg.access_token, repo_cfg, pr.number
