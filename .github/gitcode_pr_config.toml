@@ -7,7 +7,7 @@ per_page = 20
 # 最大抓取页数（0 表示不限制）
 max_pr_pages = 0
 # PR 文件列表最大页数（0 表示不限制）
-max_file_pages = 10
+max_file_pages = 1
 users = [
   "EMROF",
   "zhaoshenghua1",

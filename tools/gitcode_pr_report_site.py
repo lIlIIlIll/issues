@@ -189,7 +189,7 @@ def load_config(path: str) -> Config:
     code_stats = bool(code_stats_raw) if isinstance(code_stats_raw, bool) else True
 
     max_pr_pages = _normalize_max_pages(data.get("max_pr_pages"), None)
-    max_file_pages = _normalize_max_pages(data.get("max_file_pages"), 10)
+    max_file_pages = _normalize_max_pages(data.get("max_file_pages"), 1)
 
     repos_raw = data.get("repos")
     if not repos_raw or not isinstance(repos_raw, list):
@@ -393,7 +393,7 @@ def fetch_files_for_pr(
     access_token: Optional[str],
     repo_cfg: RepoConfig,
     pr_number: int,
-    max_pages: Optional[int] = 10,
+    max_pages: Optional[int] = 1,
 ) -> tuple[Optional[int], Optional[int], Optional[int], Dict[str, Dict[str, int]]]:
     """
     GET /repos/:owner/:repo/pulls/:number/files
@@ -2459,6 +2459,9 @@ def build_html(
         "</label>"
         "</div>"
     )
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn secondary' id='config-apply'>应用并刷新</button>"
+    )
     html_parts.append("</div>")
     html_parts.append("<div class='filter-bar'>")
     html_parts.append("<div class='filter-group'>")
@@ -2505,7 +2508,6 @@ def build_html(
         "<label class='config-label'>仓库（每行 owner/repo）</label>"
         "<textarea id='config-repos' class='config-textarea' rows='3' placeholder='cangjie/cangjie_runtime'></textarea>"
         "<div class='config-actions'>"
-        "<button type='button' class='filter-chip-btn secondary' id='config-apply'>应用并刷新</button>"
         "<button type='button' class='filter-chip-btn' id='config-reset'>恢复默认</button>"
         "</div>"
         "<div class='config-hint'>设置会保存在浏览器本地，仅影响当前页面。</div>"
@@ -2524,13 +2526,13 @@ def build_html(
         "min='1' max='6' step='1' placeholder='4' style='min-width:140px' />"
         "<label class='config-label'>详情并发（单用户 PR 详情）</label>"
         "<input type='number' id='config-detail-concurrency' class='filter-text' "
-        "min='1' max='10' step='1' placeholder='6' style='min-width:140px' />"
+        "min='1' max='10' step='1' placeholder='3' style='min-width:140px' />"
         "<label class='config-label'>PR 列表最大抓取页数（0 表示不限制）</label>"
         "<input type='number' id='config-max-pr-pages' class='filter-text' "
         "min='0' step='1' placeholder='0' style='min-width:140px' />"
         "<label class='config-label'>文件列表最大页数（0 表示不限制）</label>"
         "<input type='number' id='config-max-file-pages' class='filter-text' "
-        "min='0' step='1' placeholder='10' style='min-width:140px' />"
+        "min='0' step='1' placeholder='1' style='min-width:140px' />"
         "<div class='config-actions'>"
         "<button type='button' class='filter-chip-btn secondary' id='config-tuning-apply'>保存设置</button>"
         "<button type='button' class='filter-chip-btn' id='config-tuning-reset'>恢复默认</button>"
@@ -3195,14 +3197,14 @@ def build_html(
     parseInt(CLIENT_CONFIG.requestIntervalMs || '1200', 10) || 1200
   );
   const DEFAULT_REPO_CONCURRENCY = 4;
-  const DEFAULT_DETAIL_CONCURRENCY = 6;
+  const DEFAULT_DETAIL_CONCURRENCY = 3;
   let baseRequestIntervalMs = DEFAULT_REQUEST_INTERVAL_MS;
   let requestIntervalMs = baseRequestIntervalMs;
   let successStreak = 0;
   let repoConcurrency = DEFAULT_REPO_CONCURRENCY;
   let detailConcurrency = DEFAULT_DETAIL_CONCURRENCY;
   let maxPrPages = 0;
-  let maxFilePages = 10;
+  let maxFilePages = 1;
   let groupMembers = __GROUP_MEMBERS__;
   const logInfo = (...args) => {
     if (typeof console !== 'undefined' && console.info) {
@@ -3447,7 +3449,7 @@ def build_html(
     return Math.min(Math.max(num, min), max);
   };
   const DEFAULT_MAX_PR_PAGES = clampInt(CLIENT_CONFIG.maxPrPages, 0, 200, 0);
-  const DEFAULT_MAX_FILE_PAGES = clampInt(CLIENT_CONFIG.maxFilePages, 0, 200, 10);
+  const DEFAULT_MAX_FILE_PAGES = clampInt(CLIENT_CONFIG.maxFilePages, 0, 200, 1);
   const loadFetchTuning = () => {
     try {
       const raw = localStorage.getItem(FETCH_TUNING_KEY);
@@ -3758,6 +3760,7 @@ def build_html(
       };
       saveClientConfig(clientConfigState);
       applyClientConfig();
+      closeFetch();
       refreshFromApi();
     });
   }
