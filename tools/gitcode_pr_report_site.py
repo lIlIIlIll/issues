@@ -2417,8 +2417,7 @@ def build_html(
     html_parts.append("<div class='filter-actions'>")
     html_parts.append(
         "<select id='fetch-mode-select' class='filter-select' style='min-width:220px'>"
-        "<option value='none' selected>抓取范围：不限制</option>"
-        "<option value='api'>抓取范围：API 过滤 + 日期内详情</option>"
+        "<option value='api' selected>抓取范围：API 过滤 + 日期内详情</option>"
         "</select>"
     )
     html_parts.append(
@@ -3180,7 +3179,7 @@ def build_html(
   } catch (e) {}
   const FETCH_MODE_KEY = 'pr_report_fetch_mode_v1';
   const normalizeFetchMode = (val) =>
-    ['none', 'api'].includes(val) ? val : 'none';
+    ['api'].includes(val) ? val : 'api';
   if (fetchModeSelect) {
     const saved = normalizeFetchMode(localStorage.getItem(FETCH_MODE_KEY) || '');
     fetchModeSelect.value = saved;
