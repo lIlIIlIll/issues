@@ -2463,6 +2463,12 @@ def build_html(
         "</select>"
     )
     html_parts.append(
+        "<select id='fetch-user-mode' class='filter-select' style='min-width:180px'>"
+        "<option value='users' selected>抓取对象：用户</option>"
+        "<option value='groups'>抓取对象：用户组</option>"
+        "</select>"
+    )
+    html_parts.append(
         "<div class='fetch-state-box'>"
         "<span class='fetch-state-title'>抓取状态</span>"
         "<label class='filter-label'>"
@@ -2509,6 +2515,21 @@ def build_html(
     html_parts.append(
         "<button type='button' class='filter-chip-btn secondary' id='fetch-date-clear'>清空抓取日期</button>"
     )
+    html_parts.append("</div>")
+    html_parts.append("<div class='filter-group' id='fetch-group-group'>")
+    html_parts.append("<h3>抓取用户组 <span>(多选)</span></h3>")
+    html_parts.append(
+        "<div class='filter-hint'>仅在“抓取对象：用户组”时生效。</div>"
+    )
+    html_parts.append("<div class='filter-user-actions'>")
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn' id='fetch-group-all'>全选</button>"
+    )
+    html_parts.append(
+        "<button type='button' class='filter-chip-btn' id='fetch-group-none'>全不选</button>"
+    )
+    html_parts.append("</div>")
+    html_parts.append("<div class='filter-user-list' id='fetch-group-list'></div>")
     html_parts.append("</div>")
     html_parts.append("</div>")
     html_parts.append(
@@ -3123,6 +3144,7 @@ def build_html(
   const tokenStatus = document.getElementById('token-status');
   const refreshStatus = document.getElementById('refresh-status');
   const fetchModeSelect = document.getElementById('fetch-mode-select');
+  const fetchUserModeSelect = document.getElementById('fetch-user-mode');
   const refreshBtn = document.getElementById('refresh-data');
   const statTotalMini = document.getElementById('stat-total-mini');
   const statOpenMini = document.getElementById('stat-open-mini');
@@ -3130,6 +3152,11 @@ def build_html(
   const statUnresolvedMini = document.getElementById('stat-unresolved-mini');
   const refreshStamp = document.getElementById('refresh-stamp');
   const fetchStateChecks = Array.from(document.querySelectorAll('.fetch-state-checkbox'));
+  let fetchGroupChecks = [];
+  const fetchGroupContainer = document.getElementById('fetch-group-group');
+  const fetchGroupList = document.getElementById('fetch-group-list');
+  const fetchGroupAllBtn = document.getElementById('fetch-group-all');
+  const fetchGroupNoneBtn = document.getElementById('fetch-group-none');
   const stateChecks = Array.from(document.querySelectorAll('.filter-state-checkbox'));
   const commentChecks = Array.from(document.querySelectorAll('.filter-comment-checkbox'));
   let issueLabelChecks = Array.from(document.querySelectorAll('.filter-issue-label-checkbox'));
@@ -3247,6 +3274,28 @@ def build_html(
       try { localStorage.setItem(FETCH_MODE_KEY, v); } catch (e) {}
     });
   }
+  const FETCH_USER_MODE_KEY = 'pr_report_fetch_user_mode_v1';
+  const normalizeFetchUserMode = (val) =>
+    (val === 'groups' ? 'groups' : 'users');
+  let fetchUserMode = normalizeFetchUserMode(localStorage.getItem(FETCH_USER_MODE_KEY) || '');
+  const updateFetchUserModeUi = () => {
+    if (fetchUserModeSelect) fetchUserModeSelect.value = fetchUserMode;
+    if (configUsers) configUsers.disabled = fetchUserMode === 'groups';
+    if (fetchGroupContainer) {
+      fetchGroupContainer.style.display = fetchUserMode === 'groups' ? '' : 'none';
+    }
+  };
+  const setFetchUserMode = (val) => {
+    fetchUserMode = normalizeFetchUserMode(val);
+    try { localStorage.setItem(FETCH_USER_MODE_KEY, fetchUserMode); } catch (e) {}
+    updateFetchUserModeUi();
+  };
+  if (fetchUserModeSelect) {
+    fetchUserModeSelect.addEventListener('change', () => {
+      setFetchUserMode(fetchUserModeSelect.value || '');
+    });
+  }
+  updateFetchUserModeUi();
   const FETCH_STATE_KEY = 'pr_report_fetch_state_v1';
   const normalizeFetchStates = (input) => {
     const allowed = new Set(['open', 'merged', 'closed', 'all', 'locked']);
@@ -3632,6 +3681,64 @@ def build_html(
     if (!repos) return '';
     return (repos || []).join('\\n');
   };
+  const FETCH_GROUP_KEY = 'pr_report_fetch_groups_v1';
+  const loadFetchGroups = () => {
+    try {
+      const raw = localStorage.getItem(FETCH_GROUP_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.map((v) => (v || '').toString()) : [];
+    } catch (e) {
+      return [];
+    }
+  };
+  const saveFetchGroups = (groups) => {
+    try {
+      const list = Array.isArray(groups) ? groups : [];
+      localStorage.setItem(FETCH_GROUP_KEY, JSON.stringify(list));
+    } catch (e) {}
+  };
+  const getSelectedFetchGroups = () => {
+    if (!fetchGroupChecks.length) return [];
+    return fetchGroupChecks.filter((c) => c.checked).map((c) => c.value || '');
+  };
+  const renderFetchGroupOptions = (groups) => {
+    if (!fetchGroupList) return;
+    fetchGroupList.innerHTML = '';
+    const names = Object.keys(groups || {});
+    if (!names.length) {
+      fetchGroupList.innerHTML = "<div class='empty-text'>未配置用户组</div>";
+      fetchGroupChecks = [];
+      return;
+    }
+    const saved = loadFetchGroups();
+    const savedSet = saved.length ? new Set(saved) : null;
+    const hasSaved = savedSet ? names.some((n) => savedSet.has(n)) : false;
+    names.forEach((name) => {
+      const label = document.createElement('label');
+      label.className = 'filter-user-item';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.className = 'fetch-group-checkbox';
+      input.value = name;
+      input.checked = hasSaved ? savedSet.has(name) : true;
+      input.addEventListener('change', () => {
+        saveFetchGroups(getSelectedFetchGroups());
+      });
+      label.appendChild(input);
+      label.append(` ${name}`);
+      const members = groups[name] || [];
+      if (members.length) {
+        const span = document.createElement('span');
+        span.className = 'group-members';
+        span.textContent = ` ( ${members.join(', ')} )`;
+        label.appendChild(span);
+      }
+      fetchGroupList.appendChild(label);
+    });
+    fetchGroupChecks = Array.from(fetchGroupList.querySelectorAll('.fetch-group-checkbox'));
+    if (!hasSaved) saveFetchGroups(getSelectedFetchGroups());
+  };
   const loadClientConfig = () => {
     try {
       const raw = localStorage.getItem(CLIENT_CFG_KEY);
@@ -3713,6 +3820,26 @@ def build_html(
     }
     return Array.isArray(CLIENT_CONFIG.repos) ? CLIENT_CONFIG.repos : [];
   };
+  const getFetchUsers = () => {
+    if (fetchUserMode !== 'groups') {
+      return getEffectiveUsers();
+    }
+    const groups = getEffectiveGroups();
+    const selected = new Set(getSelectedFetchGroups());
+    if (!selected.size) return [];
+    const users = [];
+    const seen = new Set();
+    Object.entries(groups || {}).forEach(([name, members]) => {
+      if (!selected.has(name)) return;
+      (members || []).forEach((user) => {
+        const trimmed = (user || '').trim();
+        if (!trimmed || seen.has(trimmed)) return;
+        seen.add(trimmed);
+        users.push(trimmed);
+      });
+    });
+    return users;
+  };
   const renderUserGroupFilters = (users, groups) => {
     if (userList) {
       userList.innerHTML = '';
@@ -3779,9 +3906,26 @@ def build_html(
       );
     }
     renderUserGroupFilters(users, groups);
+    renderFetchGroupOptions(groups);
     bindUserGroupListeners();
   };
   applyClientConfig();
+  if (fetchGroupAllBtn) {
+    fetchGroupAllBtn.addEventListener('click', () => {
+      fetchGroupChecks.forEach((c) => {
+        c.checked = true;
+      });
+      saveFetchGroups(getSelectedFetchGroups());
+    });
+  }
+  if (fetchGroupNoneBtn) {
+    fetchGroupNoneBtn.addEventListener('click', () => {
+      fetchGroupChecks.forEach((c) => {
+        c.checked = false;
+      });
+      saveFetchGroups(getSelectedFetchGroups());
+    });
+  }
   if (configGroupsApplyBtn) {
     configGroupsApplyBtn.addEventListener('click', () => {
       const groups = parseGroups(configGroups ? configGroups.value : '');
@@ -6193,7 +6337,7 @@ def build_html(
   const fetchAllData = async (token, onProgress, fetchMode, fetchRange, fetchStates) => {
     const data = {};
     const repos = getEffectiveRepos();
-    const users = getEffectiveUsers();
+    const users = getFetchUsers();
     logInfo('开始拉取', {
       repos: repos.length,
       users: users.length,
@@ -6262,6 +6406,7 @@ def build_html(
     const fetchMode = normalizeFetchMode(fetchModeSelect?.value || '');
     const fetchRange = buildFetchRange();
     const fetchStates = getFetchStates();
+    const fetchGroups = fetchUserMode === 'groups' ? getSelectedFetchGroups() : [];
     if (!fetchStates.length) {
       setRefreshStatus('未选择抓取状态', 'error');
       alert('请至少选择一个抓取状态（open / merged）');
@@ -6271,9 +6416,20 @@ def build_html(
       }
       return;
     }
+    if (fetchUserMode === 'groups' && !fetchGroups.length) {
+      setRefreshStatus('未选择抓取用户组', 'error');
+      alert('请至少选择一个抓取用户组');
+      if (refreshBtn) {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = btnLabel || '刷新数据';
+      }
+      return;
+    }
     setRefreshStatus('正在拉取数据...', 'ok');
     logInfo('刷新开始', {
       fetchMode,
+      fetchUserMode,
+      fetchGroups,
       fetchField: fetchRange.field,
       fetchStates,
       fetchStart: fetchRange.start,
