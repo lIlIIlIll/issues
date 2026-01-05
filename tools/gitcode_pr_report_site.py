@@ -33,7 +33,7 @@ except ImportError:
 
 
 BASE_URL = "https://api.gitcode.com/api/v5"
-CODE_STAT_SUFFIXES = {".cj", ".c", ".cpp", ".h", ".md"}
+CODE_STAT_SUFFIXES = {".cj", ".c", ".cpp", ".h", ".md", ".py"}
 
 
 # ----------------- 数据结构 -----------------
@@ -53,7 +53,7 @@ class Config:
     users: List[str]
     groups: Dict[str, List[str]]
     repos: List[RepoConfig]
-    code_stats: bool = True
+    code_stats: bool = False
     max_pr_pages: Optional[int] = None
     max_file_pages: Optional[int] = None
 
@@ -185,8 +185,8 @@ def load_config(path: str) -> Config:
     if global_per_page < 1 or global_per_page > 100:
         global_per_page = 30
 
-    code_stats_raw = data.get("code_stats", True)
-    code_stats = bool(code_stats_raw) if isinstance(code_stats_raw, bool) else True
+    code_stats_raw = data.get("code_stats", False)
+    code_stats = bool(code_stats_raw) if isinstance(code_stats_raw, bool) else False
 
     max_pr_pages = _normalize_max_pages(data.get("max_pr_pages"), None)
     max_file_pages = _normalize_max_pages(data.get("max_file_pages"), 1)
@@ -446,12 +446,12 @@ def fetch_files_for_pr(
                 continue
             seen_items.add(key)
             new_items += 1
-            ext = _ext_from_filename(name)
-            if ext not in CODE_STAT_SUFFIXES:
-                continue
             total_add += add
             total_del += dele
             total_files += 1
+            ext = _ext_from_filename(name)
+            if ext not in CODE_STAT_SUFFIXES:
+                continue
             bucket = stats.setdefault(ext, {"additions": 0, "deletions": 0, "files": 0})
             bucket["additions"] += add
             bucket["deletions"] += dele
@@ -2429,6 +2429,20 @@ def build_html(
     html_parts.append("</div>")  # dropdown
     html_parts.append("</div>")  # filter-group 用户/组
     html_parts.append("</div>")  # filter-bar
+    html_parts.append(
+        "<details class='config-panel' id='group-config-panel'>"
+        "<summary>用户组设置</summary>"
+        "<div class='config-body'>"
+        "<label class='config-label'>用户组（格式：组名: user1, user2）</label>"
+        "<textarea id='config-groups' class='config-textarea' rows='4' placeholder='teamA: alice, bob'></textarea>"
+        "<div class='config-actions'>"
+        "<button type='button' class='filter-chip-btn secondary' id='config-groups-apply'>保存用户组</button>"
+        "<button type='button' class='filter-chip-btn' id='config-groups-reset'>恢复默认</button>"
+        "</div>"
+        "<div class='config-hint'>仅影响页面上的用户组筛选，设置保存在浏览器本地。</div>"
+        "</div>"
+        "</details>"
+    )
     html_parts.append("</div>")  # settings-body
     html_parts.append("</div>")  # settings-panel
     html_parts.append("</div>")  # settings-modal
@@ -2499,12 +2513,10 @@ def build_html(
     html_parts.append("</div>")
     html_parts.append(
         "<details class='config-panel' id='client-config-panel'>"
-        "<summary>用户 / 用户组 / 仓库</summary>"
+        "<summary>用户 / 仓库</summary>"
         "<div class='config-body'>"
         "<label class='config-label'>用户（每行一个）</label>"
         "<textarea id='config-users' class='config-textarea' rows='4' placeholder='alice\\nbob'></textarea>"
-        "<label class='config-label'>用户组（格式：组名: user1, user2）</label>"
-        "<textarea id='config-groups' class='config-textarea' rows='4' placeholder='teamA: alice, bob'></textarea>"
         "<label class='config-label'>仓库（每行 owner/repo）</label>"
         "<textarea id='config-repos' class='config-textarea' rows='3' placeholder='cangjie/cangjie_runtime'></textarea>"
         "<div class='config-actions'>"
@@ -2527,6 +2539,9 @@ def build_html(
         "<label class='config-label'>详情并发（单用户 PR 详情）</label>"
         "<input type='number' id='config-detail-concurrency' class='filter-text' "
         "min='1' max='10' step='1' placeholder='3' style='min-width:140px' />"
+        "<label class='filter-label'>"
+        "<input type='checkbox' id='config-code-stats' /> 抓取代码量（文件增删行）"
+        "</label>"
         "<label class='config-label'>PR 列表最大抓取页数（0 表示不限制）</label>"
         "<input type='number' id='config-max-pr-pages' class='filter-text' "
         "min='0' step='1' placeholder='0' style='min-width:140px' />"
@@ -3037,8 +3052,8 @@ def build_html(
     html_parts.append(
         "<table class='list-table' id='code-table'>"
         "<thead><tr>"
-        "<th>用户</th><th>PR 数</th><th>检视意见</th><th>缺陷密度/千行</th><th>新增</th><th>删除</th><th>文件</th>"
-        "<th>cj</th><th>c/cpp</th><th>h</th><th>md</th>"
+        "<th>用户</th><th>PR 数</th><th>检视意见</th><th>检视密度/千行</th><th>新增</th><th>删除</th><th>文件</th>"
+        "<th>cj</th><th>c/cpp</th><th>h</th><th>py</th><th>md</th>"
         "</tr></thead>"
         "<tbody></tbody>"
         "</table>"
@@ -3146,9 +3161,12 @@ def build_html(
   const configRepos = document.getElementById('config-repos');
   const configApplyBtn = document.getElementById('config-apply');
   const configResetBtn = document.getElementById('config-reset');
+  const configGroupsApplyBtn = document.getElementById('config-groups-apply');
+  const configGroupsResetBtn = document.getElementById('config-groups-reset');
   const tuningIntervalInput = document.getElementById('config-request-interval');
   const tuningRepoInput = document.getElementById('config-repo-concurrency');
   const tuningDetailInput = document.getElementById('config-detail-concurrency');
+  const tuningCodeStatsInput = document.getElementById('config-code-stats');
   const tuningMaxPrInput = document.getElementById('config-max-pr-pages');
   const tuningMaxFileInput = document.getElementById('config-max-file-pages');
   const tuningApplyBtn = document.getElementById('config-tuning-apply');
@@ -3182,7 +3200,6 @@ def build_html(
   const TOKEN_KEY = 'gitcode_api_token_v1';
   const API_BASE_URL = CLIENT_CONFIG.baseUrl || 'https://api.gitcode.com/api/v5';
   const ALLOWED_PR_TYPES = new Set(CLIENT_CONFIG.allowedPrTypes || []);
-  const CODE_STATS_ENABLED = CLIENT_CONFIG.codeStatsEnabled !== false;
   const CODE_STAT_SUFFIXES = new Set(
     (CLIENT_CONFIG.codeStatSuffixes || []).map((s) => (s || '').toLowerCase())
   );
@@ -3190,6 +3207,7 @@ def build_html(
     { label: 'cj', exts: ['.cj'] },
     { label: 'c/cpp', exts: ['.c', '.cpp'] },
     { label: 'h', exts: ['.h'] },
+    { label: 'py', exts: ['.py'] },
     { label: 'md', exts: ['.md'] },
   ];
   const DEFAULT_REQUEST_INTERVAL_MS = Math.max(
@@ -3203,6 +3221,7 @@ def build_html(
   let successStreak = 0;
   let repoConcurrency = DEFAULT_REPO_CONCURRENCY;
   let detailConcurrency = DEFAULT_DETAIL_CONCURRENCY;
+  let codeStatsEnabled = false;
   let maxPrPages = 0;
   let maxFilePages = 1;
   let groupMembers = __GROUP_MEMBERS__;
@@ -3448,6 +3467,17 @@ def build_html(
     if (Number.isNaN(num)) return fallback;
     return Math.min(Math.max(num, min), max);
   };
+  const normalizeBool = (raw, fallback) => {
+    if (typeof raw === 'boolean') return raw;
+    if (typeof raw === 'number') return raw !== 0;
+    if (typeof raw === 'string') {
+      const val = raw.trim().toLowerCase();
+      if (['1', 'true', 'yes', 'on'].includes(val)) return true;
+      if (['0', 'false', 'no', 'off'].includes(val)) return false;
+    }
+    return fallback;
+  };
+  const DEFAULT_CODE_STATS_ENABLED = normalizeBool(CLIENT_CONFIG.codeStatsEnabled, false);
   const DEFAULT_MAX_PR_PAGES = clampInt(CLIENT_CONFIG.maxPrPages, 0, 200, 0);
   const DEFAULT_MAX_FILE_PAGES = clampInt(CLIENT_CONFIG.maxFilePages, 0, 200, 1);
   const loadFetchTuning = () => {
@@ -3490,6 +3520,10 @@ def build_html(
         10,
         DEFAULT_DETAIL_CONCURRENCY
       ),
+      codeStatsEnabled: normalizeBool(
+        tuning?.codeStatsEnabled,
+        DEFAULT_CODE_STATS_ENABLED
+      ),
       maxPrPages: clampInt(
         tuning?.maxPrPages,
         0,
@@ -3507,6 +3541,7 @@ def build_html(
     requestIntervalMs = next.requestIntervalMs;
     repoConcurrency = next.repoConcurrency;
     detailConcurrency = next.detailConcurrency;
+    codeStatsEnabled = next.codeStatsEnabled;
     maxPrPages = next.maxPrPages;
     maxFilePages = next.maxFilePages;
     successStreak = 0;
@@ -3514,6 +3549,7 @@ def build_html(
       if (tuningIntervalInput) tuningIntervalInput.value = String(next.requestIntervalMs);
       if (tuningRepoInput) tuningRepoInput.value = String(next.repoConcurrency);
       if (tuningDetailInput) tuningDetailInput.value = String(next.detailConcurrency);
+      if (tuningCodeStatsInput) tuningCodeStatsInput.checked = !!next.codeStatsEnabled;
       if (tuningMaxPrInput) tuningMaxPrInput.value = String(next.maxPrPages);
       if (tuningMaxFileInput) tuningMaxFileInput.value = String(next.maxFilePages);
     }
@@ -3529,6 +3565,7 @@ def build_html(
         requestIntervalMs: tuningIntervalInput?.value,
         repoConcurrency: tuningRepoInput?.value,
         detailConcurrency: tuningDetailInput?.value,
+        codeStatsEnabled: tuningCodeStatsInput?.checked,
         maxPrPages: tuningMaxPrInput?.value,
         maxFilePages: tuningMaxFileInput?.value,
       };
@@ -3745,17 +3782,66 @@ def build_html(
     bindUserGroupListeners();
   };
   applyClientConfig();
+  if (configGroupsApplyBtn) {
+    configGroupsApplyBtn.addEventListener('click', () => {
+      const groups = parseGroups(configGroups ? configGroups.value : '');
+      const prevUsers = clientConfigState?.users || [];
+      const prevRepos = clientConfigState?.repos || [];
+      const prevUsersSet = clientConfigState?.usersSet === true;
+      const prevReposSet = clientConfigState?.reposSet === true;
+      clientConfigState = {
+        users: prevUsers,
+        groups,
+        repos: prevRepos,
+        usersSet: prevUsersSet,
+        groupsSet: true,
+        reposSet: prevReposSet,
+      };
+      saveClientConfig(clientConfigState);
+      applyClientConfig();
+      wrappedApply();
+    });
+  }
+  if (configGroupsResetBtn) {
+    configGroupsResetBtn.addEventListener('click', () => {
+      const prevUsers = clientConfigState?.users || [];
+      const prevRepos = clientConfigState?.repos || [];
+      const prevUsersSet = clientConfigState?.usersSet === true;
+      const prevReposSet = clientConfigState?.reposSet === true;
+      clientConfigState = {
+        users: prevUsers,
+        groups: {},
+        repos: prevRepos,
+        usersSet: prevUsersSet,
+        groupsSet: false,
+        reposSet: prevReposSet,
+      };
+      saveClientConfig(clientConfigState);
+      applyClientConfig();
+      wrappedApply();
+    });
+  }
   if (configApplyBtn) {
     configApplyBtn.addEventListener('click', () => {
       const users = normalizeUsers(configUsers ? configUsers.value : '');
-      const groups = parseGroups(configGroups ? configGroups.value : '');
       const repos = normalizeRepos(configRepos ? configRepos.value : '');
+      const prevGroups = clientConfigState?.groups || {};
+      const prevGroupsSet = clientConfigState?.groupsSet === true;
+      const tuning = {
+        requestIntervalMs: tuningIntervalInput?.value,
+        repoConcurrency: tuningRepoInput?.value,
+        detailConcurrency: tuningDetailInput?.value,
+        codeStatsEnabled: tuningCodeStatsInput?.checked,
+        maxPrPages: tuningMaxPrInput?.value,
+        maxFilePages: tuningMaxFileInput?.value,
+      };
+      applyFetchTuning(tuning, { persist: false, updateUi: false });
       clientConfigState = {
         users,
-        groups,
+        groups: prevGroups,
         repos,
         usersSet: true,
-        groupsSet: true,
+        groupsSet: prevGroupsSet,
         reposSet: true,
       };
       saveClientConfig(clientConfigState);
@@ -3766,15 +3852,17 @@ def build_html(
   }
   if (configResetBtn) {
     configResetBtn.addEventListener('click', () => {
+      const prevGroups = clientConfigState?.groups || {};
+      const prevGroupsSet = clientConfigState?.groupsSet === true;
       clientConfigState = {
         users: [],
-        groups: {},
+        groups: prevGroups,
         repos: [],
         usersSet: false,
-        groupsSet: false,
+        groupsSet: prevGroupsSet,
         reposSet: false,
       };
-      saveClientConfig(null);
+      saveClientConfig(clientConfigState);
       applyClientConfig();
       refreshFromApi();
     });
@@ -3967,7 +4055,6 @@ def build_html(
         card.querySelectorAll('.review-item[data-is-reply="0"]')
       );
       items.forEach((it) => {
-        if (it.style.display === 'none') return;
         if (!isCommentInRange(it, dateRange)) return;
         const user = (it.dataset.user || '').trim();
         const resolved = it.dataset.resolved === 'true';
@@ -4169,7 +4256,6 @@ def build_html(
         card.querySelectorAll('.review-item[data-is-reply="0"]')
       );
       items.forEach((it) => {
-        if (it.style.display === 'none') return;
         if (!isCommentInRange(it, dateRange)) return;
         const reviewer = (it.dataset.user || '').trim() || '(unknown)';
         const resolved = it.dataset.resolved === 'true';
@@ -4554,7 +4640,7 @@ def build_html(
         table.className = 'list-table detail-table';
         const thead = document.createElement('thead');
         thead.innerHTML =
-          '<tr><th>PR</th><th>检视意见</th><th>缺陷密度/千行</th><th>新增</th><th>删除</th><th>文件</th><th>后缀</th></tr>';
+          '<tr><th>PR</th><th>检视意见</th><th>检视密度/千行</th><th>新增</th><th>删除</th><th>文件</th><th>后缀</th></tr>';
         const tbody = document.createElement('tbody');
         sorted.forEach((it) => {
           const tr = document.createElement('tr');
@@ -4946,8 +5032,6 @@ def build_html(
           it.dataset._visible = '0';
         }
       });
-      const keywordAllowed = !hasKeyword || keywordMatchedReviews.length > 0;
-
       const shouldHidePr =
         !stateAllowed ||
         !commentAllowed ||
@@ -4955,7 +5039,6 @@ def build_html(
         !issueAllowed ||
         !typeAllowed ||
         !targetAllowed ||
-        !keywordAllowed ||
         (hideClean && state !== 'open' && !hasUnresolved);
       card.style.display = shouldHidePr ? 'none' : '';
 
@@ -6035,11 +6118,11 @@ def build_html(
         if (seenItems.has(key)) return;
         seenItems.add(key);
         newItems += 1;
-        const ext = extFromFilename(name);
-        if (!CODE_STAT_SUFFIXES.has(ext)) return;
         totalAdd += add;
         totalDel += del;
         totalFiles += 1;
+        const ext = extFromFilename(name);
+        if (!CODE_STAT_SUFFIXES.has(ext)) return;
         const bucket = stats[ext] || { additions: 0, deletions: 0, files: 0 };
         bucket.additions += add;
         bucket.deletions += del;
@@ -6076,13 +6159,13 @@ def build_html(
           fetchCommentsForPr(repoCfg, pr.number, token),
           fetchIssuesForPr(repoCfg, pr.number, token),
         ];
-        if (CODE_STATS_ENABLED) {
+        if (codeStatsEnabled) {
           detailTasks.push(fetchFilesForPr(repoCfg, pr.number, token));
         }
         const results = await Promise.all(detailTasks);
         const comments = results[0] || [];
         const issues = results[1] || [];
-        const fileStats = CODE_STATS_ENABLED
+        const fileStats = codeStatsEnabled
           ? (results[2] || { additions: null, deletions: null, changed_files: null, file_stats: {} })
           : { additions: null, deletions: null, changed_files: null, file_stats: {} };
         pr.comments = comments || [];
@@ -6114,7 +6197,7 @@ def build_html(
     logInfo('开始拉取', {
       repos: repos.length,
       users: users.length,
-      codeStats: CODE_STATS_ENABLED,
+      codeStats: codeStatsEnabled,
       fetchMode,
       fetchStates,
       requestIntervalMs,
